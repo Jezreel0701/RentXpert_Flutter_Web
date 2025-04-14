@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'User_Management.dart'; // Replace this with separate files if needed
+import 'User_ManagementTenant.dart';
+import 'User_ManagementLandlord.dart';
 import 'Dashboard_Screen.dart';
 import 'Properties_Management.dart';
 import 'Analytics_Managenent.dart';
@@ -58,18 +59,18 @@ class _MainScreenState extends State<MainScreen> {
                   SizedBox(
                     width: 120, // Adjust the width here
                     height: 50, // Adjust the height here
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF4A758F),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                      },
-                      child: const Text(
-                          'Cancel',
-                          style: TextStyle(color: Colors.white),
-                      ),
-                    ),
+                    // child: ElevatedButton(
+                    //   style: ElevatedButton.styleFrom(
+                    //     backgroundColor: Color(0xFF4A758F),
+                    //   ),
+                    //   onPressed: () {
+                    //     Navigator.of(context).pop(); // Close the dialog
+                    //   },
+                    //   child: const Text(
+                    //       'Cancel',
+                    //       style: TextStyle(color: Colors.white),
+                    //   ),
+                    // ),
                   ),
                   SizedBox(
                     width: 120, // Adjust the width here
@@ -80,9 +81,13 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       onPressed: () {
                         Navigator.of(context).pop(); // Close the dialog
-                        setState(() {
-                          _selectedIndex = 6; // Navigate to logout screen
-                        });
+                        // setState(() {
+                        //   _selectedIndex = 6; // Navigate to logout screen
+                        // });
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => Login()),
+                        );
                       },
                       child: const Text(
                           'Log Out',
@@ -100,12 +105,12 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     DashboardScreen(),
-    UserManagementScreen(), // Tenant
-    UserManagementScreen(), // Landlord (can use different screen)
+    UserManagementTenant(), // Tenant
+    UserManagementLandlord(), // Landlord (can use different screen)
     PropertiesManagementScreen(),
     AnalyticsScreen(),
     SettingsScreen(),
-    Login(),
+    //Login(),
   ];
 
   @override
@@ -310,11 +315,13 @@ class _MainScreenState extends State<MainScreen> {
                     }),
                     child: Container(
                       alignment: Alignment.centerLeft,
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.symmetric(vertical: 2),
                       child: Text(
                         "Tenant",
                         style: TextStyle(
-                          color: isHoveredTenant ? Color(0xFFF9E9B6) : Colors.white70,
+                          color: (_selectedIndex == 1 || isHoveredTenant)
+                              ? Color(0xFFF9E9B6)
+                              : Colors.white70,
                           fontSize: 12,
                         ),
                       ),
@@ -331,11 +338,13 @@ class _MainScreenState extends State<MainScreen> {
                     }),
                     child: Container(
                       alignment: Alignment.centerLeft,
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.symmetric(vertical: 2),
                       child: Text(
                         "Landlord",
                         style: TextStyle(
-                          color: isHoveredLandlord ? Color(0xFFF9E9B6) : Colors.white70,
+                          color: (_selectedIndex == 2 || isHoveredLandlord)
+                              ? Color(0xFFF9E9B6)
+                              : Colors.white70,
                           fontSize: 12,
                         ),
                       ),

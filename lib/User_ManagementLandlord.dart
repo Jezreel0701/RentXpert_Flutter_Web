@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class UserManagementScreen extends StatefulWidget {
+class UserManagementLandlord extends StatefulWidget {
   @override
   _UserManagementScreenState createState() => _UserManagementScreenState();
 }
 
-class _UserManagementScreenState extends State<UserManagementScreen> {
+class _UserManagementScreenState extends State<UserManagementLandlord> {
   List<Map<String, dynamic>> userData = [];
   bool isLoading = true;
 
@@ -59,7 +59,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "User Management",
+                  "User Management: Landlord",
                   style: TextStyle(
                     fontSize: 45,
                     fontFamily: "Inter",

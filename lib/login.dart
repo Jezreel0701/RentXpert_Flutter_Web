@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rentxpert_flutter_web/Main_Screen.dart'; // Import your AdminWeb class
 
 class Login extends StatefulWidget {
   @override
@@ -178,7 +179,12 @@ class _LoginState extends State<Login> {
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.3,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => MainScreen()),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 50),
                           backgroundColor: const Color(0xFF4A758F),
@@ -225,16 +231,16 @@ class _LoginState extends State<Login> {
                 children: [
                   Image.asset(
                     'assets/images/white_logo.png',
-                    width: MediaQuery.of(context).size.width * 0.3,
-                    height: MediaQuery.of(context).size.width * 0.3,
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    height: MediaQuery.of(context).size.width * 0.2,
                   ),
                   const SizedBox(height: 20),
                   const Text(
                     "\"RentXpert : Connecting You to \n   Comfort and Convenience.\"",
                     style: TextStyle(
                       color: Colors.white,
-                      fontFamily: "Krub-Light",
-                      fontSize: 25,
+                      fontFamily: "Krub",
+                      fontSize: 20,
                       fontWeight: FontWeight.w300,
                     ),
                     textAlign: TextAlign.center,
