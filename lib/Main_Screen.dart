@@ -49,8 +49,8 @@ class _MainScreenState extends State<MainScreen> {
                 'Are you sure you want to log out?',
                 style: TextStyle(
                     fontSize: 20,
-                    fontFamily: "Krub-Regular",
-                    fontWeight: FontWeight.w500),
+                    fontFamily: "Krub",
+                    fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),
               Row(
@@ -59,25 +59,27 @@ class _MainScreenState extends State<MainScreen> {
                   SizedBox(
                     width: 120, // Adjust the width here
                     height: 50, // Adjust the height here
-                    // child: ElevatedButton(
-                    //   style: ElevatedButton.styleFrom(
-                    //     backgroundColor: Color(0xFF4A758F),
-                    //   ),
-                    //   onPressed: () {
-                    //     Navigator.of(context).pop(); // Close the dialog
-                    //   },
-                    //   child: const Text(
-                    //       'Cancel',
-                    //       style: TextStyle(color: Colors.white),
-                    //   ),
-                    // ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 4,
+                        backgroundColor: Color(0xFF4A758F),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
+                      child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.white),
+                      ),
+                    ),
                   ),
                   SizedBox(
                     width: 120, // Adjust the width here
                     height: 50, // Adjust the height here
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        elevation: 4,
+                        backgroundColor: Color(0xFFDE5959),
                       ),
                       onPressed: () {
                         Navigator.of(context).pop(); // Close the dialog
@@ -110,7 +112,6 @@ class _MainScreenState extends State<MainScreen> {
     PropertiesManagementScreen(),
     AnalyticsScreen(),
     SettingsScreen(),
-    //Login(),
   ];
 
   @override

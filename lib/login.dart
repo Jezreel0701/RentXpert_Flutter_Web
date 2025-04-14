@@ -119,16 +119,16 @@ class _LoginState extends State<Login> {
                       child: const TextField(
                         obscureText: true,
                         decoration: InputDecoration(
-                          focusedBorder: OutlineInputBorder(
+                          focusedBorder: OutlineInputBorder( // border radius effect
                             borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
                           ),
-                          enabledBorder: OutlineInputBorder(
+                          enabledBorder: OutlineInputBorder( // border color
                             borderSide: BorderSide(color: Colors.grey, width: 1),
                             borderRadius: BorderRadius.all(Radius.circular(15)),
                           ),
                           labelText: '••••••',
                           labelStyle: TextStyle(  // Added labelStyle to change label text color
-                            color: Color(0xFF848484),  // This will change the label text color
+                            color: Color(0xFF848484),  //  label text color
                           ),
                           floatingLabelBehavior: FloatingLabelBehavior.never,
                         ),
