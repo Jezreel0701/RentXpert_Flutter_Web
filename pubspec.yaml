@@ -28,7 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-#  syncfusion_flutter_charts: any
+  fl_chart: ^0.63.0
   flutter:
     sdk: flutter
   http: ^1.3.0
@@ -73,6 +73,7 @@ flutter:
       - assets/images/person-home.png
       - assets/images/bank.png
       - assets/images/delete.png
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

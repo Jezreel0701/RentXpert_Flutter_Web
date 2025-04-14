@@ -245,9 +245,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(top: 50.0), // <-- Add top padding here
-                          child: _buildSidebarTile("Account", Icons.settings),
+                          child: _buildSidebarTile(
+                            "Account",
+                              Icons.verified_user
+                          ),
                         ),
-                        _buildSidebarTile("User Permission", Icons.info_outline),
+                        _buildSidebarTile(
+                          "User Permission",
+                          Icons.settings,
+
+                        ),
 
                       ],
                     ),
@@ -300,9 +307,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  //Side bar
   Widget _buildSidebarTile(String title, IconData icon) {
     bool isSelected = _selectedPage == title;
     bool isHovered = _hoveredPage == title;
+
+    // Get the screen width to determine when to switch between icon+text and just the icon
+    double screenWidth = MediaQuery.of(context).size.width;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hoveredPage = title),
@@ -323,18 +334,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              // Display image or icon
               Icon(icon, color: Colors.black87),
-              const SizedBox(width: 10),
-              Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              // For larger screens (width > 600), show the title
+              if (screenWidth > 600)
+                const SizedBox(width: 10),
+              // Show the title when the screen width is large, or on hover for small screens
+              if (screenWidth > 1100)
+                Flexible(
+                  child: Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              // For smaller screens, show the title only when hovered
+              if (screenWidth <= 600 && isHovered)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
             ],
           ),
         ),
       ),
     );
   }
+
+
+
 
 
   Widget _buildAccountPage() {
@@ -432,12 +463,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               //Delete Button
               Padding(
                 padding: const EdgeInsets.only(left: 24.0),
-                child: Row(
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
                   children: [
                     // Delete Button
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.12,
-                      height: MediaQuery.of(context).size.width * 0.03,
+                      width: 170,
+                      height: 43,
                       child: ElevatedButton(
                         onPressed: () {
                           _showDeleteConfirmationDialog();
@@ -461,12 +494,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
 
-                    const SizedBox(width: 16), // Space between buttons
-
                     // Save Button
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.12,
-                      height: MediaQuery.of(context).size.width * 0.03,
+                      width: 170,
+                      height: 43,
                       child: ElevatedButton(
                         onPressed: () {
                           _saveAccount();
@@ -492,6 +523,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
               ),
+
 
 
             ],
