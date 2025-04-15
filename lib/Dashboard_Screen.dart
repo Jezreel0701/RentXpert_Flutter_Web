@@ -106,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _dashboardBox(
                     context,
                     'assets/images/person.png',
-                    allUserCount?.toString() ?? "Loading...",
+                    allUserCount?.toString() ?? "0",
                     "Registered\nUser",
                     "Total Users",
                     Color(0xFFD0D9DF),
@@ -114,7 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _dashboardBox(
                     context,
                     'assets/images/building.png',
-                    landlordCount?.toString() ?? "Loading...",
+                    landlordCount?.toString() ?? "0",
                     "Landlords",
                     " ",
                     Color(0xFFC5D9E6),
@@ -122,7 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _dashboardBox(
                     context,
                     'assets/images/person-home.png',
-                    tenantCount?.toString() ?? "Loading...",
+                    tenantCount?.toString() ?? "0",
                     "Tenants",
                     " ",
                     Color(0xFFB4C8D5),
@@ -130,7 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _dashboardBox(
                     context,
                     'assets/images/bank.png',
-                    apartmentCount?.toString() ?? "Loading...", // ✅ Now dynamic
+                    apartmentCount?.toString() ?? "0", // ✅ Now dynamic
                     "Available\nRents",
                     "Total Listed Properties",
                     Color(0xFF9BBFD8),

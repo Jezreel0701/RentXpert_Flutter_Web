@@ -53,102 +53,128 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
         padding: const EdgeInsets.all(20.0),
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
-            : LayoutBuilder(
-          builder: (context, constraints) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "User Management: Landlord",
-                  style: TextStyle(
-                    fontSize: 45,
-                    fontFamily: "Inter",
-                    color: Color(0xFF4F768E),
-                    fontWeight: FontWeight.w600,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: Container(
-                    width: constraints.maxWidth,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: const [
-                        BoxShadow(color: Colors.black26, blurRadius: 10)
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(16.0),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 40.0), // Add padding here
-                        child: Table(
-                          border: TableBorder.all(color: Colors.grey, width: 1),
-                          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                          children: [
-                            _tableHeaderRow(),
-                            ...userData.map((user) {
-                              return _tableDataRow([
-                                user['uid']?.toString() ?? '',
-                                user['fullname'] ?? '',
-                                user['email'] ?? '',
-                                user['phone_number'] ?? '',
-                                user['address'] ?? '',
-                                user['valid_id'] ?? '',
-                                user['account_status'] ?? '',
-                                user['user_type'] ?? '',
-                              ]);
-                            }).toList(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+            : Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "User Management: Landlord",
+              style: TextStyle(
+                fontSize: 45,
+                fontFamily: "Inter",
+                color: Color(0xFF4F768E),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildSearchBar(),
+            const SizedBox(height: 20),
+            Expanded(child: _buildUserTable()),
+          ],
         ),
       ),
     );
   }
 
-  TableRow _tableHeaderRow() {
-    final headers = [
-      'Uid',
-      'Name',
-      'Email',
-      'Phone Number',
-      'Address',
-      'Valid ID',
-      'Account Status',
-      'User Type'
-    ];
-    return TableRow(
-      decoration: BoxDecoration(color: Colors.grey[200]),
-      children: headers.map(_tableHeaderCell).toList(),
+  Widget _buildSearchBar() {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.filter_list, color: Color(0xFF4F768E)),
+            onPressed: () {
+              // TODO: Implement filter action
+            },
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: TextField(
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  // TODO: Clear search field
+                },
+              ),
+              hintText: 'Search...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+              fillColor: Colors.white,
+              filled: true,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _tableHeaderCell(String text) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Center(
-        child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+  Widget _buildUserTable() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 10),
+        ],
       ),
-    );
-  }
-
-  TableRow _tableDataRow(List<String> values) {
-    return TableRow(
-      children: values.map((value) {
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Center(child: Text(value)),
-        );
-      }).toList(),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Uid')),
+            DataColumn(label: Text('Name')),
+            DataColumn(label: Text('Email')),
+            DataColumn(label: Text('Phone Number')),
+            DataColumn(label: Text('Address')),
+            DataColumn(label: Text('Valid ID')),
+            DataColumn(label: Text('Pending')),
+            DataColumn(label: Text('User Type')),
+            DataColumn(label: Text('Customize')),
+          ],
+          rows: userData.map((user) {
+            return DataRow(cells: [
+              DataCell(Text(user['uid']?.toString() ?? '')),
+              DataCell(Text(user['fullname'] ?? '')),
+              DataCell(Text(user['email'] ?? '')),
+              DataCell(Text(user['phone_number'] ?? '')),
+              DataCell(Text(user['address'] ?? '')),
+              DataCell(Text(user['valid_id'] ?? '')),
+              DataCell(Text(user['account_status'] ?? '')),
+              DataCell(Text(user['user_type'] ?? '')),
+              DataCell(Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () {
+                      // TODO: Edit action
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.black),
+                    onPressed: () {
+                      // TODO: Delete action
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.more_horiz, color: Colors.grey),
+                    onPressed: () {
+                      // TODO: More action
+                    },
+                  ),
+                ],
+              )),
+            ]);
+          }).toList(),
+        ),
+      ),
     );
   }
 }
