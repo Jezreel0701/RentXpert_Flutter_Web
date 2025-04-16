@@ -10,7 +10,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int? allUserCount;
   int? landlordCount;
   int? tenantCount;
-  int? apartmentCount; // 🏠 New: Store apartment count
+  int? apartmentCount; // New: Store apartment count
 
   @override
   void initState() {
@@ -97,7 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             SizedBox(height: 30),
 
-            /// 🧱 Dashboard Statistic Boxes
+            // Dashboard Statistic Boxes
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -148,13 +148,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _dashboardBox(
       BuildContext context,
       String imageUrl,
-      String mainTitle,
+      String mainNumber,
       String smallLabel,
       String subtitle,
       Color bgColor,
       ) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    final isSmallScreen = screenWidth < 1300;
+    // Adjust font size based on screen width
+    final double countFontSize = isSmallScreen
+        ? screenWidth * 0.035  // bigger count on small screen
+        : screenWidth * 0.025; // regular size on wide screen
 
     return Expanded(
       child: Container(
@@ -172,59 +178,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
               imageUrl,
-              height: screenHeight * 0.06,
-              width: screenWidth * 0.06,
+              height: 60,
+              width: 60,
               fit: BoxFit.contain,
             ),
             SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          mainTitle,
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.03,
-                            color: Color(0xFF69769F),
-                            fontWeight: FontWeight.w600,
+            if (!isSmallScreen)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            mainNumber,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: countFontSize,
+                              color: Color(0xFF69769F),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          smallLabel,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF4D4B4B),
+                        SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            smallLabel,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF4D4B4B),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF4D4B4B),
-                      overflow: TextOverflow.ellipsis,
+                      ],
                     ),
+                    SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF4D4B4B),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+            // Only show count text when screen is small
+              Flexible(
+                child: Text(
+                  mainNumber,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.03,
+                    color: Color(0xFF69769F),
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
+                ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
+
+
 }
