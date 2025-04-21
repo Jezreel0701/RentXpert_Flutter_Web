@@ -511,7 +511,7 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
             ),
             const SizedBox(height: 12),
             Padding(
-              padding: const EdgeInsets.only(left: 210.0),
+              padding: const EdgeInsets.only(left: 500.0),
               child: Text(
                 'Users Growth report from $startYear to $endYear',
                 style: const TextStyle(
