@@ -126,15 +126,6 @@ class _MainScreenState extends State<MainScreen> {
                 ? Scaffold(
               appBar: AppBar(
                 backgroundColor: Color(0xFF4A758F),
-                title: Text(
-                  "Admin Web",
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontFamily: 'jsMath-cmbx10',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
                 leading: Builder(
                   builder: (context) => IconButton(
                     icon: Icon(Icons.menu),
