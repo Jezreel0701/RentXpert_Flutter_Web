@@ -328,25 +328,29 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
     }
   }
 
+  // Update the getSelectedYears method in _BarChartWithYearSelectorState
   List<String> getSelectedYears() {
-    final keys = widget.yearData.keys.toList()..sort();
-    if (keys.isEmpty) return [];
-    final s = int.parse(startYear), e = int.parse(endYear);
-    final m = s + ((e - s) ~/ 2);
-    final sel = [s, m, e].where((y) => y >= s && y <= e).map((y) => y.toString()).toList();
-    return sel.length == 3 ? sel : [startYear, endYear];
+    if (startYear.isEmpty || endYear.isEmpty) return [];
+    final start = int.parse(startYear);
+    final end = int.parse(endYear);
+    return List.generate(end - start + 1, (index) => (start + index).toString());
   }
 
+  // Update the build method in _BarChartWithYearSelectorState
   @override
   Widget build(BuildContext context) {
-    final allYears      = widget.yearData.keys.toList()..sort();
+    final allYears = widget.yearData.keys.toList()
+      ..sort();
     final selectedYears = getSelectedYears();
-    final selectedData  = selectedYears.map((y) => widget.yearData[y] ?? 0).toList();
+
+    // Get data for all years in range, default to 0 if no data
+    final selectedData = selectedYears.map((y) => widget.yearData[y] ?? 0.0)
+        .toList();
 
     // Compute Y-axis bounds
     final rawMax = selectedData.isEmpty ? 0 : selectedData.reduce(math.max);
-    final maxY   = (rawMax * 1.1).ceilToDouble();
-    final yInt   = (maxY / 5).ceilToDouble();
+    final maxY = (rawMax * 1.1).ceilToDouble();
+    final yInt = (maxY / 5).ceilToDouble();
 
     final barColors = [
       const Color(0xFFA0BACB),
@@ -354,6 +358,7 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
       const Color(0xFF848FB1),
     ];
 
+    // Create bar groups for all years in range
     final barGroups = List.generate(selectedData.length, (i) {
       return BarChartGroupData(
         x: i,
@@ -361,7 +366,7 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
           BarChartRodData(
             fromY: 0,
             toY: selectedData[i],
-            width: 70,
+            width: 30,
             color: barColors[i % barColors.length],
             borderRadius: BorderRadius.circular(4),
           ),
@@ -371,7 +376,10 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
 
     return Center(
       child: Container(
-        width: 600,
+        width: MediaQuery
+            .of(context)
+            .size
+            .width * 0.8,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -389,31 +397,111 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                 // Year selectors
                 Column(
                   children: [
-                    const Text("Start Year:",style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                    DropdownButton<String>(value: startYear,onChanged: (v) => setState(() => startYear = v!),items: allYears.map((y)=>DropdownMenuItem(value: y,child: Text(y))).toList(),),
+                    const Text("Start Year:", style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600)),
+                    DropdownButton<String>(
+                      value: startYear,
+                      onChanged: (v) => setState(() => startYear = v!),
+                      items: allYears
+                          .where((y) => int.parse(y) <= int.parse(endYear))
+                          .map((y) =>
+                          DropdownMenuItem(
+                            value: y,
+                            child: Text(y),
+                          ))
+                          .toList(),
+                    ),
                     const SizedBox(height: 10),
-                    const Text("End Year:",style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                    DropdownButton<String>(value: endYear,onChanged: (v) => setState(() => endYear = v!),items: allYears.map((y)=>DropdownMenuItem(value: y,child: Text(y))).toList(),),
+                    const Text("End Year:", style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600)),
+                    DropdownButton<String>(
+                      value: endYear,
+                      onChanged: (v) => setState(() => endYear = v!),
+                      items: allYears
+                          .where((y) => int.parse(y) >= int.parse(startYear))
+                          .map((y) =>
+                          DropdownMenuItem(
+                            value: y,
+                            child: Text(y),
+                          ))
+                          .toList(),
+                    ),
                   ],
                 ),
                 const SizedBox(width: 20),
-                // Bar chart wrapped in fixed height box
+                // Bar chart
                 Expanded(
                   child: SizedBox(
-                    height: 250, // prevents infinite height
+                    height: 250,
                     child: BarChart(
                       BarChartData(
+                        barTouchData: BarTouchData(
+                          enabled: true,
+                          touchTooltipData: BarTouchTooltipData(
+                            tooltipBgColor: Colors.blueGrey,
+                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                              final year = selectedYears[group.x.toInt()];
+                              final value = rod.toY;
+                              return BarTooltipItem(
+                                '$year\n${value.toInt()}',
+                                const TextStyle(color: Colors.white),
+                              );
+                            },
+                          ),
+                        ),
                         alignment: BarChartAlignment.spaceAround,
                         minY: 0,
                         maxY: maxY,
-                        gridData: FlGridData(show:true,drawVerticalLine:false,horizontalInterval:yInt,getDrawingHorizontalLine:(_)=>FlLine(color:Colors.grey.withOpacity(0.2),strokeWidth:1)),
-                        borderData: FlBorderData(show:false),
+                        groupsSpace: 20,
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: false,
+                          horizontalInterval: yInt,
+                          getDrawingHorizontalLine: (_) =>
+                              FlLine(
+                                color: Colors.grey.withOpacity(0.2),
+                                strokeWidth: 1,
+                              ),
+                        ),
+                        borderData: FlBorderData(show: false),
                         barGroups: barGroups,
                         titlesData: FlTitlesData(
-                          bottomTitles: AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:30,getTitlesWidget:(v,_) { final i=v.toInt(); if(i<0||i>=selectedYears.length) return const SizedBox(); return Text(selectedYears[i],style: const TextStyle(fontSize:12,fontWeight:FontWeight.w500)); })),
-                          leftTitles: AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:40,interval:yInt,getTitlesWidget:(v,_)=>Text(v.toInt().toString(),style:const TextStyle(fontSize:10)))),
-                          topTitles:AxisTitles(sideTitles:SideTitles(showTitles:false)),
-                          rightTitles:AxisTitles(sideTitles:SideTitles(showTitles:false)),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 30,
+                              getTitlesWidget: (value, meta) {
+                                final index = value.toInt();
+                                if (index < 0 ||
+                                    index >= selectedYears.length) {
+                                  return const SizedBox();
+                                }
+                                return Text(
+                                  selectedYears[index],
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 40,
+                              interval: yInt,
+                              getTitlesWidget: (value, meta) =>
+                                  Text(
+                                    value.toInt().toString(),
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
+                            ),
+                          ),
+                          topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false)),
+                          rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false)),
                         ),
                       ),
                     ),
@@ -421,15 +509,18 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                 ),
               ],
             ),
-            const SizedBox(height:12),
+            const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.only(left: 210.0),
-              child: const Text('Users Growth report per year',style:TextStyle(fontSize:12,fontWeight:FontWeight.w600)),
+              child: Text(
+                'Users Growth report from $startYear to $endYear',
+                style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w600),
+              ),
             )
-
           ],
         ),
       ),
     );
   }
-}
+  }
