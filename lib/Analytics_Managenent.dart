@@ -1,24 +1,77 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:rentxpert_flutter_web/service/api.dart'; // Your API service, YearCountService, YearCount
 
-class AnalyticsScreen extends StatelessWidget {
+class AnalyticsScreen extends StatefulWidget {
+  const AnalyticsScreen({Key? key}) : super(key: key);
+
+  @override
+  _AnalyticsScreenState createState() => _AnalyticsScreenState();
+}
+
+class _AnalyticsScreenState extends State<AnalyticsScreen> {
+  // Chart colors
   final landlordsColor = const Color(0xFF3D4C73);
-  final tenantsColor = const Color(0xFF8FA3B0);
+  final tenantsColor   = const Color(0xFF8FA3B0);
   final apartmentColor = const Color(0xFF4E62B3);
-  final dormColor = const Color(0xFF6D6D6D);
-  final boardingColor = const Color(0xFF60C2F0);
+  final dormColor      = const Color(0xFF6D6D6D);
+  final boardingColor  = const Color(0xFF60C2F0);
+  final transientColor = const Color(0xFF8FA3B0);
+
+  // Data
+  List<YearCount> yearCounts = [];
+  int? landlordCount;
+  int? tenantCount;
+  int? boardingHouseCount;
+  int? condoCount;
+  int? apartmentCount;
+  int? transientCount;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCounts();
+  }
+
+  Future<void> fetchCounts() async {
+    final l = await ApiService.fetchUserCount('Landlord');
+    final t = await ApiService.fetchUserCount('Tenant');
+    final a = await PropertyTypeApiService.fetchApartmentCount();
+    final b = await PropertyTypeApiService.fetchBoardingHouseCount();
+    final c = await PropertyTypeApiService.fetchCondoCount();
+    final tr = await PropertyTypeApiService.fetchTransientCount();
+    await YearCountService().fetchYearCounts();
+    setState(() {
+      landlordCount      = l;
+      tenantCount        = t;
+      apartmentCount     = a;
+      boardingHouseCount = b;
+      condoCount         = c;
+      transientCount     = tr;
+      yearCounts         = YearCountService().yearCounts;
+      isLoading          = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final yearData = {
+      for (var yc in yearCounts) yc.year.toString(): yc.count.toDouble()
+    };
+
     return Scaffold(
       backgroundColor: const Color(0xFFF3F5F9),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24),
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 "Reports & Analytics",
                 style: TextStyle(
                   fontSize: 45,
@@ -29,13 +82,12 @@ class AnalyticsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: _buildPieChart(
                       "Total Users",
                       ["Landlords", "Tenants"],
-                      [159.59, 118.37],
+                      [landlordCount?.toDouble() ?? 0, tenantCount?.toDouble() ?? 0],
                       [landlordsColor, tenantsColor],
                     ),
                   ),
@@ -43,29 +95,22 @@ class AnalyticsScreen extends StatelessWidget {
                   Expanded(
                     child: _buildDonutChart(
                       "Listed Properties",
-                      ["Boarding houses", "Dorms", "Apartments"],
-                      [69.72, 64.25, 124.25],
-                      [boardingColor, dormColor, apartmentColor],
+                      ["Boarding House", "Condo", "Apartments", "Transient"],
+                      [
+                        boardingHouseCount?.toDouble() ?? 0,
+                        condoCount?.toDouble() ?? 0,
+                        apartmentCount?.toDouble() ?? 0,
+                        transientCount?.toDouble() ?? 0,
+                      ],
+                      [boardingColor, dormColor, apartmentColor, transientColor],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-
-              // New Bar Chart with Dropdown
               _BarChartWithYearSelector(
                 title: "Engagement Metrics",
-                yearData: {
-                  "2024": 30,
-                  "2025": 60,
-                  "2026": 100,
-                  "2027": 80,
-                  "2028": 95,
-                  "2029": 105,
-                  "2030": 120,
-                  "2031": 110,
-                  "2032": 150,
-                },
+                yearData: yearData,
               ),
             ],
           ),
@@ -74,27 +119,24 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 
-  // Pie Chart
+  // Pie Chart builder
   Widget _buildPieChart(String title, List<String> labels, List<double> values, List<Color> colors) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isSmallScreen = constraints.maxWidth < 390;
-
-        double chartRadius = isSmallScreen ? 80 : 120;
-
+        final isSmall = constraints.maxWidth < 390;
+        final radius = isSmall ? 80.0 : 120.0;
         return Column(
           children: [
             Container(
-              height: isSmallScreen ? 220 : 280,
+              height: isSmall ? 220 : 280,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
               ),
               child: Row(
                 children: [
-                  // Pie Chart
                   Expanded(
                     flex: 2,
                     child: Center(
@@ -106,8 +148,8 @@ class AnalyticsScreen extends StatelessWidget {
                             return PieChartSectionData(
                               value: values[i],
                               color: colors[i],
-                              radius: chartRadius,
-                              title: '${labels[i]}\n${values[i].toStringAsFixed(2)}',
+                              radius: radius,
+                              title: '${labels[i]}\n${values[i] % 1 == 0 ? values[i].toInt() : values[i].toStringAsFixed(2)}',
                               titleStyle: const TextStyle(
                                 fontFamily: "Inter",
                                 fontSize: 12,
@@ -121,98 +163,66 @@ class AnalyticsScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  if (!isSmallScreen) ...[
+                  if (!isSmall) ...[
                     const SizedBox(width: 12),
-                    // Legend
                     Expanded(
                       flex: 1,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(labels.length, (index) {
+                        children: List.generate(labels.length, (i) {
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 6),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: colors[index],
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
+                                Container(width: 10, height: 10, decoration: BoxDecoration(color: colors[i], shape: BoxShape.circle)),
                                 const SizedBox(width: 8),
-                                Text(
-                                  labels[index],
-                                  style: const TextStyle(
-                                    fontFamily: "Inter",
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black87,
-                                  ),
-                                ),
+                                Text(labels[i], style: const TextStyle(fontFamily: "Inter", fontSize: 14, fontWeight: FontWeight.w500)),
                               ],
                             ),
                           );
                         }),
                       ),
                     ),
-                  ]
+                  ],
                 ],
               ),
             ),
-
             const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: Colors.blueGrey,
-              ),
-            ),
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.blueGrey)),
           ],
         );
       },
     );
   }
 
-  // Donut Chart
+  // Donut Chart builder
   Widget _buildDonutChart(String title, List<String> labels, List<double> values, List<Color> colors) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isSmallScreen = constraints.maxWidth < 430;
-        double total = values.reduce((a, b) => a + b);
+        final isSmall = constraints.maxWidth < 430;
+        final total = values.fold<double>(0, (sum, v) => sum + v);
+        final radius = isSmall ? 60.0 : 80.0;
+        final centerRadius = isSmall ? 30.0 : 40.0;
 
-        // Dynamically adjust chart size and font
-        double chartRadius = isSmallScreen ? 60 : 80;
-        double centerSpaceRadius = isSmallScreen ? 30 : 40;
-
-        double fontSizeForTitle(double chartWidth) {
-          if (chartWidth < 200) {
-            return 8;
-          } else if (chartWidth < 300) {
-            return 10;
-          } else {
-            return 12;
-          }
+        double fontSizeForWidth(double w) {
+          if (w < 200) return 8;
+          if (w < 300) return 10;
+          return 12;
         }
 
         return Column(
           children: [
             Container(
-              height: isSmallScreen ? 220 : 280,
+              height: isSmall ? 220 : 280,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
               ),
               child: Row(
                 children: [
-                  // Donut Chart
                   Expanded(
                     flex: 2,
                     child: Center(
@@ -222,335 +232,204 @@ class AnalyticsScreen extends StatelessWidget {
                           PieChart(
                             PieChartData(
                               sectionsSpace: 2,
-                              centerSpaceRadius: centerSpaceRadius,
+                              centerSpaceRadius: centerRadius,
                               sections: List.generate(values.length, (i) {
-                                double ratio = values[i] / total;
-                                double fontSize = fontSizeForTitle(constraints.maxWidth);
-                                double titleOffset = ratio >= 0.1 ? 0.6 : 0.7;
-
-                                String sectionTitle = ratio >= 0.1
-                                    ? '${labels[i]}\n${values[i].toStringAsFixed(2)}'
-                                    : '${values[i].toStringAsFixed(2)}';
-
+                                final ratio = values[i] / total;
+                                final fs    = fontSizeForWidth(constraints.maxWidth);
                                 return PieChartSectionData(
                                   value: values[i],
                                   color: colors[i],
-                                  radius: chartRadius,
-                                  title: sectionTitle,
-                                  titleStyle: TextStyle(
-                                    fontSize: fontSize,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                  titlePositionPercentageOffset: titleOffset,
+                                  radius: radius,
+                                  title: '${values[i] % 1 == 0 ? values[i].toInt() : values[i].toStringAsFixed(2)}',
+
+                                  titleStyle: TextStyle(fontSize: fs, fontWeight: FontWeight.w500, color: Colors.white),
+                                  titlePositionPercentageOffset: ratio >= 0.1 ? 0.6 : 0.7,
                                 );
                               }),
                             ),
                           ),
-                          Text(
-                            total.toStringAsFixed(2),
-                            style: TextStyle(
-                              fontSize: isSmallScreen ? 14 : 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text(total.toInt().toString(), style: TextStyle(fontSize: isSmall ? 14 : 16, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
                   ),
-
-                  if (!isSmallScreen) ...[
+                  if (!isSmall) ...[
                     const SizedBox(width: 12),
-                    // Legend
                     Expanded(
                       flex: 1,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(labels.length, (index) {
+                        children: List.generate(labels.length, (i) {
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 6),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: colors[index],
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
+                                Container(width: 10, height: 10, decoration: BoxDecoration(color: colors[i], shape: BoxShape.circle)),
                                 const SizedBox(width: 8),
-                                Text(
-                                  labels[index],
-                                  style: const TextStyle(
-                                    fontFamily: "Inter",
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black87,
-                                  ),
-                                ),
+                                Text(labels[i], style: const TextStyle(fontFamily: "Inter", fontSize: 14, fontWeight: FontWeight.w500)),
                               ],
                             ),
                           );
                         }),
                       ),
                     ),
-                  ]
+                  ],
                 ],
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: Colors.blueGrey,
-              ),
-            ),
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.blueGrey)),
           ],
         );
       },
     );
   }
-
 }
 
-//  New Stateful BarChart Widget
+// ───────────────────────────────────────────────────────────────────────────────
+// Bar Chart with fixed height to avoid infinite constraints
+// ───────────────────────────────────────────────────────────────────────────────
 class _BarChartWithYearSelector extends StatefulWidget {
   final String title;
   final Map<String, double> yearData;
 
-  const _BarChartWithYearSelector({required this.title, required this.yearData});
+  const _BarChartWithYearSelector({
+    required this.title,
+    required this.yearData,
+  });
 
   @override
   State<_BarChartWithYearSelector> createState() => _BarChartWithYearSelectorState();
 }
 
 class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
-  late String startYear;
-  late String endYear;
+  late String startYear, endYear;
 
   @override
   void initState() {
     super.initState();
+    _updateYears();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BarChartWithYearSelector old) {
+    super.didUpdateWidget(old);
+    if (old.yearData != widget.yearData) _updateYears();
+  }
+
+  void _updateYears() {
     final years = widget.yearData.keys.toList()..sort();
-    startYear = years.first;
-    endYear = years.last;
+    if (years.isNotEmpty) {
+      startYear = years.first;
+      endYear   = years.last;
+    } else {
+      startYear = endYear = '';
+    }
   }
 
   List<String> getSelectedYears() {
-    int start = int.parse(startYear);
-    int end = int.parse(endYear);
-    int mid = start + ((end - start) ~/ 2);
-    return [start.toString(), mid.toString(), end.toString()];
+    final keys = widget.yearData.keys.toList()..sort();
+    if (keys.isEmpty) return [];
+    final s = int.parse(startYear), e = int.parse(endYear);
+    final m = s + ((e - s) ~/ 2);
+    final sel = [s, m, e].where((y) => y >= s && y <= e).map((y) => y.toString()).toList();
+    return sel.length == 3 ? sel : [startYear, endYear];
   }
 
   @override
   Widget build(BuildContext context) {
-    final allYears = widget.yearData.keys.toList()..sort();
+    final allYears      = widget.yearData.keys.toList()..sort();
     final selectedYears = getSelectedYears();
-    final selectedData = selectedYears.map((y) => widget.yearData[y] ?? 0).toList();
+    final selectedData  = selectedYears.map((y) => widget.yearData[y] ?? 0).toList();
 
-    final List<Color> barColors = [
+    // Compute Y-axis bounds
+    final rawMax = selectedData.isEmpty ? 0 : selectedData.reduce(math.max);
+    final maxY   = (rawMax * 1.1).ceilToDouble();
+    final yInt   = (maxY / 5).ceilToDouble();
+
+    final barColors = [
       const Color(0xFFA0BACB),
       const Color(0xFF5E636F),
       const Color(0xFF848FB1),
     ];
 
+    final barGroups = List.generate(selectedData.length, (i) {
+      return BarChartGroupData(
+        x: i,
+        barRods: [
+          BarChartRodData(
+            fromY: 0,
+            toY: selectedData[i],
+            width: 70,
+            color: barColors[i % barColors.length],
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ],
+      );
+    });
+
     return Center(
-      child: Column(
-        children: [
-          Container(
-            height: 300,
-            width: 600,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
-            ),
-            child: Row(
+      child: Container(
+        width: 600,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+        ),
+        child: allYears.isEmpty
+            ? const Center(child: Text("No year data available"))
+            : Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Dropdowns
+                // Year selectors
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text("Start Year:",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontFamily: "Inter",
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    DropdownButton<String>(
-                      value: startYear,
-                      onChanged: (value) {
-                        setState(() => startYear = value!);
-                      },
-                      dropdownColor: Color(0xFFC5D9E6), // Color when the dropdown is open
-                      style: TextStyle(
-                          fontFamily: "Inter",
-                          fontWeight: FontWeight.w300,
-                          fontSize:  16,
-                          color: Color(0xFF69769F)), // Change text color of the selected item
-                      items: allYears.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
-                    ),
+                    const Text("Start Year:",style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    DropdownButton<String>(value: startYear,onChanged: (v) => setState(() => startYear = v!),items: allYears.map((y)=>DropdownMenuItem(value: y,child: Text(y))).toList(),),
                     const SizedBox(height: 10),
-                    const Text("End Year:",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: "Inter",
-                      fontWeight: FontWeight.w600,
-                    ),
-                    ),
-                    DropdownButton<String>(
-                      value: endYear,
-                      onChanged: (value) {
-                        setState(() => endYear = value!);
-                      },
-                      dropdownColor: Color(0xFFC5D9E6), // Color when the dropdown is open
-                      style: TextStyle(
-                          fontFamily: "Inter",
-                          fontWeight: FontWeight.w300,
-                          fontSize:  16,
-                          color: Color(0xFF69769F) // Change text color of the selected item
-                      ),
-                      items: allYears.map((y) => DropdownMenuItem(value: y, child: Text(y))).toList(),
-                    ),
+                    const Text("End Year:",style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    DropdownButton<String>(value: endYear,onChanged: (v) => setState(() => endYear = v!),items: allYears.map((y)=>DropdownMenuItem(value: y,child: Text(y))).toList(),),
                   ],
                 ),
                 const SizedBox(width: 20),
-
-                //  Bar Chart
+                // Bar chart wrapped in fixed height box
                 Expanded(
-                  child: Column(
-                    children: [
-                      // Bar Chart
-                      Expanded(
-                        child: BarChart(
-                            BarChartData(
-                              alignment: BarChartAlignment.center,
-                              barTouchData: BarTouchData(
-                                touchTooltipData: BarTouchTooltipData(
-                                  tooltipBgColor: Color(0xFFC5D9E6),
-                                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                    return BarTooltipItem(
-                                      '${selectedYears[group.x]}: ${rod.toY}',
-                                      const TextStyle(
-                                        fontFamily: "Inter",
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF69769F),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                touchCallback: (event, response) {
-                                  setState(() {}); // Trigger rebuild on hover
-                                },
-                              ),
-                              titlesData: FlTitlesData(
-                                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: true, reservedSize: 36),
-                                ),
-                              ),
-                              gridData: FlGridData(
-                                show: true,
-                                drawVerticalLine: false,
-                                getDrawingHorizontalLine: (value) => FlLine(
-                                  color: Colors.grey.shade300,
-                                  strokeWidth: 1,
-                                ),
-                              ),
-                              borderData: FlBorderData(show: false),
-                              barGroups: List.generate(selectedData.length, (i) {
-                                final isTouched = i == (BarTouchData().touchTooltipData?.tooltipBgColor ?? -1); // fallback
-                                return BarChartGroupData(
-                                  x: i,
-                                  barRods: [
-                                    BarChartRodData(
-                                      fromY: 0,
-                                      toY: selectedData[i],
-                                      width: 70,
-                                      color: isTouched ? Colors.orangeAccent : barColors[i],
-                                      borderRadius: BorderRadius.circular(2),
-                                    )
-                                  ],
-                                );
-                              }),
-                            ),
-                          ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Custom Text Below Bars
-                      Padding(
-                        padding: const EdgeInsets.only(left: 45.0),
-                        child: const Text(
-                          'Users Growth report per year',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontFamily: "Inter",
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
+                  child: SizedBox(
+                    height: 250, // prevents infinite height
+                    child: BarChart(
+                      BarChartData(
+                        alignment: BarChartAlignment.spaceAround,
+                        minY: 0,
+                        maxY: maxY,
+                        gridData: FlGridData(show:true,drawVerticalLine:false,horizontalInterval:yInt,getDrawingHorizontalLine:(_)=>FlLine(color:Colors.grey.withOpacity(0.2),strokeWidth:1)),
+                        borderData: FlBorderData(show:false),
+                        barGroups: barGroups,
+                        titlesData: FlTitlesData(
+                          bottomTitles: AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:30,getTitlesWidget:(v,_) { final i=v.toInt(); if(i<0||i>=selectedYears.length) return const SizedBox(); return Text(selectedYears[i],style: const TextStyle(fontSize:12,fontWeight:FontWeight.w500)); })),
+                          leftTitles: AxisTitles(sideTitles:SideTitles(showTitles:true,reservedSize:40,interval:yInt,getTitlesWidget:(v,_)=>Text(v.toInt().toString(),style:const TextStyle(fontSize:10)))),
+                          topTitles:AxisTitles(sideTitles:SideTitles(showTitles:false)),
+                          rightTitles:AxisTitles(sideTitles:SideTitles(showTitles:false)),
                         ),
                       ),
-
-                      const SizedBox(height: 8),
-
-                      // Year Labels Below Text
-                      Padding(
-                        padding: const EdgeInsets.only(left: 45.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: selectedYears.map((year) {
-                            return Container(
-                              width: 70, // Adjust this width as needed
-                              alignment: Alignment.center,
-                              margin: const EdgeInsets.symmetric(horizontal: 4), // Small gap between labels
-                              child: Text(
-                                year,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: "Inter",
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-
-
-                    ],
+                    ),
                   ),
                 ),
-
-
               ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-              color: Colors.blueGrey,
-            ),
-          ),
-        ],
+            const SizedBox(height:12),
+            Padding(
+              padding: const EdgeInsets.only(left: 210.0),
+              child: const Text('Users Growth report per year',style:TextStyle(fontSize:12,fontWeight:FontWeight.w600)),
+            )
+
+          ],
+        ),
       ),
     );
   }
-
-
 }
