@@ -221,3 +221,43 @@ class YearCountService {
     }
   }
 }
+
+class AdminApiService {
+  static const String _updateEndpoint = '/admin/update-profile';
+
+  static Future<bool> updateAdminCredentials({
+    required String newEmail,
+    required String newPassword,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl$_updateEndpoint');
+      final response = await http.put( // Changed from post to put
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
+          // Add authorization if needed
+          // 'Authorization': 'Bearer ${yourToken}',
+        },
+        body: jsonEncode(<String, String>{
+          'email': newEmail,
+          'password': newPassword,
+        }),
+      );
+
+      if (ApiService.debug) {
+        print('🔵 Update Admin Response: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final error = jsonDecode(response.body)['message'] ?? 'Unknown error';
+        throw Exception('Failed to update: $error (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Update failed: ${e.toString()}');
+    }
+  }
+}
