@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rentxpert_flutter_web/Main_Screen.dart'; // Import your AdminWeb class
+import 'package:rentxpert_flutter_web/Main_Screen.dart';
+import 'package:rentxpert_flutter_web/service/api.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -7,17 +8,54 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  bool _rememberMe = false; // checkbox state
+  bool _rememberMe = false;
+  bool _isLoading = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _handleLogin() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await AdminAuthService.loginAdmin(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (response['success'] == true) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Login failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFF5F5F5),
+      backgroundColor: const Color(0xFFF5F5F5),
       body: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Login Form Box
+            // Left login form
             Container(
               width: MediaQuery.of(context).size.width * 0.4,
               height: MediaQuery.of(context).size.height * 0.9,
@@ -33,10 +71,9 @@ class _LoginState extends State<Login> {
                 ],
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(32.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
                       "Log In",
@@ -55,136 +92,115 @@ class _LoginState extends State<Login> {
                         fontFamily: "Krub",
                         fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 30),
 
-                    // Username
-                    Padding(
-                      padding: const EdgeInsets.only(left: 55.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: const Text(
-                          "Username",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontFamily: "Krub-SemiBold",
-                            fontWeight: FontWeight.w600,
-                          ),
+                    // Email Label
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Email",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16,
+                          fontFamily: "Krub-SemiBold",
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.3,
-                      child: const TextField(
-                        decoration: InputDecoration(
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey, width: 1),
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
-                          ),
-                          labelText: 'Enter your username',
-                          labelStyle: TextStyle(  // Added labelStyle to change label text color
-                            color: Color(0xFF848484),  // This will change the label text color
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior.never,
+                    TextField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Enter your email',
+                        labelStyle: TextStyle(color: Color(0xFF848484)),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey, width: 1),
+                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 15),
 
-                    // Password
-                    Padding(
-                      padding: const EdgeInsets.only(left: 55.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: const Text(
-                          "Password",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontFamily: "Krub",
-                            fontWeight: FontWeight.bold,
-                          ),
+                    // Password Label
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Password",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16,
+                          fontFamily: "Krub",
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.3,
-                      child: const TextField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          focusedBorder: OutlineInputBorder( // border radius effect
-                            borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
-                          ),
-                          enabledBorder: OutlineInputBorder( // border color
-                            borderSide: BorderSide(color: Colors.grey, width: 1),
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
-                          ),
-                          labelText: '••••••',
-                          labelStyle: TextStyle(  // Added labelStyle to change label text color
-                            color: Color(0xFF848484),  //  label text color
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior.never,
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: '••••••',
+                        labelStyle: TextStyle(color: Color(0xFF848484)),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey, width: 1),
+                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 10),
 
-                    // Remember Me
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.3,
-                      child: Row(
-                        children: [
-                          Transform.scale(
-                            scale: 1.2,
-                            child: Checkbox(
-                              value: _rememberMe,
-                              activeColor: Color(0xFF4A758F),
-                              side: const BorderSide(
-                                color: Colors.grey,
-                                width: 0.5,
-                              ),
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  _rememberMe = value ?? false;
-                                });
-                              },
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
+                    // Remember Me Checkbox
+                    Row(
+                      children: [
+                        Transform.scale(
+                          scale: 1.2,
+                          child: Checkbox(
+                            value: _rememberMe,
+                            activeColor: const Color(0xFF4A758F),
+                            side: const BorderSide(
+                              color: Colors.grey,
+                              width: 0.5,
+                            ),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _rememberMe = value ?? false;
+                              });
+                            },
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
                             ),
                           ),
-                          const Text(
-                            "Remember Me",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontFamily: "Krub",
-                              fontWeight: FontWeight.w600,
-                            ),
+                        ),
+                        const Text(
+                          "Remember Me",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: "Krub",
+                            fontWeight: FontWeight.w600,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 20),
 
                     // Log In Button
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.3,
+                      width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => MainScreen()),
-                          );
-                        },
+                        onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 50),
                           backgroundColor: const Color(0xFF4A758F),
@@ -192,7 +208,9 @@ class _LoginState extends State<Login> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text(
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
                           'Log In',
                           style: TextStyle(
                             fontSize: 20,
@@ -210,7 +228,7 @@ class _LoginState extends State<Login> {
 
             const SizedBox(width: 20),
 
-            // Right side box (unchanged)
+            // Right image box
             Container(
               width: MediaQuery.of(context).size.width * 0.4,
               height: MediaQuery.of(context).size.height * 0.9,
@@ -227,7 +245,6 @@ class _LoginState extends State<Login> {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
                     'assets/images/white_logo.png',
@@ -252,5 +269,12 @@ class _LoginState extends State<Login> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

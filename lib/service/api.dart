@@ -261,3 +261,62 @@ class AdminApiService {
     }
   }
 }
+
+//LOGIN
+class AdminAuthService {
+  static const String _loginEndpoint = '/admin/login';
+  static const bool debug = true;
+
+  static Future<Map<String, dynamic>> loginAdmin({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl$_loginEndpoint');
+
+      if (debug) {
+        print('\n🟡 Attempting admin login');
+        print('📡 Endpoint: $url');
+        print('📨 Request Body: ${jsonEncode({'email': email, 'password': password})}');
+      }
+
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(<String, String>{
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (debug) {
+        print('🔵 Response Status: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'data': responseData,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Login failed',
+          'statusCode': response.statusCode,
+        };
+      }
+    } on http.ClientException catch (e) {
+      throw Exception('Network error: ${e.message}');
+    } on FormatException catch (e) {
+      throw Exception('Invalid response format: ${e.message}');
+    } catch (e) {
+      throw Exception('Login failed: ${e.toString()}');
+    }
+  }
+}
