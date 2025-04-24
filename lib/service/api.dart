@@ -62,6 +62,11 @@ class ApiService {
   static Future<int?> fetchApprovedApartmentCount() {
     return fetchCount(endpoint: 'admin/count_apartment/Approved', label: 'Approved Apartments');
   }
+
+  /// Fetch pending apartment count
+  static Future<int?> fetchPendingApartmentCount() {
+    return fetchCount(endpoint: 'admin/count_apartment/Pending', label: 'Pending Apartments');
+  }
 }
 
 // New PropertyTypeApiService class
