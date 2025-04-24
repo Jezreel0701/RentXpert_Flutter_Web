@@ -8,7 +8,8 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  bool _rememberMe = false;
+  bool _rememberMe = false; // Checkbox state
+  bool _isPasswordVisible = false; // Password visibility state
   bool _isLoading = false;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -96,68 +97,96 @@ class _LoginState extends State<Login> {
                     ),
                     const SizedBox(height: 30),
 
-                    // Email Label
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Email",
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16,
-                          fontFamily: "Krub-SemiBold",
-                          fontWeight: FontWeight.w600,
+                    // Username
+                    Padding(
+                      padding: const EdgeInsets.only(left: 73),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: const Text(
+                          "Username",
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                            fontFamily: "Krub-SemiBold",
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Enter your email',
-                        labelStyle: TextStyle(color: Color(0xFF848484)),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.3,
+                      child: const TextField(
+                        decoration: InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey, width: 1),
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                          ),
+                          labelText: 'Enter your username',
+                          labelStyle: TextStyle(
+                            color: Color(0xFF848484),
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.never,
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 15),
 
-                    // Password Label
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Password",
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16,
-                          fontFamily: "Krub",
-                          fontWeight: FontWeight.bold,
+                    // Password
+                    Padding(
+                      padding: const EdgeInsets.only(left: 73.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: const Text(
+                          "Password",
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                            fontFamily: "Krub",
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: '••••••',
-                        labelStyle: TextStyle(color: Color(0xFF848484)),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
-                        ),
-                      ),
+                    SizedBox(
+                     width: MediaQuery.of(context).size.width * 0.3,
+                     child: TextField(
+                     obscureText: !_isPasswordVisible, // Toggle password visibility
+                     decoration: InputDecoration(
+                     focusedBorder: OutlineInputBorder(
+                     borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
+                     ),
+                     enabledBorder: OutlineInputBorder(
+                     borderSide: BorderSide(color: Colors.grey, width: 1),
+                     borderRadius: BorderRadius.all(Radius.circular(15)),
                     ),
+                    labelText: '••••••',
+                    labelStyle: const TextStyle(
+                    color: Color(0xFF848484),
+                    ),
+                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                    suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 20), // Adjust spacing here
+                    child: IconButton(
+                    icon: Icon(
+                   _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.grey,
+                    ),
+                    onPressed: () {
+                    setState(() {
+                   _isPasswordVisible = !_isPasswordVisible;
+                 });
+               },
+             ),
+           ),
+         ),
+       ),
+    ),
 
                     const SizedBox(height: 10),
 
@@ -270,8 +299,7 @@ class _LoginState extends State<Login> {
       ),
     );
   }
-
-  @override
+    @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();

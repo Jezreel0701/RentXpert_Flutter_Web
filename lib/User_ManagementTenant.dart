@@ -116,6 +116,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     return Row(
       children: [
         Container(
+          width: 50,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey),
             borderRadius: BorderRadius.circular(10),
@@ -127,23 +128,32 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
           ),
         ),
         const SizedBox(width: 10),
-        Expanded(
-          child: TextField(
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {},
-              ),
-              hintText: 'Search...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 10),
-              fillColor: Colors.white,
-              filled: true,
-            ),
-          ),
+        SizedBox(
+  width: 500, // Set the desired width for the search bar
+  child: ConstrainedBox(
+    constraints: BoxConstraints(
+      minWidth: 200, // Minimum width for the search bar
+      maxWidth: 400, // Maximum width for the search bar
+    ),
+    child: TextField(
+      decoration: InputDecoration(
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {},
+        ),
+        hintText: 'Search...',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 10),
+        fillColor: Colors.white,
+        filled: true,
+      ),
+    ),
+  ),
+
+          
         ),
       ],
     );
