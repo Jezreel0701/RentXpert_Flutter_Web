@@ -7,7 +7,8 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  bool _rememberMe = false; // checkbox state
+  bool _rememberMe = false; // Checkbox state
+  bool _isPasswordVisible = false; // Password visibility state
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +61,7 @@ class _LoginState extends State<Login> {
 
                     // Username
                     Padding(
-                      padding: const EdgeInsets.only(left: 55.0),
+                      padding: const EdgeInsets.only(left: 73),
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: const Text(
@@ -87,8 +88,8 @@ class _LoginState extends State<Login> {
                             borderRadius: BorderRadius.all(Radius.circular(15)),
                           ),
                           labelText: 'Enter your username',
-                          labelStyle: TextStyle(  // Added labelStyle to change label text color
-                            color: Color(0xFF848484),  // This will change the label text color
+                          labelStyle: TextStyle(
+                            color: Color(0xFF848484),
                           ),
                           floatingLabelBehavior: FloatingLabelBehavior.never,
                         ),
@@ -99,7 +100,7 @@ class _LoginState extends State<Login> {
 
                     // Password
                     Padding(
-                      padding: const EdgeInsets.only(left: 55.0),
+                      padding: const EdgeInsets.only(left: 73.0),
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: const Text(
@@ -115,25 +116,39 @@ class _LoginState extends State<Login> {
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.3,
-                      child: const TextField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          focusedBorder: OutlineInputBorder( // border radius effect
-                            borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
-                          ),
-                          enabledBorder: OutlineInputBorder( // border color
-                            borderSide: BorderSide(color: Colors.grey, width: 1),
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
-                          ),
-                          labelText: '••••••',
-                          labelStyle: TextStyle(  // Added labelStyle to change label text color
-                            color: Color(0xFF848484),  //  label text color
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior.never,
-                        ),
-                      ),
+                     width: MediaQuery.of(context).size.width * 0.3,
+                     child: TextField(
+                     obscureText: !_isPasswordVisible, // Toggle password visibility
+                     decoration: InputDecoration(
+                     focusedBorder: OutlineInputBorder(
+                     borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
+                     ),
+                     enabledBorder: OutlineInputBorder(
+                     borderSide: BorderSide(color: Colors.grey, width: 1),
+                     borderRadius: BorderRadius.all(Radius.circular(15)),
                     ),
+                    labelText: '••••••',
+                    labelStyle: const TextStyle(
+                    color: Color(0xFF848484),
+                    ),
+                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                    suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 20), // Adjust spacing here
+                    child: IconButton(
+                    icon: Icon(
+                   _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.grey,
+                    ),
+                    onPressed: () {
+                    setState(() {
+                   _isPasswordVisible = !_isPasswordVisible;
+                 });
+               },
+             ),
+           ),
+         ),
+       ),
+    ),
 
                     const SizedBox(height: 10),
 
