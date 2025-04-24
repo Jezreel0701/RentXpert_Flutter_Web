@@ -64,12 +64,166 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     );
   }
 
+  // Delete function and design
+  void _showDeleteConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(45),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          width: 400,
+          height: 300,
+
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              FittedBox(
+                fit: BoxFit.contain,
+                child: Image.asset(
+                  'assets/images/delete.png',
+                  width: 75,
+                  height: 75,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              const Text(
+                'Delete',
+                style: TextStyle(
+                    color: Color(0xFF000000),
+                    fontSize: 25,
+                    fontFamily: "Krub",
+                    fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 12),
+
+              const Text(
+                'Are you sure you want to delete?',
+                style: TextStyle(
+                    color: Color(0xFF979797),
+                    fontSize: 18,
+                    fontFamily: "Krub",
+                    fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 40),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  SizedBox(
+                    width: 170, // Adjust the width here
+                    height: 50, // Adjust the height here
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 4,
+                        backgroundColor: Color(0xFFEDEDED),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 170, // Adjust the width here
+                    height: 50, // Adjust the height here
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 4,
+                        backgroundColor: Color(0xFF79BD85),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                        //   Function for delete account
+                        _deleteAccount();
+                      },
+                      child: const Text(
+                          'Confirm',
+                          style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+        ),
+      ),
+    );
+  }
+
+  void _deleteAccount() {
+    // Add your account deletion logic here.
+
+    // Show custom top snack bar
+    _showDeleteTopSnackBar("Account deleted successfully");
+  }
+
+  //Snakcbar notification for delete button
+  void _showDeleteTopSnackBar(String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,  // Adjust the top value as per your needs
+        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
+        right: MediaQuery.of(context).size.width / 2 - 150,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Color(0xFF2E7D32),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                message,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert the overlay
+    overlay.insert(overlayEntry);
+
+    // Remove the overlay after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
+
+  //Data cell Styles
   DataCell buildCenteredTextCell(String? text) {
     return DataCell(
       Center(
         child: Text(
           text ?? '',
           textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontFamily: "Krub",
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
         ),
       ),
     );
@@ -112,21 +266,29 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     );
   }
 
+  //Search bar widget
   Widget _buildSearchBar() {
     return Row(
       children: [
-        Container(
-          width: 50,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(10),
-            color: Colors.white,
-          ),
+        FittedBox(
+          // width: 50,
+          // decoration: BoxDecoration(
+          //   border: Border.all(color: Colors.grey),
+          //   borderRadius: BorderRadius.circular(10),
+          //   color: Colors.white,
+          // ),
+
           child: IconButton(
-            icon: const Icon(Icons.filter_list, color: Color(0xFF4F768E)),
+            icon: Image.asset(
+              'assets/images/filter_icon.png',
+              width: 30,
+              height: 30,
+            ),
             onPressed: () {},
           ),
+
         ),
+
         const SizedBox(width: 10),
         SizedBox(
   width: 500, // Set the desired width for the search bar
@@ -159,14 +321,29 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     );
   }
 
+
+  // Table  widget
   Widget _buildUserTable({Key? key}) {
     final paginatedUsers = _paginatedData;
+
+    // List of column titles
+    final columnTitles = [
+      'Uid',
+      'Name',
+      'Email',
+      'Pending',
+      'User Type',
+      'Customize',
+    ];
 
     return LayoutBuilder(
       key: key,
       builder: (context, constraints) {
         return Container(
           width: constraints.maxWidth,
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height * 0.9, // Set a minimum height for the table
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -177,20 +354,55 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
             child: ConstrainedBox(
               constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: Padding(
-                padding: const EdgeInsets.only(left: 20.0),
+                padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0), // Add padding at the top
                 child: DataTable(
                   columnSpacing: 24,
                   headingRowHeight: 56,
                   dataRowHeight: 60,
-                  columns: const [
-                    DataColumn(label: Center(child: Text('Uid'))),
-                    DataColumn(label: Center(child: Text('Name'))),
-                    DataColumn(label: Center(child: Text('Email'))),
-                    DataColumn(label: Center(child: Text('Pending'))),
-                    DataColumn(label: Center(child: Text('User Type'))),
-                    DataColumn(label: Center(child: Text('Customize'))),
+                  border: TableBorder(
+                    horizontalInside: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    verticalInside: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    top: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    bottom: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    left: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    right: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                  ),
+                  columns: [
+                    for (var title in columnTitles)
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontFamily: "Krub",
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          )), // Ensures the title is centered
+                        ),
+                      ),
                   ],
 
+
+                  // Populate the table with data
                   rows: paginatedUsers.map((user) {
                     final isEditing = editingUserId == user['uid'];
                     return DataRow(cells: [
@@ -209,81 +421,89 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                           : buildCenteredTextCell(user['email']),
                       buildCenteredTextCell(user['account_status']),
                       buildCenteredTextCell(user['user_type']),
-                      DataCell(Row(
-                        children: [
-                          isEditing
-                              ? TextButton.icon(
-                            onPressed: () {
-                              // Save changes
-                              setState(() {
-                                final index = userData.indexWhere((u) => u['uid'] == user['uid']);
-                                if (index != -1) {
-                                  userData[index] = {
-                                    ...userData[index],
-                                    ...editedUser,
-                                  };
-                                }
-                                editingUserId = null;
-                                editedUser = {};
-                              });
-                            },
-                            icon: const Icon(Icons.save, size: 15),
-                            label: const Text('Save'),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                            ),
-                          )
-                              : TextButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                editingUserId = user['uid'];
-                                editedUser = Map<String, dynamic>.from(user);
-                              });
-                            },
-                            icon: const Icon(Icons.edit, size: 15),
-                            label: const Text('Edit'),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              backgroundColor: const Color(0xFF4F768E),
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                          if (isEditing)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: IconButton(
-                                icon: const Icon(Icons.cancel, color: Colors.red),
+                      DataCell(
+                        Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min, // keeps Row as compact as its children
+                            children: [
+                              isEditing
+                                  ? TextButton.icon(
                                 onPressed: () {
                                   setState(() {
+                                    final index = userData.indexWhere((u) => u['uid'] == user['uid']);
+                                    if (index != -1) {
+                                      userData[index] = {
+                                        ...userData[index],
+                                        ...editedUser,
+                                      };
+                                    }
                                     editingUserId = null;
                                     editedUser = {};
                                   });
                                 },
-                              ),
-                            ),
-                          if (!isEditing)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 13.0),
-                              child: IconButton(
-                                icon: Image.asset('assets/images/white_delete.png', width: 30, height: 30),
+                                icon: const Icon(Icons.save, size: 15),
+                                label: const Text('Save'),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                ),
+                              )
+                                  : TextButton.icon(
                                 onPressed: () {
-                                  // Delete logic
+                                  setState(() {
+                                    editingUserId = user['uid'];
+                                    editedUser = Map<String, dynamic>.from(user);
+                                  });
                                 },
+                                icon: const Icon(Icons.edit, size: 15),
+                                label: const Text('Edit'),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  backgroundColor: const Color(0xFF4F768E),
+                                  foregroundColor: Colors.white,
+                                ),
                               ),
-                            ),
-                          if (!isEditing)
-                            IconButton(
-                              icon: Image.asset('assets/images/more_options.png', width: 55, height: 55),
-                              onPressed: () => _showUserDetailsDialog(user),
-                            ),
-                        ],
-                      )),
+                              if (isEditing)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.cancel, color: Colors.red),
+                                    onPressed: () {
+                                      setState(() {
+                                        editingUserId = null;
+                                        editedUser = {};
+                                      });
+                                    },
+                                  ),
+                                ),
+
+                              //Delete Function
+                              if (!isEditing)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 13.0),
+                                  child: IconButton(
+                                    icon: Image.asset('assets/images/white_delete.png', width: 30, height: 30),
+
+                                    onPressed: () {
+                                      _showDeleteConfirmationDialog();
+                                    },
+
+                                  ),
+                                ),
+                              if (!isEditing)
+                                IconButton(
+                                  icon: Image.asset('assets/images/more_options.png', width: 55, height: 55),
+                                  onPressed: () => _showUserDetailsDialog(user),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+
                     ]);
                   }).toList(),
-
-
 
                 ),
               ),
@@ -293,6 +513,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       },
     );
   }
+
 
   void _showUserDetailsDialog(Map<String, dynamic> user) {
     showDialog(
