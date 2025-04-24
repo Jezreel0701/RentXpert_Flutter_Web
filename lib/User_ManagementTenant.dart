@@ -11,7 +11,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   List<Map<String, dynamic>> userData = [];
   bool isLoading = true;
 
-  int _rowsPerPage = 8;
+  int _rowsPerPage = 10;
   int _currentPage = 1;
 
   String? editingUserId;
@@ -212,6 +212,161 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     });
   }
 
+
+  //Dialog for filter
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // List of filter options
+        final filterOptions = [
+          'Name',
+          'Email',
+          'Address',
+          'Phone Number',
+          'Valid ID',
+          'Account Status',
+          'User Type',
+        ];
+
+        // Track selected filters
+        List<String> selectedOptions = [];
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+                backgroundColor: const Color(0xFFFFFFFF),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+
+              content: SizedBox(
+                width: 400,
+                height: 250,
+                child: SingleChildScrollView(
+
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: Wrap(
+                        spacing: 16.0,      // Horizontal gap between chips
+                        runSpacing: 16.0,   // Vertical gap between rows
+                        alignment: WrapAlignment.start, // Align items to the start
+
+                        children: filterOptions.map((option) {
+                          final isSelected = selectedOptions.contains(option);
+
+                          // Check for Phone Number and Account Status to apply fixed size
+                          final isFixedSize = option == 'Phone Number' || option == 'Address' ||
+                              option == 'Valid ID' || option == 'User Type' || option == 'Name' || option == 'Email'
+                              || option == 'Account Status';
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                if (isSelected) {
+                                  selectedOptions.remove(option); // Deselect option
+                                } else {
+                                  selectedOptions.add(option); // Select option
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16.0, // Apply standard padding
+                                vertical: 8.0,    // Apply vertical padding for all options
+                              ),
+                              width: isFixedSize ? 160.0 : null, // Fixed width for Phone and Account Status
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFF4F768E) : Colors.white, // Background color
+                                borderRadius: BorderRadius.circular(30), // Oval shape
+                                border: Border.all(
+                                  color: isSelected ? Colors.transparent : Color(0xFF818181), // Border color
+                                ),
+                              ),
+                              child: Center( // Ensures text is centered within the container
+                                child: Text(
+                                  option,
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w400,
+                                    fontFamily: "Krub",
+                                    color: isSelected ? Colors.white : Colors.black, // Text color change on select
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+
+
+
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17), // Padding inside the button
+                    backgroundColor: const Color(0xFFFFFFFF),
+                    foregroundColor: const Color(0xFF000000),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15), // Rounded corners
+                      side: BorderSide(
+                        color: Color(0xFFC3C3C3), // Border color
+                        width: 1, // Border width
+                      ),
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontFamily: "Krub",
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17), // Padding inside the button
+                    backgroundColor: const Color(0xFF9AD47F),
+                    foregroundColor: const Color(0xFFFFFFFF),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15), // Rounded corners
+                    ),
+                  ),
+
+                  onPressed: () {
+                    // Handle selectedOptions here
+                    Navigator.of(context).pop();
+                  },
+
+                  child: const Text(
+                      'Apply filters',
+                  style: TextStyle(
+                      fontSize: 19,
+                      fontFamily: "Krub",
+                      fontWeight: FontWeight.w500,
+
+                  ),
+                    ),
+                ),
+              ],
+
+            );
+          },
+        );
+      },
+    );
+  }
+
   //Data cell Styles
   DataCell buildCenteredTextCell(String? text) {
     return DataCell(
@@ -281,17 +436,21 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
           child: IconButton(
             icon: Image.asset(
               'assets/images/filter_icon.png',
-              width: 30,
-              height: 30,
+              width: 55,
+              height: 55,
             ),
-            onPressed: () {},
+            onPressed: () {
+              _showFilterDialog();
+            },
           ),
+
 
         ),
 
         const SizedBox(width: 10),
+
         SizedBox(
-  width: 500, // Set the desired width for the search bar
+  width: MediaQuery.of(context).size.width * 0.3, // Set the desired width for the search bar
   child: ConstrainedBox(
     constraints: BoxConstraints(
       minWidth: 200, // Minimum width for the search bar
@@ -326,185 +485,184 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   Widget _buildUserTable({Key? key}) {
     final paginatedUsers = _paginatedData;
 
-    // List of column titles
     final columnTitles = [
       'Uid',
       'Name',
       'Email',
-      'Pending',
+      'Account Status',
       'User Type',
       'Customize',
     ];
 
+    // Consistent width for columns (except Customize)
+    const double columnWidth = 120;
+
     return LayoutBuilder(
       key: key,
       builder: (context, constraints) {
-        return Container(
-          width: constraints.maxWidth,
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height * 0.9, // Set a minimum height for the table
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
-          ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0), // Add padding at the top
-                child: DataTable(
-                  columnSpacing: 24,
-                  headingRowHeight: 56,
-                  dataRowHeight: 60,
-                  border: TableBorder(
-                    horizontalInside: BorderSide(
+        return SingleChildScrollView(
+          child: Container(
+            width: constraints.maxWidth,
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 0.9,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0),
+                  child: DataTable(
+                    columnSpacing: 24,
+                    headingRowHeight: 56,
+                    dataRowHeight: 60,
+                    border: TableBorder.all(
                       color: Colors.grey.shade300,
                       width: 1,
                     ),
-                    verticalInside: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                    ),
-                    top: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                    ),
-                    bottom: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                    ),
-                    left: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                    ),
-                    right: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                    ),
-                  ),
-                  columns: [
-                    for (var title in columnTitles)
-                      DataColumn(
-                        label: Expanded(
-                          child: Center(child: Text(
-                            title,
-                            style: const TextStyle(
-                              fontFamily: "Krub",
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          )), // Ensures the title is centered
-                        ),
-                      ),
-                  ],
-
-
-                  // Populate the table with data
-                  rows: paginatedUsers.map((user) {
-                    final isEditing = editingUserId == user['uid'];
-                    return DataRow(cells: [
-                      buildCenteredTextCell(user['uid']?.toString()),
-                      isEditing
-                          ? DataCell(TextFormField(
-                        initialValue: editedUser['fullname'] ?? user['fullname'],
-                        onChanged: (value) => editedUser['fullname'] = value,
-                      ))
-                          : buildCenteredTextCell(user['fullname']),
-                      isEditing
-                          ? DataCell(TextFormField(
-                        initialValue: editedUser['email'] ?? user['email'],
-                        onChanged: (value) => editedUser['email'] = value,
-                      ))
-                          : buildCenteredTextCell(user['email']),
-                      buildCenteredTextCell(user['account_status']),
-                      buildCenteredTextCell(user['user_type']),
-                      DataCell(
-                        Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min, // keeps Row as compact as its children
-                            children: [
-                              isEditing
-                                  ? TextButton.icon(
-                                onPressed: () {
-                                  setState(() {
-                                    final index = userData.indexWhere((u) => u['uid'] == user['uid']);
-                                    if (index != -1) {
-                                      userData[index] = {
-                                        ...userData[index],
-                                        ...editedUser,
-                                      };
-                                    }
-                                    editingUserId = null;
-                                    editedUser = {};
-                                  });
-                                },
-                                icon: const Icon(Icons.save, size: 15),
-                                label: const Text('Save'),
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  backgroundColor: Colors.green,
-                                  foregroundColor: Colors.white,
-                                ),
-                              )
-                                  : TextButton.icon(
-                                onPressed: () {
-                                  setState(() {
-                                    editingUserId = user['uid'];
-                                    editedUser = Map<String, dynamic>.from(user);
-                                  });
-                                },
-                                icon: const Icon(Icons.edit, size: 15),
-                                label: const Text('Edit'),
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  backgroundColor: const Color(0xFF4F768E),
-                                  foregroundColor: Colors.white,
+                    columns: [
+                      for (var title in columnTitles)
+                        DataColumn(
+                          label: SizedBox(
+                            width: title == 'Customize' ? 260 : columnWidth,
+                            child: Center(
+                              child: Text(
+                                title,
+                                style: const TextStyle(
+                                  fontFamily: "Krub",
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
                                 ),
                               ),
-                              if (isEditing)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: IconButton(
-                                    icon: const Icon(Icons.cancel, color: Colors.red),
+                            ),
+                          ),
+                        ),
+                    ],
+                    rows: paginatedUsers.map((user) {
+                      final isEditing = editingUserId == user['uid'];
+                      return DataRow(cells: [
+                        DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['uid']?.toString() ?? '', textAlign: TextAlign.center)),
+                        )),
+                        isEditing
+                            ? DataCell(SizedBox(
+                          width: columnWidth,
+                          child: TextFormField(
+                            initialValue: editedUser['fullname'] ?? user['fullname'],
+                            onChanged: (value) => editedUser['fullname'] = value,
+                          ),
+                        ))
+                            : DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['fullname'], textAlign: TextAlign.center)),
+                        )),
+                        isEditing
+                            ? DataCell(SizedBox(
+                          width: columnWidth,
+                          child: TextFormField(
+                            initialValue: editedUser['email'] ?? user['email'],
+                            onChanged: (value) => editedUser['email'] = value,
+                          ),
+                        ))
+                            : DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['email'], textAlign: TextAlign.center)),
+                        )),
+                        DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['account_status'], textAlign: TextAlign.center)),
+                        )),
+                        DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['user_type'], textAlign: TextAlign.center)),
+                        )),
+                        DataCell(
+                          SizedBox(
+                            width: 260,
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  isEditing
+                                      ? TextButton.icon(
                                     onPressed: () {
                                       setState(() {
+                                        final index = userData.indexWhere((u) => u['uid'] == user['uid']);
+                                        if (index != -1) {
+                                          userData[index] = {
+                                            ...userData[index],
+                                            ...editedUser,
+                                          };
+                                        }
                                         editingUserId = null;
                                         editedUser = {};
                                       });
                                     },
-                                  ),
-                                ),
-
-                              //Delete Function
-                              if (!isEditing)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 13.0),
-                                  child: IconButton(
-                                    icon: Image.asset('assets/images/white_delete.png', width: 30, height: 30),
-
+                                    icon: const Icon(Icons.save, size: 15),
+                                    label: const Text('Save'),
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      backgroundColor: Colors.green,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                  )
+                                      : TextButton.icon(
                                     onPressed: () {
-                                      _showDeleteConfirmationDialog();
+                                      setState(() {
+                                        editingUserId = user['uid'];
+                                        editedUser = Map<String, dynamic>.from(user);
+                                      });
                                     },
-
+                                    icon: const Icon(Icons.edit, size: 15),
+                                    label: const Text('Edit'),
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      backgroundColor: const Color(0xFF4F768E),
+                                      foregroundColor: Colors.white,
+                                    ),
                                   ),
-                                ),
-                              if (!isEditing)
-                                IconButton(
-                                  icon: Image.asset('assets/images/more_options.png', width: 55, height: 55),
-                                  onPressed: () => _showUserDetailsDialog(user),
-                                ),
-                            ],
+                                  if (isEditing)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: IconButton(
+                                        icon: const Icon(Icons.cancel, color: Colors.red),
+                                        onPressed: () {
+                                          setState(() {
+                                            editingUserId = null;
+                                            editedUser = {};
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  if (!isEditing)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 13.0),
+                                      child: IconButton(
+                                        icon: Image.asset('assets/images/white_delete.png', width: 30, height: 30),
+                                        onPressed: () {
+                                          _showDeleteConfirmationDialog();
+                                        },
+                                      ),
+                                    ),
+                                  if (!isEditing)
+                                    IconButton(
+                                      icon: Image.asset('assets/images/more_options.png', width: 55, height: 55),
+                                      onPressed: () => _showUserDetailsDialog(user),
+                                    ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-
-
-                    ]);
-                  }).toList(),
-
+                      ]);
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
@@ -513,6 +671,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       },
     );
   }
+
 
 
   void _showUserDetailsDialog(Map<String, dynamic> user) {
@@ -590,31 +749,34 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
 
   Widget _buildPaginationBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text("Results per page: ${userData.length}",
-        style: TextStyle(
-          fontWeight:  FontWeight.w300,
-          fontFamily: "Inter",
-          fontSize: 16,
-        )),
-        Row(
-          children: [
-            _buildPaginateButton(
-              icon: Icons.arrow_back,
-              label: 'Previous',
-              onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
-            ),
-            ..._buildPageNumbers(),
-            _buildPaginateButton(
-              icon: Icons.arrow_forward,
-              label: 'Next',
-              onPressed: _currentPage < _totalPages ? () => setState(() => _currentPage++) : null,
-            ),
-          ],
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(right: 60.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Results per page: ${userData.length}",
+          style: TextStyle(
+            fontWeight:  FontWeight.w300,
+            fontFamily: "Inter",
+            fontSize: 16,
+          )),
+          Row(
+            children: [
+              _buildPaginateButton(
+                icon: Icons.arrow_back,
+                label: 'Previous',
+                onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+              ),
+              ..._buildPageNumbers(),
+              _buildPaginateButton(
+                icon: Icons.arrow_forward,
+                label: 'Next',
+                onPressed: _currentPage < _totalPages ? () => setState(() => _currentPage++) : null,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
