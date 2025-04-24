@@ -73,6 +73,9 @@ flutter:
       - assets/images/person-home.png
       - assets/images/bank.png
       - assets/images/delete.png
+      - assets/images/white_delete.png
+      - assets/images/more_options.png
+      - assets/images/filter_icon.png
 
   #   - images/a_dot_ham.jpeg
 
