@@ -37,7 +37,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
   Future<List<Map<String, dynamic>>> fetchUsers(int page, int limit) async {
     final response = await http.get(
-      Uri.parse('http://localhost:8080/display/users?page=$page&limit=$limit'),
+      Uri.parse('http://localhost:8080/display/users?page=$page&limit=$limit&user_type=Landlord'),
       headers: {'Content-Type': 'application/json'},
     );
 

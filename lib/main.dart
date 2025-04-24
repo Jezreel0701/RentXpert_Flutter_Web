@@ -16,8 +16,8 @@ class AdminWeb extends StatelessWidget {
           fontFamily: 'Krub-Regular',
         ),
         routes: {
-         // '/': (context) => MainScreen(), // Main screen
-           '/': (context) => Login(), // Login screen
+          //'/': (context) => MainScreen(), // Main screen
+          '/': (context) => Login(), // Login screen
         }
     );
   }

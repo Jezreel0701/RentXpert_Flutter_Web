@@ -36,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
     UserManagementLandlord(),
     PropertiesManagementScreen(),
     AnalyticsScreen(),
-    // SettingsScreen(),
+     SettingsScreen(),
   ];
 
   // Smooth navigation function with FadeTransition

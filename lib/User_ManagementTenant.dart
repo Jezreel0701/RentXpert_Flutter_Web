@@ -40,7 +40,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
   Future<List<Map<String, dynamic>>> fetchUsers(int page, int limit) async {
     final response = await http.get(
-      Uri.parse('http://localhost:8080/display/users?page=$page&limit=$limit&user_type=tenant'), // Change tenant capitalization
+      Uri.parse('http://localhost:8080/display/users?page=$page&limit=$limit&user_type=Tenant'), // Change tenant capitalization
       headers: {'Content-Type': 'application/json'},
     );
 
