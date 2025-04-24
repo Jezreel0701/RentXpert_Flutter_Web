@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:rentxpert_flutter_web/service/api.dart'; // Your API service, YearCountService, YearCount
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({Key? key}) : super(key: key);
@@ -344,8 +345,7 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
     final selectedYears = getSelectedYears();
 
     // Get data for all years in range, default to 0 if no data
-    final selectedData = selectedYears.map((y) => widget.yearData[y] ?? 0.0)
-        .toList();
+    final selectedData = selectedYears.map((y) => widget.yearData[y] ?? 0.0).toList();
 
     // Compute Y-axis bounds
     final rawMax = selectedData.isEmpty ? 0 : selectedData.reduce(math.max);
@@ -376,10 +376,7 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
 
     return Center(
       child: Container(
-        width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.8,
+        width: MediaQuery.of(context).size.width * 0.8,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -394,37 +391,84 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Year selectors
+                // Year selectors with DropdownButton2
                 Column(
                   children: [
-                    const Text("Start Year:", style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600)),
-                    DropdownButton<String>(
+                    const Text("Start Year:",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    DropdownButton2<String>(
                       value: startYear,
                       onChanged: (v) => setState(() => startYear = v!),
                       items: allYears
                           .where((y) => int.parse(y) <= int.parse(endYear))
-                          .map((y) =>
-                          DropdownMenuItem(
-                            value: y,
-                            child: Text(y),
-                          ))
+                          .map((y) => DropdownMenuItem(
+                        value: y,
+                        child: Text(y),
+                      ))
                           .toList(),
+                      buttonStyleData: ButtonStyleData(
+                        height: 40,
+                        width: 120,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                      ),
+                      dropdownStyleData: DropdownStyleData(
+                        maxHeight: 200,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                        offset: const Offset(0, -5),
+                        scrollbarTheme: ScrollbarThemeData(
+                          radius: const Radius.circular(40),
+                          thickness: MaterialStateProperty.all(6),
+                          thumbVisibility: MaterialStateProperty.all(true),
+                        ),
+                      ),
+                      menuItemStyleData: const MenuItemStyleData(
+                        height: 40,
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                      ),
                     ),
                     const SizedBox(height: 10),
-                    const Text("End Year:", style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600)),
-                    DropdownButton<String>(
+                    const Text("End Year:",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    DropdownButton2<String>(
                       value: endYear,
                       onChanged: (v) => setState(() => endYear = v!),
                       items: allYears
                           .where((y) => int.parse(y) >= int.parse(startYear))
-                          .map((y) =>
-                          DropdownMenuItem(
-                            value: y,
-                            child: Text(y),
-                          ))
+                          .map((y) => DropdownMenuItem(
+                        value: y,
+                        child: Text(y),
+                      ))
                           .toList(),
+                      buttonStyleData: ButtonStyleData(
+                        height: 40,
+                        width: 120,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                      ),
+                      dropdownStyleData: DropdownStyleData(
+                        maxHeight: 200,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                        offset: const Offset(0, -5),
+                      ),
+                      menuItemStyleData: const MenuItemStyleData(
+                        height: 40,
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                      ),
                     ),
                   ],
                 ),
@@ -457,11 +501,10 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                           show: true,
                           drawVerticalLine: false,
                           horizontalInterval: yInt,
-                          getDrawingHorizontalLine: (_) =>
-                              FlLine(
-                                color: Colors.grey.withOpacity(0.2),
-                                strokeWidth: 1,
-                              ),
+                          getDrawingHorizontalLine: (_) => FlLine(
+                            color: Colors.grey.withOpacity(0.2),
+                            strokeWidth: 1,
+                          ),
                         ),
                         borderData: FlBorderData(show: false),
                         barGroups: barGroups,
@@ -472,8 +515,7 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                               reservedSize: 30,
                               getTitlesWidget: (value, meta) {
                                 final index = value.toInt();
-                                if (index < 0 ||
-                                    index >= selectedYears.length) {
+                                if (index < 0 || index >= selectedYears.length) {
                                   return const SizedBox();
                                 }
                                 return Text(
@@ -491,11 +533,10 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                               showTitles: true,
                               reservedSize: 40,
                               interval: yInt,
-                              getTitlesWidget: (value, meta) =>
-                                  Text(
-                                    value.toInt().toString(),
-                                    style: const TextStyle(fontSize: 10),
-                                  ),
+                              getTitlesWidget: (value, meta) => Text(
+                                value.toInt().toString(),
+                                style: const TextStyle(fontSize: 10),
+                              ),
                             ),
                           ),
                           topTitles: AxisTitles(
@@ -523,4 +564,4 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
       ),
     );
   }
-  }
+}
