@@ -44,8 +44,80 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  // Logout dialog (keep your existing implementation)
-  void _showLogoutDialog() { /*...*/ }
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          width: 300,
+          height: 180,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Are you sure you want to log out?',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "Krub",
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  SizedBox(
+                    width: 120,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 4,
+                        backgroundColor: Color(0xFF4A758F),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 4,
+                        backgroundColor: Color(0xFFDE5959),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => Login()),
+                        );
+                      },
+                      child: const Text(
+                        'Log Out',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
