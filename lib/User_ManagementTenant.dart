@@ -10,10 +10,9 @@ class UserManagementTenant extends StatefulWidget {
 class _UserManagementScreenState extends State<UserManagementTenant> {
   List<Map<String, dynamic>> userData = [];
   bool isLoading = true;
-
   int _rowsPerPage = 10;
   int _currentPage = 1;
-
+  String? _appliedFilter;
   String? editingUserId;
   Map<String, dynamic> editedUser = {};
 
@@ -215,83 +214,78 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
   //Dialog for filter
   void _showFilterDialog() {
+    // List of filter options
+    final filterOptions = [
+      'Name',
+      'Email',
+      'Address',
+      'Phone Number',
+      'Valid ID',
+      'Account Status',
+      'User Type',
+    ];
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // List of filter options
-        final filterOptions = [
-          'Name',
-          'Email',
-          'Address',
-          'Phone Number',
-          'Valid ID',
-          'Account Status',
-          'User Type',
-        ];
-
-        // Track selected filters
-        List<String> selectedOptions = [];
+        // Initialize with the currently applied filter (if any)
+        String? selectedOption = _appliedFilter;
 
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (context, setStateDialog) {
             return AlertDialog(
-                backgroundColor: const Color(0xFFFFFFFF),
+              backgroundColor: const Color(0xFFFFFFFF),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-
               content: SizedBox(
                 width: 400,
                 height: 250,
                 child: SingleChildScrollView(
-
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.only(top: 16.0),
                       child: Wrap(
-                        spacing: 16.0,      // Horizontal gap between chips
-                        runSpacing: 16.0,   // Vertical gap between rows
-                        alignment: WrapAlignment.start, // Align items to the start
-
+                        spacing: 16.0,
+                        runSpacing: 16.0,
+                        alignment: WrapAlignment.start,
                         children: filterOptions.map((option) {
-                          final isSelected = selectedOptions.contains(option);
-
-                          // Check for Phone Number and Account Status to apply fixed size
-                          final isFixedSize = option == 'Phone Number' || option == 'Address' ||
-                              option == 'Valid ID' || option == 'User Type' || option == 'Name' || option == 'Email'
-                              || option == 'Account Status';
+                          final isSelected = selectedOption == option;
+                          final isFixedSize = option == 'Phone Number' ||
+                              option == 'Address' ||
+                              option == 'Valid ID' ||
+                              option == 'User Type' ||
+                              option == 'Name' ||
+                              option == 'Email' ||
+                              option == 'Account Status';
 
                           return GestureDetector(
                             onTap: () {
-                              setState(() {
-                                if (isSelected) {
-                                  selectedOptions.remove(option); // Deselect option
-                                } else {
-                                  selectedOptions.add(option); // Select option
-                                }
+                              setStateDialog(() {
+                                selectedOption = isSelected ? null : option;
                               });
                             },
                             child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, // Apply standard padding
-                                vertical: 8.0,    // Apply vertical padding for all options
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 8.0,
                               ),
-                              width: isFixedSize ? 160.0 : null, // Fixed width for Phone and Account Status
+                              width: isFixedSize ? 160.0 : null,
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFF4F768E) : Colors.white, // Background color
-                                borderRadius: BorderRadius.circular(30), // Oval shape
+                                color: isSelected ? const Color(0xFF4F768E) : Colors.white,
+                                borderRadius: BorderRadius.circular(30),
                                 border: Border.all(
-                                  color: isSelected ? Colors.transparent : Color(0xFF818181), // Border color
+                                  color: isSelected ? Colors.transparent : const Color(0xFF818181),
                                 ),
                               ),
-                              child: Center( // Ensures text is centered within the container
+                              child: Center(
                                 child: Text(
                                   option,
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w400,
                                     fontFamily: "Krub",
-                                    color: isSelected ? Colors.white : Colors.black, // Text color change on select
+                                    color: isSelected ? Colors.white : Colors.black,
                                   ),
                                 ),
                               ),
@@ -303,24 +297,18 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                   ),
                 ),
               ),
-
-
-
-
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17), // Padding inside the button
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
                     backgroundColor: const Color(0xFFFFFFFF),
                     foregroundColor: const Color(0xFF000000),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15), // Rounded corners
-                      side: BorderSide(
-                        color: Color(0xFFC3C3C3), // Border color
-                        width: 1, // Border width
+                      borderRadius: BorderRadius.circular(15),
+                      side: const BorderSide(
+                        color: Color(0xFFC3C3C3),
+                        width: 1,
                       ),
                     ),
                   ),
@@ -334,32 +322,31 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                   ),
                 ),
                 TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // Update the parent widget's state
+                    setState(() {
+                      _appliedFilter = selectedOption;
+                    });
+                  },
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17), // Padding inside the button
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
                     backgroundColor: const Color(0xFF9AD47F),
                     foregroundColor: const Color(0xFFFFFFFF),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15), // Rounded corners
+                      borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-
-                  onPressed: () {
-                    // Handle selectedOptions here
-                    Navigator.of(context).pop();
-                  },
-
                   child: const Text(
-                      'Apply filters',
-                  style: TextStyle(
+                    'Apply filters',
+                    style: TextStyle(
                       fontSize: 19,
                       fontFamily: "Krub",
                       fontWeight: FontWeight.w500,
-
-                  ),
                     ),
+                  ),
                 ),
               ],
-
             );
           },
         );
@@ -434,15 +421,32 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
           // ),
 
           child: IconButton(
-            icon: Image.asset(
+            icon: _appliedFilter == null
+                ? Image.asset(
               'assets/images/filter_icon.png',
               width: 55,
               height: 55,
+            )
+                : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4F768E),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                _appliedFilter!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontFamily: 'Krub',
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
-            onPressed: () {
-              _showFilterDialog();
-            },
+            onPressed: _showFilterDialog,
           ),
+
+
 
 
         ),
