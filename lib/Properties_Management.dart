@@ -8,59 +8,58 @@ class PropertiesManagementScreen extends StatefulWidget {
 }
 
 class _UserManagementScreenState extends State<PropertiesManagementScreen> {
-  List<Map<String, dynamic>> userData = [];
+  List<Map<String, dynamic>> apartmentsData = [];
   bool isLoading = true;
-
   int _rowsPerPage = 10;
   int _currentPage = 1;
-
-  String? editingUserId;
-  Map<String, dynamic> editedUser = {};
+  String? _appliedFilter;
+  String? editingApartmentsId;
+  Map<String, dynamic> editedApartments = {};
 
   @override
   void initState() {
     super.initState();
-    loadUsers();
+    loadApartments();
   }
 
-  Future<void> loadUsers({int page = 1}) async {
+  Future<void> loadApartments({int page = 1}) async {
     setState(() => isLoading = true);
 
     try {
-      final users = await fetchUsers(page, _rowsPerPage);
+      final apartments = await fetchApartments(page, _rowsPerPage);
       setState(() {
-        userData = users;
+        apartmentsData = apartments;
         isLoading = false;
       });
     } catch (e) {
-      print('Error fetching users: $e');
+      print('Error fetching apartments: $e');
       setState(() => isLoading = false);
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchUsers(int page, int limit) async {
+  Future<List<Map<String, dynamic>>> fetchApartments(int page, int limit) async {
     final response = await http.get(
-      Uri.parse('http://localhost:8080/display/users?page=$page&limit=$limit&user_type=Landlord'), // Change tenant capitalization
+      Uri.parse('http://localhost:8080/admin/apartments/details?page=$page&limit=$limit'), // Get apartments
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      List<dynamic> users = data['data']['users'];
-      return users.cast<Map<String, dynamic>>();
+      List<dynamic> apartments = data['data']['apartments'];
+      return apartments.cast<Map<String, dynamic>>();
     } else {
-      throw Exception('Failed to load users');
+      throw Exception('Failed to load apartments');
     }
   }
 
-  int get _totalPages => (userData.length / _rowsPerPage).ceil();
+  int get _totalPages => (apartmentsData.length / _rowsPerPage).ceil();
 
   List<Map<String, dynamic>> get _paginatedData {
     final startIndex = (_currentPage - 1) * _rowsPerPage;
     final endIndex = startIndex + _rowsPerPage;
-    return userData.sublist(
+    return apartmentsData.sublist(
       startIndex,
-      endIndex > userData.length ? userData.length : endIndex,
+      endIndex > apartmentsData.length ? apartmentsData.length : endIndex,
     );
   }
 
@@ -215,80 +214,76 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
 
   //Dialog for filter
   void _showFilterDialog() {
+    // List of filter options
+    final filterOptions = [
+      'Name',
+      'Type',
+      'Address',
+      'Property Type',
+      'Rent Price',
+      'Status',
+    ];
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // List of filter options
-        final filterOptions = [
-          'Name',
-          'Type',
-          'Location',
-          'Price',
-          'Status',
-        ];
-
-        // Track selected filters
-        List<String> selectedOptions = [];
+        // Initialize with the currently applied filter (if any)
+        String? selectedOption = _appliedFilter;
 
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (context, setStateDialog) {
             return AlertDialog(
               backgroundColor: const Color(0xFFFFFFFF),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-
               content: SizedBox(
                 width: 400,
                 height: 250,
                 child: SingleChildScrollView(
-
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 40.0),
+                      padding: const EdgeInsets.only(top: 35.0),
                       child: Wrap(
-                        spacing: 16.0,      // Horizontal gap between chips
-                        runSpacing: 16.0,   // Vertical gap between rows
-                        alignment: WrapAlignment.start, // Align items to the start
-
+                        spacing: 16.0,
+                        runSpacing: 16.0,
+                        alignment: WrapAlignment.start,
                         children: filterOptions.map((option) {
-                          final isSelected = selectedOptions.contains(option);
-
-                          // Check for Phone Number and Account Status to apply fixed size
-                          final isFixedSize = option == 'Name' || option == 'Type' ||
-                              option == 'Location' || option == 'Price' || option == 'Status';
+                          final isSelected = selectedOption == option;
+                          final isFixedSize = option == 'Name' ||
+                              option == 'Type' ||
+                              option == 'Location' ||
+                              option == 'Price' ||
+                              option == 'Status' ||
+                              option == 'Property Type';
 
                           return GestureDetector(
                             onTap: () {
-                              setState(() {
-                                if (isSelected) {
-                                  selectedOptions.remove(option); // Deselect option
-                                } else {
-                                  selectedOptions.add(option); // Select option
-                                }
+                              setStateDialog(() {
+                                selectedOption = isSelected ? null : option;
                               });
                             },
                             child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, // Apply standard padding
-                                vertical: 8.0,    // Apply vertical padding for all options
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 8.0,
                               ),
-                              width: isFixedSize ? 160.0 : null, // Fixed width for Phone and Account Status
+                              width: isFixedSize ? 160.0 : null,
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFF4F768E) : Colors.white, // Background color
-                                borderRadius: BorderRadius.circular(30), // Oval shape
+                                color: isSelected ? const Color(0xFF4F768E) : Colors.white,
+                                borderRadius: BorderRadius.circular(30),
                                 border: Border.all(
-                                  color: isSelected ? Colors.transparent : Color(0xFF818181), // Border color
+                                  color: isSelected ? Colors.transparent : const Color(0xFF818181),
                                 ),
                               ),
-                              child: Center( // Ensures text is centered within the container
+                              child: Center(
                                 child: Text(
                                   option,
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w400,
                                     fontFamily: "Krub",
-                                    color: isSelected ? Colors.white : Colors.black, // Text color change on select
+                                    color: isSelected ? Colors.white : Colors.black,
                                   ),
                                 ),
                               ),
@@ -300,24 +295,18 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                   ),
                 ),
               ),
-
-
-
-
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17), // Padding inside the button
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
                     backgroundColor: const Color(0xFFFFFFFF),
                     foregroundColor: const Color(0xFF000000),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15), // Rounded corners
-                      side: BorderSide(
-                        color: Color(0xFFC3C3C3), // Border color
-                        width: 1, // Border width
+                      borderRadius: BorderRadius.circular(15),
+                      side: const BorderSide(
+                        color: Color(0xFFC3C3C3),
+                        width: 1,
                       ),
                     ),
                   ),
@@ -331,32 +320,31 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                   ),
                 ),
                 TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // Update the parent widget's state
+                    setState(() {
+                      _appliedFilter = selectedOption;
+                    });
+                  },
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17), // Padding inside the button
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
                     backgroundColor: const Color(0xFF9AD47F),
                     foregroundColor: const Color(0xFFFFFFFF),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15), // Rounded corners
+                      borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-
-                  onPressed: () {
-                    // Handle selectedOptions here
-                    Navigator.of(context).pop();
-                  },
-
                   child: const Text(
                     'Apply filters',
                     style: TextStyle(
                       fontSize: 19,
                       fontFamily: "Krub",
                       fontWeight: FontWeight.w500,
-
                     ),
                   ),
                 ),
               ],
-
             );
           },
         );
@@ -431,15 +419,32 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
           // ),
 
           child: IconButton(
-            icon: Image.asset(
+            icon: _appliedFilter == null
+                ? Image.asset(
               'assets/images/filter_icon.png',
               width: 55,
               height: 55,
+            )
+                : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4F768E),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                _appliedFilter!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontFamily: 'Krub',
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
-            onPressed: () {
-              _showFilterDialog();
-            },
+            onPressed: _showFilterDialog,
           ),
+
+
 
 
         ),
@@ -480,14 +485,14 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
 
   // Table  widget
   Widget _buildUserTable({Key? key}) {
-    final paginatedUsers = _paginatedData;
+    final paginatedApartments = _paginatedData;
 
     final columnTitles = [
       'Uid',
-      'Name',
-      'Email',
-      'Account Status',
-      'User Type',
+      'Property Name',
+      'Property Type',
+      'Rent Price',
+      'Status',
       'Customize',
     ];
 
@@ -540,44 +545,44 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                           ),
                         ),
                     ],
-                    rows: paginatedUsers.map((user) {
-                      final isEditing = editingUserId == user['uid'];
+                    rows: paginatedApartments.map((apartments) {
+                      final isEditing = editingApartmentsId == apartments['uid'];
                       return DataRow(cells: [
                         DataCell(SizedBox(
                           width: columnWidth,
-                          child: Center(child: Text(user['uid']?.toString() ?? '', textAlign: TextAlign.center)),
+                          child: Center(child: Text(apartments['uid']?.toString() ?? '', textAlign: TextAlign.center)),
                         )),
                         isEditing
                             ? DataCell(SizedBox(
                           width: columnWidth,
                           child: TextFormField(
-                            initialValue: editedUser['fullname'] ?? user['fullname'],
-                            onChanged: (value) => editedUser['fullname'] = value,
+                            initialValue: editedApartments['property_name'] ?? apartments['property_name'],
+                            onChanged: (value) => editedApartments['property_name'] = value,
                           ),
                         ))
                             : DataCell(SizedBox(
                           width: columnWidth,
-                          child: Center(child: Text(user['fullname'], textAlign: TextAlign.center)),
+                          child: Center(child: Text(apartments['property_name'], textAlign: TextAlign.center)),
                         )),
                         isEditing
                             ? DataCell(SizedBox(
                           width: columnWidth,
                           child: TextFormField(
-                            initialValue: editedUser['email'] ?? user['email'],
-                            onChanged: (value) => editedUser['email'] = value,
+                            initialValue: editedApartments['property_type'] ?? apartments['property_type'],
+                            onChanged: (value) => editedApartments['property_type'] = value,
                           ),
                         ))
                             : DataCell(SizedBox(
                           width: columnWidth,
-                          child: Center(child: Text(user['email'], textAlign: TextAlign.center)),
+                          child: Center(child: Text(apartments['property_type'], textAlign: TextAlign.center)),
                         )),
                         DataCell(SizedBox(
                           width: columnWidth,
-                          child: Center(child: Text(user['account_status'], textAlign: TextAlign.center)),
+                          child: Center(child: Text(apartments['rent_price'], textAlign: TextAlign.center)),
                         )),
                         DataCell(SizedBox(
                           width: columnWidth,
-                          child: Center(child: Text(user['user_type'], textAlign: TextAlign.center)),
+                          child: Center(child: Text(apartments['status'], textAlign: TextAlign.center)),
                         )),
                         DataCell(
                           SizedBox(
@@ -590,15 +595,15 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                                       ? TextButton.icon(
                                     onPressed: () {
                                       setState(() {
-                                        final index = userData.indexWhere((u) => u['uid'] == user['uid']);
+                                        final index = apartmentsData.indexWhere((u) => u['uid'] == apartments['uid']);
                                         if (index != -1) {
-                                          userData[index] = {
-                                            ...userData[index],
-                                            ...editedUser,
+                                          apartmentsData[index] = {
+                                            ...apartmentsData[index],
+                                            ...editedApartments,
                                           };
                                         }
-                                        editingUserId = null;
-                                        editedUser = {};
+                                        editingApartmentsId = null;
+                                        editedApartments = {};
                                       });
                                     },
                                     icon: const Icon(Icons.save, size: 15),
@@ -612,8 +617,8 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                                       : TextButton.icon(
                                     onPressed: () {
                                       setState(() {
-                                        editingUserId = user['uid'];
-                                        editedUser = Map<String, dynamic>.from(user);
+                                        editingApartmentsId = apartments['uid'];
+                                        editedApartments = Map<String, dynamic>.from(apartments);
                                       });
                                     },
                                     icon: const Icon(Icons.edit, size: 15),
@@ -631,8 +636,8 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                                         icon: const Icon(Icons.cancel, color: Colors.red),
                                         onPressed: () {
                                           setState(() {
-                                            editingUserId = null;
-                                            editedUser = {};
+                                            editingApartmentsId = null;
+                                            editedApartments = {};
                                           });
                                         },
                                       ),
@@ -650,7 +655,7 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                                   if (!isEditing)
                                     IconButton(
                                       icon: Image.asset('assets/images/more_options.png', width: 55, height: 55),
-                                      onPressed: () => _showUserDetailsDialog(user),
+                                      onPressed: () => _showApartmentsDetailsDialog(apartments),
                                     ),
                                 ],
                               ),
@@ -670,8 +675,8 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
   }
 
 
-
-  void _showUserDetailsDialog(Map<String, dynamic> user) {
+//More options dialog
+  void _showApartmentsDetailsDialog(Map<String, dynamic> apartments) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -680,7 +685,7 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
           borderRadius: BorderRadius.circular(15),
         ),
         title: const Text(
-          "User Details",
+          "Property Details",
           style: TextStyle(
             color: Color(0xFF4F768E),
             fontFamily: "Krub",
@@ -692,10 +697,10 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _infoRow("Name", user['fullname']),
-            _infoRow("Phone Number", user['phone_number']),
-            _infoRow("Address", user['address']),
-            _infoRow("Valid ID", user['valid_id']),
+            _infoRow("Property Name", apartments['property_name']),
+            _infoRow("Property Type", apartments['property_type']),
+            _infoRow("Address", apartments['address']),
+            _infoRow("Valid ID", apartments['valid_id']),
           ],
         ),
         actions: [
@@ -751,7 +756,7 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Results per page: ${userData.length}",
+          Text("Results per page: ${apartmentsData.length}",
               style: TextStyle(
                 fontWeight:  FontWeight.w300,
                 fontFamily: "Inter",
