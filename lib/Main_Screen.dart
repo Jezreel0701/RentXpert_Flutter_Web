@@ -7,10 +7,12 @@ import 'Analytics_Managenent.dart';
 import 'Settings_Screen.dart';
 import 'login.dart';
 
+
 class MainScreen extends StatefulWidget {
-  @override
-  _MainScreenState createState() => _MainScreenState();
+ @override
+ _MainScreenState createState() => _MainScreenState();
 }
+
 
 class _MainScreenState extends State<MainScreen> {
   // Hover states
@@ -26,8 +28,13 @@ class _MainScreenState extends State<MainScreen> {
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
 
-  int _selectedIndex = 0;
-  final Duration _transitionDuration = const Duration(milliseconds: 300);
+ // Index: 0 - Dashboard, 1 - Tenant, 2 - Landlord, 3 - Properties, 4 - Analytics, 5 - Settings
+ int _selectedIndex = 0;
+
+
+ // Transition duration (adjustable)
+ final Duration _transitionDuration = const Duration(milliseconds: 300);
+
 
   final List<Widget> _screens = [
     DashboardScreen(),
@@ -38,85 +45,89 @@ class _MainScreenState extends State<MainScreen> {
     SettingsScreen(),
   ];
 
-  void _navigateToPage(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          width: 300,
-          height: 180,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Are you sure you want to log out?',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontFamily: "Krub",
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 4,
-                        backgroundColor: Color(0xFF4A758F),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                      },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 120,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 4,
-                        backgroundColor: Color(0xFFDE5959),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => Login()),
-                        );
-                      },
-                      child: const Text(
-                        'Log Out',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+ // Smooth navigation function with Slide and Fade Transition
+ void _navigateToPage(int index) {
+   setState(() {
+     _selectedIndex = index;
+   });
+ }
+
+
+ // Logout pop-up function
+ void _showLogoutDialog() {
+   showDialog(
+     context: context,
+     builder: (context) => Dialog(
+       backgroundColor: Colors.white,
+       shape: RoundedRectangleBorder(
+         borderRadius: BorderRadius.circular(12),
+       ),
+       child: Container(
+         padding: const EdgeInsets.all(20),
+         width: 300,
+         height: 180,
+         child: Column(
+           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+           children: [
+             const Text(
+               'Are you sure you want to log out?',
+               style: TextStyle(
+                 fontSize: 20,
+                 fontFamily: "Krub",
+                 fontWeight: FontWeight.w600,
+               ),
+               textAlign: TextAlign.center,
+             ),
+             Row(
+               mainAxisAlignment: MainAxisAlignment.spaceAround,
+               children: [
+                 SizedBox(
+                   width: 120,
+                   height: 50,
+                   child: ElevatedButton(
+                     style: ElevatedButton.styleFrom(
+                       elevation: 4,
+                       backgroundColor: Color(0xFF4A758F),
+                     ),
+                     onPressed: () {
+                       Navigator.of(context).pop(); // Close the dialog
+                     },
+                     child: const Text(
+                       'Cancel',
+                       style: TextStyle(color: Colors.white),
+                     ),
+                   ),
+                 ),
+                 SizedBox(
+                   width: 120,
+                   height: 50,
+                   child: ElevatedButton(
+                     style: ElevatedButton.styleFrom(
+                       elevation: 4,
+                       backgroundColor: Color(0xFFDE5959),
+                     ),
+                     onPressed: () {
+                       Navigator.of(context).pop(); // Close the dialog
+                       Navigator.pushReplacement(
+                         context,
+                         MaterialPageRoute(builder: (context) => Login()),
+                       );
+                     },
+                     child: const Text(
+                       'Log Out',
+                       style: TextStyle(color: Colors.white),
+                     ),
+                   ),
+                 ),
+               ],
+             ),
+           ],
+         ),
+       ),
+     ),
+   );
+ }
 
 
   @override
