@@ -9,13 +9,12 @@ import 'login.dart';
 
 
 class MainScreen extends StatefulWidget {
- @override
- _MainScreenState createState() => _MainScreenState();
+  @override
+  _MainScreenState createState() => _MainScreenState();
 }
 
 
 class _MainScreenState extends State<MainScreen> {
-  // Hover states
   bool isHoveredDashboard = false;
   bool isHoveredUsers = false;
   bool isHoveredProperties = false;
@@ -23,17 +22,18 @@ class _MainScreenState extends State<MainScreen> {
   bool isHoveredSettings = false;
   bool isHoveredLogout = false;
 
-  // Dropdown state
+
   bool isUserDropdownExpanded = false;
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
 
- // Index: 0 - Dashboard, 1 - Tenant, 2 - Landlord, 3 - Properties, 4 - Analytics, 5 - Settings
- int _selectedIndex = 0;
+
+  // Index: 0 - Dashboard, 1 - Tenant, 2 - Landlord, 3 - Properties, 4 - Analytics, 5 - Settings
+  int _selectedIndex = 0;
 
 
- // Transition duration (adjustable)
- final Duration _transitionDuration = const Duration(milliseconds: 300);
+  // Transition duration (adjustable)
+  final Duration _transitionDuration = const Duration(milliseconds: 350);
 
 
   final List<Widget> _screens = [
@@ -46,190 +46,155 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
 
- // Smooth navigation function with Slide and Fade Transition
- void _navigateToPage(int index) {
-   setState(() {
-     _selectedIndex = index;
-   });
- }
+  // Smooth navigation function with Slide and Fade Transition
+  void _navigateToPage(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
 
- // Logout pop-up function
- void _showLogoutDialog() {
-   showDialog(
-     context: context,
-     builder: (context) => Dialog(
-       backgroundColor: Colors.white,
-       shape: RoundedRectangleBorder(
-         borderRadius: BorderRadius.circular(12),
-       ),
-       child: Container(
-         padding: const EdgeInsets.all(20),
-         width: 300,
-         height: 180,
-         child: Column(
-           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-           children: [
-             const Text(
-               'Are you sure you want to log out?',
-               style: TextStyle(
-                 fontSize: 20,
-                 fontFamily: "Krub",
-                 fontWeight: FontWeight.w600,
-               ),
-               textAlign: TextAlign.center,
-             ),
-             Row(
-               mainAxisAlignment: MainAxisAlignment.spaceAround,
-               children: [
-                 SizedBox(
-                   width: 120,
-                   height: 50,
-                   child: ElevatedButton(
-                     style: ElevatedButton.styleFrom(
-                       elevation: 4,
-                       backgroundColor: Color(0xFF4A758F),
-                     ),
-                     onPressed: () {
-                       Navigator.of(context).pop(); // Close the dialog
-                     },
-                     child: const Text(
-                       'Cancel',
-                       style: TextStyle(color: Colors.white),
-                     ),
-                   ),
-                 ),
-                 SizedBox(
-                   width: 120,
-                   height: 50,
-                   child: ElevatedButton(
-                     style: ElevatedButton.styleFrom(
-                       elevation: 4,
-                       backgroundColor: Color(0xFFDE5959),
-                     ),
-                     onPressed: () {
-                       Navigator.of(context).pop(); // Close the dialog
-                       Navigator.pushReplacement(
-                         context,
-                         MaterialPageRoute(builder: (context) => Login()),
-                       );
-                     },
-                     child: const Text(
-                       'Log Out',
-                       style: TextStyle(color: Colors.white),
-                     ),
-                   ),
-                 ),
-               ],
-             ),
-           ],
-         ),
-       ),
-     ),
-   );
- }
+  // Logout pop-up function
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          width: 300,
+          height: 180,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Are you sure you want to log out?',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "Krub",
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  SizedBox(
+                    width: 120,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 4,
+                        backgroundColor: Color(0xFF4A758F),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 4,
+                        backgroundColor: Color(0xFFDE5959),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => Login()),
+                        );
+                      },
+                      child: const Text(
+                        'Log Out',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            bool isMobile = constraints.maxWidth < 1000;
-
-            return isMobile
-                ? _buildMobileLayout()
-                : _buildDesktopLayout();
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileLayout() {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF4A758F),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        child: Container(
-          color: Color(0xFF4A758F),
-          child: Column(
-            children: [
-              DrawerHeader(
-                child: Image.asset(
-                    "assets/images/white_logo.png",
-                    height: 120,
-                    fit: BoxFit.contain),
-              ),
-              ..._buildSidebarItems(),
-            ],
-          ),
-        ),
-      ),
-      body: AnimatedSwitcher(
-        duration: _transitionDuration,
-        child: _screens[_selectedIndex],
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: animation,
-          child: child,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopLayout() {
-    return Row(
-      children: [
-        // Sidebar
-        Expanded(
-          flex: 1,
-          child: Container(
-            color: Color(0xFF4A758F),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 30),
-                  child: Column(
-                    children: [
-                      Image.asset(
+      body: Row(
+        children: [
+          // Sidebar (Always visible)
+          Expanded(
+            flex: 1,
+            child: Container(
+              color: Color(0xFF4A758F),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 30),
+                    alignment: Alignment.center,
+                    child: Column(
+                      children: [
+                        Image.asset(
                           "assets/images/white_logo.png",
-                          height: 120),
-                      Divider(color: Colors.white, thickness: 1),
-                    ],
+                          height: 120,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(
+                          width: 220,
+                          child: Divider(
+                            color: Colors.white,
+                            thickness: 1,
+                            height: 40,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                ..._buildSidebarItems(),
-              ],
-            ),
-          ),
-        ),
-
-        // Main Content
-        Expanded(
-          flex: 5,
-          child: Container(
-            color: Color(0xFFF5F5F5),
-            child: AnimatedSwitcher(
-              duration: _transitionDuration,
-              child: _screens[_selectedIndex],
-              transitionBuilder: (child, animation) => FadeTransition(
-                opacity: animation,
-                child: child,
+                  ..._buildSidebarItems(),
+                ],
               ),
             ),
           ),
-        ),
-      ],
+
+
+          // Main Content with Slide and Fade Transition
+          Expanded(
+            flex: 5,
+            child: AnimatedSwitcher(
+              duration: _transitionDuration, // Adjustable transition duration
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.1, 0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
+              child: _screens[_selectedIndex],
+            ),
+          ),
+        ],
+      ),
     );
   }
+
 
   List<Widget> _buildSidebarItems() {
     return [
@@ -286,7 +251,8 @@ class _MainScreenState extends State<MainScreen> {
             onEnter: (_) => setState(() => isHoveredUsers = true),
             onExit: (_) => setState(() => isHoveredUsers = false),
             child: GestureDetector(
-              onTap: () => setState(() => isUserDropdownExpanded = !isUserDropdownExpanded),
+              onTap: () => setState(
+                      () => isUserDropdownExpanded = !isUserDropdownExpanded),
               child: Row(
                 children: [
                   Transform.translate(
@@ -296,7 +262,8 @@ class _MainScreenState extends State<MainScreen> {
                       height: 20,
                       child: Image.asset(
                         "assets/images/user.png",
-                        color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
+                        color:
+                        isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
                       ),
                     ),
                   ),
@@ -305,7 +272,8 @@ class _MainScreenState extends State<MainScreen> {
                     child: Text(
                       "Users Management",
                       style: TextStyle(
-                        color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
+                        color:
+                        isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
                         fontWeight: FontWeight.w300,
                         fontSize: 13,
                       ),
@@ -332,10 +300,7 @@ class _MainScreenState extends State<MainScreen> {
                   onEnter: (_) => setState(() => isHoveredTenant = true),
                   onExit: (_) => setState(() => isHoveredTenant = false),
                   child: GestureDetector(
-                    onTap: () => setState(() {
-                      _selectedIndex = 1; // Tenant screen
-                      // isUserDropdownExpanded = false;
-                    }),
+                    onTap: () => _navigateToPage(1), // Tenant screen
                     child: Container(
                       alignment: Alignment.centerLeft,
                       padding: EdgeInsets.symmetric(vertical: 2),
@@ -355,10 +320,7 @@ class _MainScreenState extends State<MainScreen> {
                   onEnter: (_) => setState(() => isHoveredLandlord = true),
                   onExit: (_) => setState(() => isHoveredLandlord = false),
                   child: GestureDetector(
-                    onTap: () => setState(() {
-                      _selectedIndex = 2; // Landlord screen
-                      // isUserDropdownExpanded = false;
-                    }),
+                    onTap: () => _navigateToPage(2), // Landlord screen
                     child: Container(
                       alignment: Alignment.centerLeft,
                       padding: EdgeInsets.symmetric(vertical: 2),
@@ -385,6 +347,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+
   Widget _buildSidebarTile({
     required String iconPath,
     required String title,
@@ -410,7 +373,9 @@ class _MainScreenState extends State<MainScreen> {
                       height: 20,
                       child: Image.asset(
                         iconPath,
-                        color: isHovered || isSelected ? Color(0xFFF9E9B6) : Colors.white,
+                        color: isHovered || isSelected
+                            ? Color(0xFFF9E9B6)
+                            : Colors.white,
                       ),
                     ),
                   ),
@@ -419,7 +384,9 @@ class _MainScreenState extends State<MainScreen> {
                     child: Text(
                       title,
                       style: TextStyle(
-                        color: isHovered || isSelected ? Color(0xFFF9E9B6) : Colors.white,
+                        color: isHovered || isSelected
+                            ? Color(0xFFF9E9B6)
+                            : Colors.white,
                         fontWeight: FontWeight.w300,
                         fontSize: 13,
                       ),
@@ -428,7 +395,9 @@ class _MainScreenState extends State<MainScreen> {
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 12,
-                    color: isHovered || isSelected ? Color(0xFFF9E9B6) : Colors.white,
+                    color: isHovered || isSelected
+                        ? Color(0xFFF9E9B6)
+                        : Colors.white,
                   ),
                 ],
               ),
@@ -443,3 +412,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
+
+

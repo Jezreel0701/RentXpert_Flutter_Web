@@ -353,7 +353,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
                                               Text(
-                                                'Approved Apartments',
+                                                '       Approved Apartments',
                                                 style: TextStyle(
                                                   fontFamily: "Inter",
                                                   fontSize: 12,
