@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:rentxpert_flutter_web/service/usermanagement.dart';
+import 'package:rentxpert_flutter_web/config/config.dart';
 
 class UserManagementTenant extends StatefulWidget {
   @override
@@ -39,7 +40,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
   Future<List<Map<String, dynamic>>> fetchUsers(int page, int limit) async {
     final response = await http.get(
-      Uri.parse('http://localhost:8080/display/users?page=$page&limit=$limit&user_type=Tenant'),
+      Uri.parse('$baseUrl/display/users?page=$page&limit=$limit&user_type=Tenant'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -517,9 +518,12 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   }
 
 
+// ... (keep imports and other code the same)
+
   Widget _buildUserTable({Key? key}) {
     final columnTitles = ['Uid', 'Name', 'Email', 'Account Status', 'User Type', 'Customize'];
     const double columnWidth = 120;
+    const double customizeColumnWidth = 260;
 
     return LayoutBuilder(
       key: key,
@@ -538,22 +542,22 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
               child: ConstrainedBox(
                 constraints: BoxConstraints(minWidth: constraints.maxWidth),
                 child: Padding(
-                  padding: EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0), // Adjusted padding
+                  padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0),
                   child: DataTable(
                     columnSpacing: 24,
-                    headingRowHeight: 56, // Add row heights
+                    headingRowHeight: 56,
                     dataRowHeight: 60,
-                    border: TableBorder.all( // Add border property
+                    border: TableBorder.all(
                       color: Colors.grey.shade300,
                       width: 1,
                     ),
                     columns: columnTitles.map((title) => DataColumn(
                       label: SizedBox(
-                        width: title == 'Customize' ? 260 : columnWidth,
+                        width: title == 'Customize' ? customizeColumnWidth : columnWidth,
                         child: Center(
                           child: Text(
                             title,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontFamily: "Krub",
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
@@ -562,16 +566,80 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                         ),
                       ),
                     )).toList(),
-                    rows: _paginatedData.map((user) => DataRow(
-                      cells: [
-                        DataCell(Center(child: Text(user['uid'] ?? ''))),
-                        _buildEditableCell(user, 'fullname'),
-                        _buildEditableCell(user, 'email'),
-                        DataCell(Center(child: Text(user['account_status'] ?? ''))),
-                        DataCell(Center(child: Text(user['user_type'] ?? ''))),
-                        DataCell(_buildActionButtons(user)),
-                      ],
-                    )).toList(),
+                    rows: _paginatedData.map((user) {
+                      final isEditing = editingUserId == user['uid'];
+                      return DataRow(cells: [
+                        DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['uid']?.toString() ?? '')),
+                        )),
+                        _buildEditableCell(user, 'fullname', columnWidth),
+                        _buildEditableCell(user, 'email', columnWidth),
+                        DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['account_status'] ?? '')),
+                        )),
+                        DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['user_type'] ?? '')),
+                        )),
+                        DataCell(
+                          SizedBox(
+                            width: customizeColumnWidth,
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (isEditing) ...[
+                                    TextButton.icon(
+                                      onPressed: () => _saveUserUpdates(user['uid']),
+                                      icon: const Icon(Icons.save, size: 15),
+                                      label: const Text('Save'),
+                                      style: _buttonStyle(Colors.green),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      icon: const Icon(Icons.cancel, color: Colors.red),
+                                      onPressed: () => setState(() {
+                                        editingUserId = null;
+                                        editedUser = {};
+                                      }),
+                                    ),
+                                  ] else ...[
+                                    TextButton.icon(
+                                      onPressed: () => setState(() {
+                                        editingUserId = user['uid'];
+                                        editedUser = Map.from(user);
+                                      }),
+                                      icon: const Icon(Icons.edit, size: 15),
+                                      label: const Text('Edit'),
+                                      style: _buttonStyle(const Color(0xFF4F768E)),
+                                    ),
+                                    const SizedBox(width: 13),
+                                    IconButton(
+                                      icon: Image.asset(
+                                        'assets/images/white_delete.png',
+                                        width: 30,
+                                        height: 30,
+                                      ),
+                                      onPressed: () => _showDeleteConfirmationDialog(user['uid']),
+                                    ),
+                                    IconButton(
+                                      icon: Image.asset(
+                                        'assets/images/more_options.png',
+                                        width: 55,
+                                        height: 55,
+                                      ),
+                                      onPressed: () => _showUserDetailsDialog(user),
+                                    ),
+                                  ]
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ]);
+                    }).toList(),
                   ),
                 ),
               ),
@@ -582,15 +650,18 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     );
   }
 
-  DataCell _buildEditableCell(Map<String, dynamic> user, String field) {
+  DataCell _buildEditableCell(Map<String, dynamic> user, String field, double width) {
     final isEditing = editingUserId == user['uid'];
     return DataCell(
-      isEditing
-          ? TextFormField(
-        initialValue: editedUser[field] ?? user[field],
-        onChanged: (value) => editedUser[field] = value,
-      )
-          : Center(child: Text(user[field]?.toString() ?? '')),
+        SizedBox(
+          width: width,
+          child: isEditing
+              ? TextFormField(
+            initialValue: editedUser[field] ?? user[field],
+            onChanged: (value) => editedUser[field] = value,
+          )
+              : Center(child: Text(user[field]?.toString() ?? '')),
+        )
     );
   }
 
@@ -602,7 +673,11 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
         if (isEditing) ...[
           TextButton.icon(
             onPressed: () => _saveUserUpdates(user['uid']),
-            icon: Icon(Icons.save, size: 15),
+            icon: Icon(
+              Icons.save,
+              size: 15,
+              color: Colors.white, // Explicitly set the icon color to white
+            ),
             label: Text('Save'),
             style: _buttonStyle(Colors.green),
           ),
@@ -619,9 +694,16 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
               editingUserId = user['uid'];
               editedUser = Map.from(user);
             }),
-            icon: Icon(Icons.edit, size: 15),
-            label: Text('Edit'),
-            style: _buttonStyle(Color(0xFF4F768E)),
+            icon: Icon(Icons.edit,
+              size: 15,
+              color: Colors.white, // Added white color
+            ),
+            label: Text('Edit',
+              style: TextStyle(
+                color: Colors.white, // Ensure text is white
+              ),
+            ),
+            style: _buttonStyle(const Color(0xFF4F768E)),
           ),
           IconButton(
             icon: Image.asset('assets/images/white_delete.png', width: 30),
@@ -639,7 +721,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   ButtonStyle _buttonStyle(Color color) => TextButton.styleFrom(
     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     backgroundColor: color,
-    foregroundColor: Colors.white,
+    foregroundColor: Colors.white, // This affects both icon and text color
   );
 
 

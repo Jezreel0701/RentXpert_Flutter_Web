@@ -43,7 +43,7 @@ class UserManagementUpdate {  // PascalCase for class name
   }
 }  // Removed extra closing brace
 
-// Add to usermanagement.dart
+
 class UserManagementDelete {
   static const bool debug = true;
 
@@ -81,6 +81,59 @@ class UserManagementDelete {
     } catch (e) {
       if (debug) print('🔴 Exception deleting user: $e');
       return false;
+    }
+  }
+}
+
+class UserManagementSearch {
+  static const bool debug = true;
+
+  /// Search users by specific field and value
+  static Future<List<dynamic>?> search({
+    required String field,
+    required String searchTerm,
+  }) async {
+    final url = Uri.parse('$baseUrl/adminuserinfo/search').replace(
+      queryParameters: {
+        'field': field,
+        'search_term': searchTerm,
+      },
+    );
+
+    if (debug) {
+      print('\n🟡 Searching users at: $url');
+    }
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      );
+
+      if (debug) {
+        print('🔵 Response Status Code: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      final responseData = jsonDecode(response.body);
+
+      // Handle different response formats
+      final successCode = responseData['RetCode'] ?? responseData['retCode'];
+      final data = responseData['Data'] ?? responseData['data'];
+
+      if (response.statusCode == 200 &&
+          successCode.toString() == '200' &&
+          data != null) {
+        if (debug) print('🟢 Search successful');
+        return List<dynamic>.from(data);
+      }
+      return null;
+    } catch (e) {
+      if (debug) print('🔴 Exception during search: $e');
+      return null;
     }
   }
 }
