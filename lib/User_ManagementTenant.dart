@@ -26,13 +26,22 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     setState(() => isLoading = true);
 
     try {
-      final users = await fetchUsers(page, _rowsPerPage);
+      final usersTenant = await fetchUsers(page, _rowsPerPage);
+
       setState(() {
-        userData = users;
+        userData = usersTenant;
         isLoading = false;
       });
+
+      print('\n🟡 Fetched  User Tenants: $usersTenant');
+      if (usersTenant.isNotEmpty) {
+        print('\n🟢 Successfully fetched User Tenants: $usersTenant');
+      } else {
+        print('\n🔴 No  User Tenants found.');
+      }
+
     } catch (e) {
-      print('Error fetching users: $e');
+      print('🔴 Error fetching  User Tenants: $e');
       setState(() => isLoading = false);
     }
   }
@@ -487,7 +496,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
   // Table  widget
   Widget _buildUserTable({Key? key}) {
-    final paginatedUsers = _paginatedData;
+    final paginatedUsersTenant = _paginatedData;
 
     final columnTitles = [
       'Uid',
@@ -547,7 +556,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                           ),
                         ),
                     ],
-                    rows: paginatedUsers.map((user) {
+                    rows: paginatedUsersTenant.map((user) {
                       final isEditing = editingUserId == user['uid'];
                       return DataRow(cells: [
                         DataCell(SizedBox(
@@ -578,6 +587,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                           width: columnWidth,
                           child: Center(child: Text(user['email'], textAlign: TextAlign.center)),
                         )),
+
                         DataCell(SizedBox(
                           width: columnWidth,
                           child: Center(child: Text(user['account_status'], textAlign: TextAlign.center)),
@@ -687,7 +697,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
           borderRadius: BorderRadius.circular(15),
         ),
         title: const Text(
-          "User Details",
+          "Apartment Details",
           style: TextStyle(
             color: Color(0xFF4F768E),
             fontFamily: "Krub",

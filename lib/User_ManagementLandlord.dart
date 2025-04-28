@@ -25,16 +25,27 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
   Future<void> loadUsers({int page = 1}) async {
     setState(() => isLoading = true);
 
+
     try {
-      final users = await fetchUsers(page, _rowsPerPage);
+      final usersLandlord = await fetchUsers(page, _rowsPerPage);
+
       setState(() {
-        userData = users;
+        userData = usersLandlord;
         isLoading = false;
       });
+
+      print('\n🟡 Fetched  User Landlord: $usersLandlord');
+      if (usersLandlord.isNotEmpty) {
+        print('\n🟢 Successfully fetched User Landlord: $usersLandlord');
+      } else {
+        print('\n🔴 No  User Landlord found.');
+      }
+
     } catch (e) {
-      print('Error fetching users: $e');
+      print('🔴 Error fetching  User Landlord: $e');
       setState(() => isLoading = false);
     }
+
   }
 
   Future<List<Map<String, dynamic>>> fetchUsers(int page, int limit) async {
@@ -487,7 +498,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
   // Table  widget
   Widget _buildUserTable({Key? key}) {
-    final paginatedUsers = _paginatedData;
+    final paginatedUsersLandlord = _paginatedData;
 
     final columnTitles = [
       'Uid',
@@ -547,7 +558,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                           ),
                         ),
                     ],
-                    rows: paginatedUsers.map((user) {
+                    rows: paginatedUsersLandlord.map((user) {
                       final isEditing = editingUserId == user['uid'];
                       return DataRow(cells: [
                         DataCell(SizedBox(
