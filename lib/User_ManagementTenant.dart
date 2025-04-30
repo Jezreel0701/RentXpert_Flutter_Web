@@ -1,8 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:rentxpert_flutter_web/service/usermanagement.dart';
-import 'package:rentxpert_flutter_web/config/config.dart';
 
 class UserManagementTenant extends StatefulWidget {
   @override
@@ -12,11 +9,24 @@ class UserManagementTenant extends StatefulWidget {
 class _UserManagementScreenState extends State<UserManagementTenant> {
   List<Map<String, dynamic>> userData = [];
   bool isLoading = true;
-  int _rowsPerPage = 10;
+  int _rowsPerPage = 8;
   int _currentPage = 1;
+  int _totalUsers = 0;
+  int _totalPages = 0;
   String? _appliedFilter;
   String? editingUserId;
   Map<String, dynamic> editedUser = {};
+  final TextEditingController _searchController = TextEditingController();
+
+  final Map<String, String> _filterFieldMap = {
+    'Name': 'fullname',
+    'Email': 'email',
+    'Address': 'address',
+    'Phone Number': 'phone_number',
+    'Valid ID': 'valid_id',
+    'Account Status': 'account_status',
+    'User Type': 'user_type',
+  };
 
   @override
   void initState() {
@@ -27,40 +37,67 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   Future<void> loadUsers({int page = 1}) async {
     setState(() => isLoading = true);
     try {
-      final users = await fetchUsers(page, _rowsPerPage);
-      setState(() {
-        userData = users;
-        isLoading = false;
-      });
+      String? accountStatus;
+      String? name;
+      String? searchField;
+      String? searchTerm;
+
+      if (_appliedFilter != null && _searchController.text.isNotEmpty) {
+        final filter = _appliedFilter!;
+        final term = _searchController.text.trim();
+
+        switch (filter) {
+          case 'Account Status':
+            accountStatus = term;
+            break;
+          case 'Name':
+            name = term;
+            break;
+          default:
+            searchField = _filterFieldMap[filter];
+            searchTerm = term;
+            break;
+        }
+      }
+
+      final result = await UserManagementFetch.fetchUsers(
+        userType: 'Tenant',
+        page: page,
+        limit: _rowsPerPage,
+        accountStatus: accountStatus,
+        name: name,
+        searchField: searchField,
+        searchTerm: searchTerm,
+      );
+
+      if (result != null) {
+        setState(() {
+          userData = result.users.map(_userToMap).toList();
+          _totalUsers = result.total;
+          _totalPages = result.totalPages;
+          _currentPage = page;
+          isLoading = false;
+        });
+      } else {
+        setState(() => isLoading = false);
+      }
     } catch (e) {
       print('Error fetching users: $e');
       setState(() => isLoading = false);
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchUsers(int page, int limit) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/display/users?page=$page&limit=$limit&user_type=Tenant'),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return (data['data']['users'] as List).cast<Map<String, dynamic>>();
-    } else {
-      throw Exception('Failed to load users');
-    }
-  }
-
-  int get _totalPages => (userData.length / _rowsPerPage).ceil();
-
-  List<Map<String, dynamic>> get _paginatedData {
-    final startIndex = (_currentPage - 1) * _rowsPerPage;
-    final endIndex = startIndex + _rowsPerPage;
-    return userData.sublist(
-      startIndex.clamp(0, userData.length),
-      endIndex.clamp(0, userData.length),
-    );
+  Map<String, dynamic> _userToMap(UserData user) {
+    return {
+      'uid': user.uid,
+      'email': user.email,
+      'phone_number': user.phoneNumber,
+      'fullname': user.fullName,
+      'address': user.address,
+      'valid_id': user.validId,
+      'account_status': user.accountStatus,
+      'user_type': user.userType,
+    };
   }
 
   Future<void> _saveUserUpdates(String userId) async {
@@ -253,7 +290,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       'Email',
       'Address',
       'Phone Number',
-      'Valid ID',
       'Account Status',
       'User Type',
     ];
@@ -286,7 +322,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                           final isSelected = selectedOption == option;
                           final isFixedSize = option == 'Phone Number' ||
                               option == 'Address' ||
-                              option == 'Valid ID' ||
                               option == 'User Type' ||
                               option == 'Name' ||
                               option == 'Email' ||
@@ -494,11 +529,16 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       maxWidth: 400, // Maximum width for the search bar
     ),
     child: TextField(
+      controller: _searchController,
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.search),
         suffixIcon: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () {},
+          onPressed: () {
+            _searchController.clear();
+            _appliedFilter = null;
+            loadUsers();
+          },
         ),
         hintText: 'Search...',
         border: OutlineInputBorder(
@@ -508,6 +548,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
         fillColor: Colors.white,
         filled: true,
       ),
+      onSubmitted: (value) => loadUsers(),
     ),
   ),
 
@@ -517,9 +558,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     );
   }
 
-
-// ... (keep imports and other code the same)
-
   Widget _buildUserTable({Key? key}) {
     final columnTitles = ['Uid', 'Name', 'Email', 'Account Status', 'User Type', 'Customize'];
     const double columnWidth = 120;
@@ -528,118 +566,124 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     return LayoutBuilder(
       key: key,
       builder: (context, constraints) {
-        return SingleChildScrollView(
-          child: Container(
-            width: constraints.maxWidth,
-            constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height * 0.9),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0),
-                  child: DataTable(
-                    columnSpacing: 24,
-                    headingRowHeight: 56,
-                    dataRowHeight: 60,
-                    border: TableBorder.all(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                    ),
-                    columns: columnTitles.map((title) => DataColumn(
-                      label: SizedBox(
-                        width: title == 'Customize' ? customizeColumnWidth : columnWidth,
-                        child: Center(
-                          child: Text(
-                            title,
-                            style: const TextStyle(
-                              fontFamily: "Krub",
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
+        return Container(
+          width: constraints.maxWidth,
+          // Set a fixed height for the container (adjust as needed)
+          height: MediaQuery.of(context).size.height * 0.9,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0),
+                child: SizedBox(
+                  // Adjust height to account for padding
+                  height: MediaQuery.of(context).size.height * 0.9 - 20,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: DataTable(
+                      columnSpacing: 24,
+                      headingRowHeight: 56,
+                      dataRowHeight: 60,
+                      border: TableBorder.all(
+                        color: Colors.grey.shade300,
+                        width: 1,
                       ),
-                    )).toList(),
-                    rows: _paginatedData.map((user) {
-                      final isEditing = editingUserId == user['uid'];
-                      return DataRow(cells: [
-                        DataCell(SizedBox(
-                          width: columnWidth,
-                          child: Center(child: Text(user['uid']?.toString() ?? '')),
-                        )),
-                        _buildEditableCell(user, 'fullname', columnWidth),
-                        _buildEditableCell(user, 'email', columnWidth),
-                        DataCell(SizedBox(
-                          width: columnWidth,
-                          child: Center(child: Text(user['account_status'] ?? '')),
-                        )),
-                        DataCell(SizedBox(
-                          width: columnWidth,
-                          child: Center(child: Text(user['user_type'] ?? '')),
-                        )),
-                        DataCell(
-                          SizedBox(
-                            width: customizeColumnWidth,
-                            child: Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (isEditing) ...[
-                                    TextButton.icon(
-                                      onPressed: () => _saveUserUpdates(user['uid']),
-                                      icon: const Icon(Icons.save, size: 15),
-                                      label: const Text('Save'),
-                                      style: _buttonStyle(Colors.green),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(Icons.cancel, color: Colors.red),
-                                      onPressed: () => setState(() {
-                                        editingUserId = null;
-                                        editedUser = {};
-                                      }),
-                                    ),
-                                  ] else ...[
-                                    TextButton.icon(
-                                      onPressed: () => setState(() {
-                                        editingUserId = user['uid'];
-                                        editedUser = Map.from(user);
-                                      }),
-                                      icon: const Icon(Icons.edit, size: 15),
-                                      label: const Text('Edit'),
-                                      style: _buttonStyle(const Color(0xFF4F768E)),
-                                    ),
-                                    const SizedBox(width: 13),
-                                    IconButton(
-                                      icon: Image.asset(
-                                        'assets/images/white_delete.png',
-                                        width: 30,
-                                        height: 30,
-                                      ),
-                                      onPressed: () => _showDeleteConfirmationDialog(user['uid']),
-                                    ),
-                                    IconButton(
-                                      icon: Image.asset(
-                                        'assets/images/more_options.png',
-                                        width: 55,
-                                        height: 55,
-                                      ),
-                                      onPressed: () => _showUserDetailsDialog(user),
-                                    ),
-                                  ]
-                                ],
+                      columns: columnTitles.map((title) => DataColumn(
+                        label: SizedBox(
+                          width: title == 'Customize' ? customizeColumnWidth : columnWidth,
+                          child: Center(
+                            child: Text(
+                              title,
+                              style: const TextStyle(
+                                fontFamily: "Krub",
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
                               ),
                             ),
                           ),
                         ),
-                      ]);
-                    }).toList(),
+                      )).toList(),
+                      rows: userData.map((user) {
+                        final isEditing = editingUserId == user['uid'];
+                        return DataRow(cells: [
+                          DataCell(SizedBox(
+                            width: columnWidth,
+                            child: Center(child: Text(user['uid']?.toString() ?? '')),
+                          )),
+                          _buildEditableCell(user, 'fullname', columnWidth),
+                          _buildEditableCell(user, 'email', columnWidth),
+                          DataCell(SizedBox(
+                            width: columnWidth,
+                            child: Center(child: Text(user['account_status'] ?? '')),
+                          )),
+                          DataCell(SizedBox(
+                            width: columnWidth,
+                            child: Center(child: Text(user['user_type'] ?? '')),
+                          )),
+                          DataCell(
+                            SizedBox(
+                              width: customizeColumnWidth,
+                              child: Center(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isEditing) ...[
+                                      TextButton.icon(
+                                        onPressed: () => _saveUserUpdates(user['uid']),
+                                        icon: const Icon(Icons.save, size: 15),
+                                        label: const Text('Save'),
+                                        style: _buttonStyle(Colors.green),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        icon: const Icon(Icons.cancel, color: Colors.red),
+                                        onPressed: () => setState(() {
+                                          editingUserId = null;
+                                          editedUser = {};
+                                        }),
+                                      ),
+                                    ] else ...[
+                                      TextButton.icon(
+                                        onPressed: () => setState(() {
+                                          editingUserId = user['uid'];
+                                          editedUser = Map.from(user);
+                                        }),
+                                        icon: const Icon(Icons.edit, size: 15),
+                                        label: const Text('Edit'),
+                                        style: _buttonStyle(const Color(0xFF4F768E)),
+                                      ),
+                                      const SizedBox(width: 13),
+                                      IconButton(
+                                        icon: Image.asset(
+                                          'assets/images/white_delete.png',
+                                          width: 30,
+                                          height: 30,
+                                        ),
+                                        onPressed: () => _showDeleteConfirmationDialog(user['uid']),
+                                      ),
+                                      IconButton(
+                                        icon: Image.asset(
+                                          'assets/images/more_options.png',
+                                          width: 55,
+                                          height: 55,
+                                        ),
+                                        onPressed: () => _showUserDetailsDialog(user),
+                                      ),
+                                    ]
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ]);
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
@@ -806,24 +850,26 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Results per page: ${userData.length}",
-          style: TextStyle(
-            fontWeight:  FontWeight.w300,
-            fontFamily: "Inter",
-            fontSize: 16,
-          )),
+          Text(
+            "Showing ${_rowsPerPage} of  $_totalUsers results",
+            style: TextStyle(
+              fontWeight: FontWeight.w300,
+              fontFamily: "Inter",
+              fontSize: 16,
+            ),
+          ),
           Row(
             children: [
               _buildPaginateButton(
                 icon: Icons.arrow_back,
                 label: 'Previous',
-                onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+                onPressed: _currentPage > 1 ? () => loadUsers(page: _currentPage - 1) : null,
               ),
               ..._buildPageNumbers(),
               _buildPaginateButton(
                 icon: Icons.arrow_forward,
                 label: 'Next',
-                onPressed: _currentPage < _totalPages ? () => setState(() => _currentPage++) : null,
+                onPressed: _currentPage < _totalPages ? () => loadUsers(page: _currentPage + 1) : null,
               ),
             ],
           ),
@@ -872,10 +918,12 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     for (int i = 1; i <= _totalPages; i++) {
       if (i == 1 || i == _totalPages || (i - _currentPage).abs() <= 1) {
         pageWidgets.add(_pageNumberButton(i));
-      } else if (pageWidgets.isEmpty ||
-          (pageWidgets.last is! Text &&
-              (pageWidgets.last as TextButton).child is! Text ||
-              ((pageWidgets.last as TextButton).child as Text).data != "...")) {
+      } else {
+        // Check if we already added an ellipsis
+        if (pageWidgets.isNotEmpty &&
+            pageWidgets.last is Padding) {
+          continue;
+        }
         pageWidgets.add(
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 4.0),
@@ -893,7 +941,10 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: TextButton(
-        onPressed: () => setState(() => _currentPage = page),
+        onPressed: () {
+          setState(() => _currentPage = page);
+          loadUsers(page: page); // Add this line
+        },
         style: TextButton.styleFrom(
           backgroundColor: isSelected ? const Color(0xFF4F768E) : Colors.white,
           foregroundColor: isSelected ? Colors.white : Colors.black,
@@ -905,8 +956,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
               width: 1.5,
             ),
           ),
-          elevation: isSelected ? 2 : 0,
-          shadowColor: isSelected ? Colors.black26 : null,
         ),
         child: Text(
           page.toString(),

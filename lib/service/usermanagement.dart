@@ -85,28 +85,40 @@ class UserManagementDelete {
   }
 }
 
-class UserManagementSearch {
+class UserManagementFetch {
   static const bool debug = true;
 
-  /// Search users by specific field and value
-  static Future<List<dynamic>?> search({
-    required String field,
-    required String searchTerm,
+  static Future<UserFetchResult?> fetchUsers({
+    String? userType,
+    String? accountStatus,
+    String? name,
+    String? searchField,
+    String? searchTerm,
+    int page = 1,
+    int limit = 10,
   }) async {
-    final url = Uri.parse('$baseUrl/adminuserinfo/search').replace(
-      queryParameters: {
-        'field': field,
-        'search_term': searchTerm,
-      },
-    );
+    final url = Uri.parse('$baseUrl/adminuserinfo/search');
+
+    // Prepare query parameters
+    final params = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+
+    if (userType?.isNotEmpty ?? false) params['user_type'] = userType!;
+    if (accountStatus?.isNotEmpty ?? false) params['account_status'] = accountStatus!;
+    if (name?.isNotEmpty ?? false) params['name'] = name!;
+    if (searchField?.isNotEmpty ?? false) params['field'] = searchField!;
+    if (searchTerm?.isNotEmpty ?? false) params['search_term'] = searchTerm!;
 
     if (debug) {
-      print('\n🟡 Searching users at: $url');
+      print('\n🟡 Fetching users from: $url');
+      print('🔵 Query parameters: $params');
     }
 
     try {
       final response = await http.get(
-        url,
+        url.replace(queryParameters: params),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
@@ -118,22 +130,78 @@ class UserManagementSearch {
         print('🔵 Response Body: ${response.body}');
       }
 
-      final responseData = jsonDecode(response.body);
-
-      // Handle different response formats
-      final successCode = responseData['RetCode'] ?? responseData['retCode'];
-      final data = responseData['Data'] ?? responseData['data'];
-
-      if (response.statusCode == 200 &&
-          successCode.toString() == '200' &&
-          data != null) {
-        if (debug) print('🟢 Search successful');
-        return List<dynamic>.from(data);
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final result = UserFetchResult.fromJson(responseData['Data'] ?? responseData['data']);
+        return result;
       }
       return null;
     } catch (e) {
-      if (debug) print('🔴 Exception during search: $e');
+      if (debug) print('🔴 Exception fetching users: $e');
       return null;
     }
+  }
+}
+
+class UserFetchResult {
+  final int limit;
+  final int page;
+  final int total;
+  final int totalPages;
+  final List<UserData> users;
+
+  UserFetchResult({
+    required this.limit,
+    required this.page,
+    required this.total,
+    required this.totalPages,
+    required this.users,
+  });
+
+  factory UserFetchResult.fromJson(Map<String, dynamic> json) {
+    return UserFetchResult(
+      limit: json['limit'] as int,
+      page: json['page'] as int,
+      total: json['total'] as int,
+      totalPages: json['total_pages'] as int,
+      users: (json['users'] as List)
+          .map((user) => UserData.fromJson(user))
+          .toList(),
+    );
+  }
+}
+
+class UserData {
+  final String uid;
+  final String email;
+  final String phoneNumber;
+  final String fullName;
+  final String address;
+  final String validId;
+  final String accountStatus;
+  final String userType;
+
+  UserData({
+    required this.uid,
+    required this.email,
+    required this.phoneNumber,
+    required this.fullName,
+    required this.address,
+    required this.validId,
+    required this.accountStatus,
+    required this.userType,
+  });
+
+  factory UserData.fromJson(Map<String, dynamic> json) {
+    return UserData(
+      uid: json['uid'] as String,
+      email: json['email'] as String,
+      phoneNumber: json['phone_number'] as String,
+      fullName: json['fullname'] as String,
+      address: json['address'] as String,
+      validId: json['valid_id'] as String,
+      accountStatus: json['account_status'] as String,
+      userType: json['user_type'] as String,
+    );
   }
 }
