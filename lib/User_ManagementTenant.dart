@@ -100,6 +100,8 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     };
   }
 
+
+  // Update / Edit user Snackbar
   Future<void> _saveUserUpdates(String userId) async {
     try {
       final updatedUser = await UserManagementUpdate.updateUserDetails(
@@ -118,39 +120,67 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
           editingUserId = null;
           editedUser = {};
         });
-        _showTopSnackBar("User updated successfully", false);
+        _showUpdateTUserSnackBar("User accoount updated successfully", false);
       } else {
-        _showTopSnackBar("Failed to update user", true);
+        _showUpdateTUserSnackBar("Failed to update user", true);
       }
     } catch (e) {
-      _showTopSnackBar("Update error: ${e.toString()}", true);
+      _showUpdateTUserSnackBar("Update error: ${e.toString()}", true);
     }
   }
 
-  void _showTopSnackBar(String message, bool isError) {
+
+  //Update / edit snackbar style
+  void _showUpdateTUserSnackBar(String message, bool isError) {
     final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 300;
+    const double snackbarHeight = 80;
+
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         top: 50,
-        left: MediaQuery.of(context).size.width / 2 - 150,
+        left: screenSize.width / 2 - snackbarWidth / 2,
         child: Material(
           color: Colors.transparent,
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            width: snackbarWidth,
+            height: snackbarHeight,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: isError ? Colors.red : Color(0xFF2E7D32),
-              borderRadius: BorderRadius.circular(10),
+              color: isError ? Colors.red : Colors.green,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
-            child: Text(message, style: TextStyle(color: Colors.white)),
+            alignment: Alignment.center,
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontFamily: "Inter",
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ),
       ),
     );
 
     overlay.insert(overlayEntry);
-    Future.delayed(Duration(seconds: 3), overlayEntry.remove);
+    Future.delayed(const Duration(seconds: 3), overlayEntry.remove);
   }
 
+
+
+  //Delete Confirmation Dialog
   void _showDeleteConfirmationDialog(String uid) {
     showDialog(
       context: context,
@@ -238,6 +268,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     );
   }
 
+  //Delete User Snackbar
   Future<void> _deleteAccount(String uid) async {
     try {
       final success = await UserManagementDelete.deleteUser(uid);
@@ -252,8 +283,14 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     }
   }
 
+
+  //Delete Snackbar style
   void _showDeleteTopSnackBar(String message, bool success) {
     final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 300;
+    const double snackbarHeight = 80;
+
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         top: 50,
@@ -262,9 +299,11 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
         child: Material(
           color: Colors.transparent,
           child: Container(
+            width: snackbarWidth,
+            height: snackbarHeight,
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
-              color: success ? Color(0xFF2E7D32) : Colors.red,
+              color: success ? Colors.red : Colors.red,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
@@ -280,6 +319,111 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
     overlay.insert(overlayEntry);
     Future.delayed(Duration(seconds: 3), () => overlayEntry.remove());
+  }
+
+
+
+  //Snakcbar notification for Approve button
+  void _approveUser() {
+    // Add your account deletion logic here.
+
+    // Show custom top snack bar
+    _showApproveTopSnackBar("User account successfully approved");
+  }
+
+  //Approve Snackbar style
+  void _showApproveTopSnackBar(String message) {
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 300;
+    const double snackbarHeight = 80;
+
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,  // Adjust the top value as per your needs
+        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
+        right: MediaQuery.of(context).size.width / 2 - 150,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: snackbarWidth,
+            height: snackbarHeight,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                message,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert the overlay
+    overlay.insert(overlayEntry);
+
+    // Remove the overlay after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
+
+
+//Snakcbar notification for Reject button
+  void _rejectUser() {
+    // Add your account deletion logic here.
+
+    // Show custom top snack bar
+    _showRejectTopSnackBar("Account successfully rejected");
+  }
+
+  //Reject Snackbar style
+  void _showRejectTopSnackBar(String message) {
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 300;
+    const double snackbarHeight = 80;
+
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,  // Adjust the top value as per your needs
+        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
+        right: MediaQuery.of(context).size.width / 2 - 150,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: snackbarWidth,
+            height: snackbarHeight,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                message,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert the overlay
+    overlay.insert(overlayEntry);
+
+    // Remove the overlay after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
   }
 
   //Dialog for filter
@@ -771,62 +915,164 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   void _showUserDetailsDialog(Map<String, dynamic> user) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        title: const Text(
-          "User Details",
-          style: TextStyle(
-            color: Color(0xFF4F768E),
-            fontFamily: "Krub",
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _infoRow("Name", user['fullname']),
-            _infoRow("Phone Number", user['phone_number']),
-            _infoRow("Address", user['address']),
-            _infoRow("Valid ID", user['valid_id']),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              "Close",
-              style: TextStyle(
-                color: Color(0xFF4F768E),
-                fontFamily: "Inter",
-                fontWeight: FontWeight.w300,
-                fontSize: 16,
+      builder: (context) {
+        bool isApproved = false;
+        bool isRejected = false;
+
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            content: SizedBox(
+              width: 400,
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40.0), // space below close button
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "User Details",
+                          style: TextStyle(
+                            color: Color(0xFF4F768E),
+                            fontFamily: "Krub",
+                            fontWeight: FontWeight.bold,
+                            fontSize: 25,
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 53.0),
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Name", user['fullname']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Phone Number", user['phone_number']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Address", user['address']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Valid ID", user['valid_id']),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IconButton(
+                      icon: Image.asset(
+                        'assets/images/back_image.png', // your custom "X" image
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
               ),
             ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isApproved || isRejected
+                      ? Colors.grey
+                      : const Color(0xFF79BD85),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  minimumSize: const Size(150, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: (isApproved || isRejected)
+                    ? null
+                    : () {
+                  _approveUser();
+                  setState(() => isApproved = true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("User approved!"),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+                child: Text(
+                  isApproved ? "Approved" : "Approve",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isRejected || isApproved
+                      ? Colors.grey
+                      : const Color(0xFFDE5959),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  minimumSize: const Size(150, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: (isRejected || isApproved)
+                    ? null
+                    : () {
+                  _rejectUser();
+                  setState(() => isRejected = true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("User rejected!"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                },
+                child: Text(
+                  isRejected ? "Rejected" : "Reject",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _infoRow(String label, String? value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Text(
-            "$label:",
-            style: const TextStyle(
-              fontFamily: "Inter",
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          SizedBox(
+            width: 150,
+            child: Text(
+              "$label:",
+              style: const TextStyle(
+                fontFamily: "Inter",
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
           Expanded(
             child: Text(
               value ?? '',
