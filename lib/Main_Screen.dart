@@ -8,13 +8,14 @@ import 'Settings_Screen.dart';
 import 'login.dart';
 
 
+
 class MainScreen extends StatefulWidget {
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
-
 class _MainScreenState extends State<MainScreen> {
+  // Hover states
   bool isHoveredDashboard = false;
   bool isHoveredUsers = false;
   bool isHoveredProperties = false;
@@ -22,19 +23,13 @@ class _MainScreenState extends State<MainScreen> {
   bool isHoveredSettings = false;
   bool isHoveredLogout = false;
 
-
+  // Dropdown state
   bool isUserDropdownExpanded = false;
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
 
-
-  // Index: 0 - Dashboard, 1 - Tenant, 2 - Landlord, 3 - Properties, 4 - Analytics, 5 - Settings
   int _selectedIndex = 0;
-
-
-  // Transition duration (adjustable)
-  final Duration _transitionDuration = const Duration(milliseconds: 350);
-
+  final Duration _transitionDuration = const Duration(milliseconds: 300);
 
   final List<Widget> _screens = [
     DashboardScreen(),
@@ -45,16 +40,12 @@ class _MainScreenState extends State<MainScreen> {
     SettingsScreen(),
   ];
 
-
-  // Smooth navigation function with Slide and Fade Transition
   void _navigateToPage(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-
-  // Logout pop-up function
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -129,52 +120,108 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar (Always visible)
-          Expanded(
-            flex: 1,
-            child: Container(
-              color: Color(0xFF4A758F),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 30),
-                    alignment: Alignment.center,
-                    child: Column(
-                      children: [
-                        Image.asset(
-                          "assets/images/white_logo.png",
-                          height: 120,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(
-                          width: 220,
-                          child: Divider(
-                            color: Colors.white,
-                            thickness: 1,
-                            height: 40,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  ..._buildSidebarItems(),
-                ],
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            bool isMobile = constraints.maxWidth < 1000;
+
+            return isMobile
+                ? _buildMobileLayout()
+                : _buildDesktopLayout();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF4A758F),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
+      drawer: Drawer(
+        child: Container(
+          color: Color(0xFF4A758F),
+          child: Column(
+            children: [
+              DrawerHeader(
+                child: Image.asset(
+                    "assets/images/white_logo.png",
+                    height: 120,
+                    fit: BoxFit.contain),
               ),
+              ..._buildSidebarItems(),
+            ],
+          ),
+        ),
+      ),
+
+
+      //Transition effect
+      body: AnimatedSwitcher(
+        duration: _transitionDuration,
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          );
+        },
+        child: _screens[_selectedIndex],
+      ),
+    );
+  }
+
+
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        // Sidebar
+        Expanded(
+          flex: 1,
+          child: Container(
+            color: Color(0xFF4A758F),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  child: Column(
+                    children: [
+                      Image.asset(
+                          "assets/images/white_logo.png",
+                          height: 120),
+                      Divider(color: Colors.white, thickness: 1),
+                    ],
+                  ),
+                ),
+                ..._buildSidebarItems(),
+              ],
             ),
           ),
+        ),
 
-
-          // Main Content with Slide and Fade Transition
-          Expanded(
-            flex: 5,
+        // Main Content
+        Expanded(
+          flex: 5,
+          child: Container(
+            color: Color(0xFFF5F5F5),
             child: AnimatedSwitcher(
-              duration: _transitionDuration, // Adjustable transition duration
+              duration: _transitionDuration,
               transitionBuilder: (child, animation) {
                 return FadeTransition(
                   opacity: animation,
@@ -190,12 +237,13 @@ class _MainScreenState extends State<MainScreen> {
               child: _screens[_selectedIndex],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
 
+  //Sidebar Items
   List<Widget> _buildSidebarItems() {
     return [
       _buildSidebarTile(
@@ -243,6 +291,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
 
+  //Dropdown User management
   Widget _buildUsersDropdown() {
     return Column(
       children: [
@@ -251,8 +300,7 @@ class _MainScreenState extends State<MainScreen> {
             onEnter: (_) => setState(() => isHoveredUsers = true),
             onExit: (_) => setState(() => isHoveredUsers = false),
             child: GestureDetector(
-              onTap: () => setState(
-                      () => isUserDropdownExpanded = !isUserDropdownExpanded),
+              onTap: () => setState(() => isUserDropdownExpanded = !isUserDropdownExpanded),
               child: Row(
                 children: [
                   Transform.translate(
@@ -262,8 +310,7 @@ class _MainScreenState extends State<MainScreen> {
                       height: 20,
                       child: Image.asset(
                         "assets/images/user.png",
-                        color:
-                        isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
+                        color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
                       ),
                     ),
                   ),
@@ -272,8 +319,7 @@ class _MainScreenState extends State<MainScreen> {
                     child: Text(
                       "Users Management",
                       style: TextStyle(
-                        color:
-                        isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
+                        color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
                         fontWeight: FontWeight.w300,
                         fontSize: 13,
                       ),
@@ -300,7 +346,10 @@ class _MainScreenState extends State<MainScreen> {
                   onEnter: (_) => setState(() => isHoveredTenant = true),
                   onExit: (_) => setState(() => isHoveredTenant = false),
                   child: GestureDetector(
-                    onTap: () => _navigateToPage(1), // Tenant screen
+                    onTap: () => setState(() {
+                      _selectedIndex = 1; // Tenant screen
+                      // isUserDropdownExpanded = false;
+                    }),
                     child: Container(
                       alignment: Alignment.centerLeft,
                       padding: EdgeInsets.symmetric(vertical: 2),
@@ -320,7 +369,10 @@ class _MainScreenState extends State<MainScreen> {
                   onEnter: (_) => setState(() => isHoveredLandlord = true),
                   onExit: (_) => setState(() => isHoveredLandlord = false),
                   child: GestureDetector(
-                    onTap: () => _navigateToPage(2), // Landlord screen
+                    onTap: () => setState(() {
+                      _selectedIndex = 2; // Landlord screen
+                      // isUserDropdownExpanded = false;
+                    }),
                     child: Container(
                       alignment: Alignment.centerLeft,
                       padding: EdgeInsets.symmetric(vertical: 2),
@@ -347,7 +399,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-
   Widget _buildSidebarTile({
     required String iconPath,
     required String title,
@@ -373,9 +424,7 @@ class _MainScreenState extends State<MainScreen> {
                       height: 20,
                       child: Image.asset(
                         iconPath,
-                        color: isHovered || isSelected
-                            ? Color(0xFFF9E9B6)
-                            : Colors.white,
+                        color: isHovered || isSelected ? Color(0xFFF9E9B6) : Colors.white,
                       ),
                     ),
                   ),
@@ -384,9 +433,7 @@ class _MainScreenState extends State<MainScreen> {
                     child: Text(
                       title,
                       style: TextStyle(
-                        color: isHovered || isSelected
-                            ? Color(0xFFF9E9B6)
-                            : Colors.white,
+                        color: isHovered || isSelected ? Color(0xFFF9E9B6) : Colors.white,
                         fontWeight: FontWeight.w300,
                         fontSize: 13,
                       ),
@@ -395,9 +442,7 @@ class _MainScreenState extends State<MainScreen> {
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 12,
-                    color: isHovered || isSelected
-                        ? Color(0xFFF9E9B6)
-                        : Colors.white,
+                    color: isHovered || isSelected ? Color(0xFFF9E9B6) : Colors.white,
                   ),
                 ],
               ),
@@ -412,6 +457,3 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-
-
-

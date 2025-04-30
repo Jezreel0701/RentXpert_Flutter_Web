@@ -8,7 +8,6 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  bool _rememberMe = false;
   bool _isPasswordVisible = false; // Added password visibility state
   bool _isLoading = false;
   final TextEditingController _emailController = TextEditingController();
@@ -129,7 +128,7 @@ class _LoginState extends State<Login> {
 
                 const SizedBox(height: 15),
 
-                // Password
+                  // Password
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -178,38 +177,6 @@ class _LoginState extends State<Login> {
 
                 const SizedBox(height: 10),
 
-                // Remember Me Checkbox
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1.2,
-                      child: Checkbox(
-                        value: _rememberMe,
-                        activeColor: const Color(0xFF4A758F),
-                        side: const BorderSide(
-                          color: Colors.grey,
-                          width: 0.5,
-                        ),
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _rememberMe = value ?? false;
-                          });
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                    ),
-                    const Text(
-                      "Remember Me",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontFamily: "Krub",
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
 
                 const SizedBox(height: 20),
 

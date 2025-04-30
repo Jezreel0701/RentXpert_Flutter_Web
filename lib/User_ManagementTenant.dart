@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:rentxpert_flutter_web/service/usermanagement.dart';
-import 'package:rentxpert_flutter_web/config/config.dart';
 
 class UserManagementTenant extends StatefulWidget {
   @override
@@ -26,6 +24,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
   Future<void> loadUsers({int page = 1}) async {
     setState(() => isLoading = true);
+
     try {
       final users = await fetchUsers(page, _rowsPerPage);
       setState(() {
@@ -40,13 +39,14 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
   Future<List<Map<String, dynamic>>> fetchUsers(int page, int limit) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/display/users?page=$page&limit=$limit&user_type=Tenant'),
+      Uri.parse('http://localhost:8080/display/users?page=$page&limit=$limit&user_type=Tenant'), // Change tenant capitalization
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return (data['data']['users'] as List).cast<Map<String, dynamic>>();
+      List<dynamic> users = data['data']['users'];
+      return users.cast<Map<String, dynamic>>();
     } else {
       throw Exception('Failed to load users');
     }
@@ -58,63 +58,13 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     final startIndex = (_currentPage - 1) * _rowsPerPage;
     final endIndex = startIndex + _rowsPerPage;
     return userData.sublist(
-      startIndex.clamp(0, userData.length),
-      endIndex.clamp(0, userData.length),
+      startIndex,
+      endIndex > userData.length ? userData.length : endIndex,
     );
   }
 
-  Future<void> _saveUserUpdates(String userId) async {
-    try {
-      final updatedUser = await UserManagementUpdate.updateUserDetails(
-        payload: {
-          'uid': userId,
-          ...editedUser,
-        },
-      );
-
-      if (updatedUser != null) {
-        setState(() {
-          final index = userData.indexWhere((u) => u['uid'] == userId);
-          if (index != -1) {
-            userData[index] = {...userData[index], ...updatedUser};
-          }
-          editingUserId = null;
-          editedUser = {};
-        });
-        _showTopSnackBar("User updated successfully", false);
-      } else {
-        _showTopSnackBar("Failed to update user", true);
-      }
-    } catch (e) {
-      _showTopSnackBar("Update error: ${e.toString()}", true);
-    }
-  }
-
-  void _showTopSnackBar(String message, bool isError) {
-    final overlay = Overlay.of(context);
-    final overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: 50,
-        left: MediaQuery.of(context).size.width / 2 - 150,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: isError ? Colors.red : Color(0xFF2E7D32),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(message, style: TextStyle(color: Colors.white)),
-          ),
-        ),
-      ),
-    );
-
-    overlay.insert(overlayEntry);
-    Future.delayed(Duration(seconds: 3), overlayEntry.remove);
-  }
-
-  void _showDeleteConfirmationDialog(String uid) {
+  // Delete function and design
+  void _showDeleteConfirmationDialog() {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -126,8 +76,10 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
           padding: const EdgeInsets.all(20),
           width: 400,
           height: 300,
+
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               FittedBox(
                 fit: BoxFit.contain,
@@ -138,6 +90,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                 ),
               ),
               const SizedBox(height: 12),
+
               const Text(
                 'Delete',
                 style: TextStyle(
@@ -145,8 +98,11 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                     fontSize: 25,
                     fontFamily: "Krub",
                     fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 12),
+
               const Text(
                 'Are you sure you want to delete?',
                 style: TextStyle(
@@ -154,36 +110,45 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                     fontSize: 18,
                     fontFamily: "Krub",
                     fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 40),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   SizedBox(
-                    width: 170,
-                    height: 50,
+                    width: 170, // Adjust the width here
+                    height: 50, // Adjust the height here
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          elevation: 4,
-                          backgroundColor: Color(0xFFEDEDED)),
-                      onPressed: () => Navigator.pop(context),
+                        elevation: 4,
+                        backgroundColor: Color(0xFFEDEDED),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
                       child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.black)),
+                        'Cancel',
+                        style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black),
+                      ),
                     ),
                   ),
                   SizedBox(
-                    width: 170,
-                    height: 50,
+                    width: 170, // Adjust the width here
+                    height: 50, // Adjust the height here
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          elevation: 4,
-                          backgroundColor: Color(0xFF79BD85)),
+                        elevation: 4,
+                        backgroundColor: Color(0xFF79BD85),
+                      ),
                       onPressed: () {
-                        Navigator.pop(context);
-                        _deleteAccount(uid);
+                        Navigator.of(context).pop(); // Close the dialog
+                        //   Function for delete account
+                        _deleteAccount();
                       },
                       child: const Text(
                           'Confirm',
@@ -196,44 +161,40 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
               ),
             ],
           ),
+
         ),
       ),
     );
   }
 
-  Future<void> _deleteAccount(String uid) async {
-    try {
-      final success = await UserManagementDelete.deleteUser(uid);
-      if (success) {
-        await loadUsers();
-        _showDeleteTopSnackBar("Account deleted successfully", true);
-      } else {
-        _showDeleteTopSnackBar("Failed to delete account", false);
-      }
-    } catch (e) {
-      _showDeleteTopSnackBar("Delete error: ${e.toString()}", false);
-    }
+  void _deleteAccount() {
+    // Add your account deletion logic here.
+
+    // Show custom top snack bar
+    _showDeleteTopSnackBar("Account deleted successfully");
   }
 
-  void _showDeleteTopSnackBar(String message, bool success) {
+  //Snakcbar notification for delete button
+  void _showDeleteTopSnackBar(String message) {
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50,
-        left: MediaQuery.of(context).size.width / 2 - 150,
+        top: 50,  // Adjust the top value as per your needs
+        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
         right: MediaQuery.of(context).size.width / 2 - 150,
         child: Material(
           color: Colors.transparent,
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
-              color: success ? Color(0xFF2E7D32) : Colors.red,
+              color: Color(0xFF2E7D32),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
               child: Text(
                 message,
                 style: TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -241,9 +202,15 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       ),
     );
 
+    // Insert the overlay
     overlay.insert(overlayEntry);
-    Future.delayed(Duration(seconds: 3), () => overlayEntry.remove());
+
+    // Remove the overlay after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
   }
+
 
   //Dialog for filter
   void _showFilterDialog() {
@@ -518,12 +485,21 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   }
 
 
-// ... (keep imports and other code the same)
-
+  // Table  widget
   Widget _buildUserTable({Key? key}) {
-    final columnTitles = ['Uid', 'Name', 'Email', 'Account Status', 'User Type', 'Customize'];
+    final paginatedUsers = _paginatedData;
+
+    final columnTitles = [
+      'Uid',
+      'Name',
+      'Email',
+      'Account Status',
+      'User Type',
+      'Customize',
+    ];
+
+    // Consistent width for columns (except Customize)
     const double columnWidth = 120;
-    const double customizeColumnWidth = 260;
 
     return LayoutBuilder(
       key: key,
@@ -531,11 +507,13 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
         return SingleChildScrollView(
           child: Container(
             width: constraints.maxWidth,
-            constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height * 0.9),
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 0.9,
+            ),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -551,88 +529,136 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                       color: Colors.grey.shade300,
                       width: 1,
                     ),
-                    columns: columnTitles.map((title) => DataColumn(
-                      label: SizedBox(
-                        width: title == 'Customize' ? customizeColumnWidth : columnWidth,
-                        child: Center(
-                          child: Text(
-                            title,
-                            style: const TextStyle(
-                              fontFamily: "Krub",
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                    columns: [
+                      for (var title in columnTitles)
+                        DataColumn(
+                          label: SizedBox(
+                            width: title == 'Customize' ? 260 : columnWidth,
+                            child: Center(
+                              child: Text(
+                                title,
+                                style: const TextStyle(
+                                  fontFamily: "Krub",
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    )).toList(),
-                    rows: _paginatedData.map((user) {
+                    ],
+                    rows: paginatedUsers.map((user) {
                       final isEditing = editingUserId == user['uid'];
                       return DataRow(cells: [
                         DataCell(SizedBox(
                           width: columnWidth,
-                          child: Center(child: Text(user['uid']?.toString() ?? '')),
+                          child: Center(child: Text(user['uid']?.toString() ?? '', textAlign: TextAlign.center)),
                         )),
-                        _buildEditableCell(user, 'fullname', columnWidth),
-                        _buildEditableCell(user, 'email', columnWidth),
+                        isEditing
+                            ? DataCell(SizedBox(
+                          width: columnWidth,
+                          child: TextFormField(
+                            initialValue: editedUser['fullname'] ?? user['fullname'],
+                            onChanged: (value) => editedUser['fullname'] = value,
+                          ),
+                        ))
+                            : DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['fullname'], textAlign: TextAlign.center)),
+                        )),
+                        isEditing
+                            ? DataCell(SizedBox(
+                          width: columnWidth,
+                          child: TextFormField(
+                            initialValue: editedUser['email'] ?? user['email'],
+                            onChanged: (value) => editedUser['email'] = value,
+                          ),
+                        ))
+                            : DataCell(SizedBox(
+                          width: columnWidth,
+                          child: Center(child: Text(user['email'], textAlign: TextAlign.center)),
+                        )),
                         DataCell(SizedBox(
                           width: columnWidth,
-                          child: Center(child: Text(user['account_status'] ?? '')),
+                          child: Center(child: Text(user['account_status'], textAlign: TextAlign.center)),
                         )),
                         DataCell(SizedBox(
                           width: columnWidth,
-                          child: Center(child: Text(user['user_type'] ?? '')),
+                          child: Center(child: Text(user['user_type'], textAlign: TextAlign.center)),
                         )),
                         DataCell(
                           SizedBox(
-                            width: customizeColumnWidth,
+                            width: 260,
                             child: Center(
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  if (isEditing) ...[
-                                    TextButton.icon(
-                                      onPressed: () => _saveUserUpdates(user['uid']),
-                                      icon: const Icon(Icons.save, size: 15),
-                                      label: const Text('Save'),
-                                      style: _buttonStyle(Colors.green),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(Icons.cancel, color: Colors.red),
-                                      onPressed: () => setState(() {
+                                  isEditing
+                                      ? TextButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        final index = userData.indexWhere((u) => u['uid'] == user['uid']);
+                                        if (index != -1) {
+                                          userData[index] = {
+                                            ...userData[index],
+                                            ...editedUser,
+                                          };
+                                        }
                                         editingUserId = null;
                                         editedUser = {};
-                                      }),
+                                      });
+                                    },
+                                    icon: const Icon(Icons.save, size: 15),
+                                    label: const Text('Save'),
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      backgroundColor: Colors.green,
+                                      foregroundColor: Colors.white,
                                     ),
-                                  ] else ...[
-                                    TextButton.icon(
-                                      onPressed: () => setState(() {
+                                  )
+                                      : TextButton.icon(
+                                    onPressed: () {
+                                      setState(() {
                                         editingUserId = user['uid'];
-                                        editedUser = Map.from(user);
-                                      }),
-                                      icon: const Icon(Icons.edit, size: 15),
-                                      label: const Text('Edit'),
-                                      style: _buttonStyle(const Color(0xFF4F768E)),
+                                        editedUser = Map<String, dynamic>.from(user);
+                                      });
+                                    },
+                                    icon: const Icon(Icons.edit, size: 15),
+                                    label: const Text('Edit'),
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      backgroundColor: const Color(0xFF4F768E),
+                                      foregroundColor: Colors.white,
                                     ),
-                                    const SizedBox(width: 13),
-                                    IconButton(
-                                      icon: Image.asset(
-                                        'assets/images/white_delete.png',
-                                        width: 30,
-                                        height: 30,
+                                  ),
+                                  if (isEditing)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: IconButton(
+                                        icon: const Icon(Icons.cancel, color: Colors.red),
+                                        onPressed: () {
+                                          setState(() {
+                                            editingUserId = null;
+                                            editedUser = {};
+                                          });
+                                        },
                                       ),
-                                      onPressed: () => _showDeleteConfirmationDialog(user['uid']),
                                     ),
-                                    IconButton(
-                                      icon: Image.asset(
-                                        'assets/images/more_options.png',
-                                        width: 55,
-                                        height: 55,
+                                  if (!isEditing)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 13.0),
+                                      child: IconButton(
+                                        icon: Image.asset('assets/images/white_delete.png', width: 30, height: 30),
+                                        onPressed: () {
+                                          _showDeleteConfirmationDialog();
+                                        },
                                       ),
+                                    ),
+                                  if (!isEditing)
+                                    IconButton(
+                                      icon: Image.asset('assets/images/more_options.png', width: 55, height: 55),
                                       onPressed: () => _showUserDetailsDialog(user),
                                     ),
-                                  ]
                                 ],
                               ),
                             ),
@@ -649,80 +675,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       },
     );
   }
-
-  DataCell _buildEditableCell(Map<String, dynamic> user, String field, double width) {
-    final isEditing = editingUserId == user['uid'];
-    return DataCell(
-        SizedBox(
-          width: width,
-          child: isEditing
-              ? TextFormField(
-            initialValue: editedUser[field] ?? user[field],
-            onChanged: (value) => editedUser[field] = value,
-          )
-              : Center(child: Text(user[field]?.toString() ?? '')),
-        )
-    );
-  }
-
-  Widget _buildActionButtons(Map<String, dynamic> user) {
-    final isEditing = editingUserId == user['uid'];
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (isEditing) ...[
-          TextButton.icon(
-            onPressed: () => _saveUserUpdates(user['uid']),
-            icon: Icon(
-              Icons.save,
-              size: 15,
-              color: Colors.white, // Explicitly set the icon color to white
-            ),
-            label: Text('Save'),
-            style: _buttonStyle(Colors.green),
-          ),
-          IconButton(
-            icon: Icon(Icons.cancel, color: Colors.red),
-            onPressed: () => setState(() {
-              editingUserId = null;
-              editedUser = {};
-            }),
-          ),
-        ] else ...[
-          TextButton.icon(
-            onPressed: () => setState(() {
-              editingUserId = user['uid'];
-              editedUser = Map.from(user);
-            }),
-            icon: Icon(Icons.edit,
-              size: 15,
-              color: Colors.white, // Added white color
-            ),
-            label: Text('Edit',
-              style: TextStyle(
-                color: Colors.white, // Ensure text is white
-              ),
-            ),
-            style: _buttonStyle(const Color(0xFF4F768E)),
-          ),
-          IconButton(
-            icon: Image.asset('assets/images/white_delete.png', width: 30),
-            onPressed: () => _showDeleteConfirmationDialog(user['uid']),
-          ),
-          IconButton(
-            icon: Image.asset('assets/images/more_options.png', width: 55),
-            onPressed: () => _showUserDetailsDialog(user),
-          ),
-        ]
-      ],
-    );
-  }
-
-  ButtonStyle _buttonStyle(Color color) => TextButton.styleFrom(
-    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    backgroundColor: color,
-    foregroundColor: Colors.white, // This affects both icon and text color
-  );
 
 
 

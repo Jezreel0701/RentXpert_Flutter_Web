@@ -25,16 +25,27 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
   Future<void> loadUsers({int page = 1}) async {
     setState(() => isLoading = true);
 
+
     try {
-      final users = await fetchUsers(page, _rowsPerPage);
+      final usersLandlord = await fetchUsers(page, _rowsPerPage);
+
       setState(() {
-        userData = users;
+        userData = usersLandlord;
         isLoading = false;
       });
+
+      print('\n🟡 Fetched  User Landlord: $usersLandlord');
+      if (usersLandlord.isNotEmpty) {
+        print('\n🟢 Successfully fetched User Landlord: $usersLandlord');
+      } else {
+        print('\n🔴 No  User Landlord found.');
+      }
+
     } catch (e) {
-      print('Error fetching users: $e');
+      print('🔴 Error fetching  User Landlord: $e');
       setState(() => isLoading = false);
     }
+
   }
 
   Future<List<Map<String, dynamic>>> fetchUsers(int page, int limit) async {
@@ -383,7 +394,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "User Management: Tenant",
+              "User Management: Landlord",
               style: TextStyle(
                 fontSize: 45,
                 fontFamily: "Inter",
@@ -487,7 +498,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
   // Table  widget
   Widget _buildUserTable({Key? key}) {
-    final paginatedUsers = _paginatedData;
+    final paginatedUsersLandlord = _paginatedData;
 
     final columnTitles = [
       'Uid',
@@ -547,7 +558,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                           ),
                         ),
                     ],
-                    rows: paginatedUsers.map((user) {
+                    rows: paginatedUsersLandlord.map((user) {
                       final isEditing = editingUserId == user['uid'];
                       return DataRow(cells: [
                         DataCell(SizedBox(
@@ -566,6 +577,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                           width: columnWidth,
                           child: Center(child: Text(user['fullname'], textAlign: TextAlign.center)),
                         )),
+
                         isEditing
                             ? DataCell(SizedBox(
                           width: columnWidth,
@@ -578,6 +590,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                           width: columnWidth,
                           child: Center(child: Text(user['email'], textAlign: TextAlign.center)),
                         )),
+
                         DataCell(SizedBox(
                           width: columnWidth,
                           child: Center(child: Text(user['account_status'], textAlign: TextAlign.center)),
@@ -686,36 +699,137 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
-        title: const Text(
-          "User Details",
-          style: TextStyle(
-            color: Color(0xFF4F768E),
-            fontFamily: "Krub",
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
+        contentPadding: const EdgeInsets.all(20), // Add some padding
+        content: SizedBox(
+          width: 800,
+          height: 400,
+          child: Stack(
+            children: [
+              // The Back Arrow (Positioned at the top-right corner)
+              Positioned(
+                top: 5.0,
+                right: 5.0,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 5.0, right: 20.0),
+                  child: IconButton(
+                    icon: Image.asset(
+                      'assets/images/back_image.png',
+                      width: 30,
+                      height: 30,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+
+              // Row to slice the container in half (User Details on Left, Valid ID on Right)
+              Row(
+                children: [
+                  // Left section: User Details
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "User Details",
+                            style: TextStyle(
+                              color: Color(0xFF4F768E),
+                              fontFamily: "Krub",
+                              fontWeight: FontWeight.bold,
+                              fontSize: 35,
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          Padding(
+                            padding: const EdgeInsets.only(top: 30.0, left: 30.0), // Smaller, more responsive padding
+                            child: SingleChildScrollView(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight: 0,
+                                  maxHeight: 350, // or any maxHeight that fits inside your container
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _infoRow("Name", user['fullname']),
+                                    SizedBox(height: 10),
+                                    _infoRow("Phone Number", user['phone_number']),
+                                    SizedBox(height: 10),
+                                    _infoRow("Address", user['address']),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
+
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Right section: Valid ID Image
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Center(
+                        child: user['valid_id'] != null
+                            ? Image.network(
+                          user['valid_id'], // Assuming valid_id holds the image URL
+                          fit: BoxFit.cover,
+                          width: 200,
+                          height: 200,
+                        )
+                            : const Icon(
+                          Icons.image_not_supported, // Fallback icon
+                          size: 100,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _infoRow("Name", user['fullname']),
-            _infoRow("Phone Number", user['phone_number']),
-            _infoRow("Address", user['address']),
-            _infoRow("Valid ID", user['valid_id']),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              "Close",
+      ),
+    );
+  }
+
+
+
+  Widget _infoRow(String label, String content) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Label (e.g., Address)
+          Container(
+            width: 120, // Fixed width for the label
+            child: Text(
+              '$label:',
               style: TextStyle(
-                color: Color(0xFF4F768E),
-                fontFamily: "Inter",
-                fontWeight: FontWeight.w300,
-                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontSize:16,
+                overflow: TextOverflow.ellipsis, // Ensures the text doesn't overflow
               ),
+            ),
+          ),
+          // Content (e.g., user['address'])
+          Expanded(
+            child: Text(
+              content,
+              style: TextStyle(fontSize: 16),
+              overflow: TextOverflow.ellipsis, // Ensures the text doesn't overflow
+              maxLines: 2, // Allows wrapping in case the text is too long
             ),
           ),
         ],
@@ -723,33 +837,6 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
     );
   }
 
-  Widget _infoRow(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Text(
-            "$label:",
-            style: const TextStyle(
-              fontFamily: "Inter",
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value ?? '',
-              style: const TextStyle(
-                fontFamily: "Inter",
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
 
   Widget _buildPaginationBar() {
