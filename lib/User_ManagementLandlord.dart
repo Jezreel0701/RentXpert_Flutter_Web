@@ -119,7 +119,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
           editingUserId = null;
           editedUser = {};
         });
-        _showUpdateTUserSnackBar("User accoount updated successfully", false);
+        _showUpdateTUserSnackBar("User account updated successfully", false);
       } else {
         _showUpdateTUserSnackBar("Failed to update user", true);
       }

@@ -193,6 +193,10 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
   //Snakcbar notification for delete button
   void _showDeleteTopSnackBar(String message) {
     final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 300;
+    const double snackbarHeight = 80;
+
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         top: 50,  // Adjust the top value as per your needs
@@ -201,9 +205,11 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
         child: Material(
           color: Colors.transparent,
           child: Container(
+            width: snackbarWidth,
+            height: snackbarHeight,
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
-              color: Color(0xFF2E7D32),
+              color: Colors.green,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
@@ -226,6 +232,110 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
       overlayEntry.remove();
     });
   }
+
+  //Snakcbar notification for Approve button
+
+  void _approveAccount() {
+    // Add your account deletion logic here.
+
+    // Show custom top snack bar
+    _showApproveTopSnackBar("Property successfully approved");
+  }
+
+  void _showApproveTopSnackBar(String message) {
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 300;
+    const double snackbarHeight = 80;
+
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,  // Adjust the top value as per your needs
+        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
+        right: MediaQuery.of(context).size.width / 2 - 150,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: snackbarWidth,
+            height: snackbarHeight,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                message,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert the overlay
+    overlay.insert(overlayEntry);
+
+    // Remove the overlay after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
+
+
+//Snakcbar notification for Reject button
+
+  void _rejectAccount() {
+    // Add your account deletion logic here.
+
+    // Show custom top snack bar
+    _showRejectTopSnackBar("Property successfully rejected");
+  }
+
+  void _showRejectTopSnackBar(String message) {
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 300;
+    const double snackbarHeight = 80;
+
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,  // Adjust the top value as per your needs
+        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
+        right: MediaQuery.of(context).size.width / 2 - 150,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: snackbarWidth,
+            height: snackbarHeight,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                message,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert the overlay
+    overlay.insert(overlayEntry);
+
+    // Remove the overlay after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
+
 
 
   //Dialog for filter
@@ -688,69 +798,180 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
 
 
 
+
+//More options Dialog
   void _showUserDetailsDialog(Map<String, dynamic> apartment) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        title: const Text(
-          "Apartment Details",
-          style: TextStyle(
-            color: Color(0xFF4F768E),
-            fontFamily: "Krub",
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      builder: (context) {
+        bool isApproved = false;
+        bool isRejected = false;
 
-            _infoRow("Landlord", apartment['landlord_name']),
-            _infoRow("Property Name", apartment['PropertyName']),
-            _infoRow("Status", apartment['Status']),
-            _infoRow("Address", apartment['Address']),
-            _infoRow("Allowed Gender", apartment['Allowed_Gender']),
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
 
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              "Close",
-              style: TextStyle(
-                color: Color(0xFF4F768E),
-                fontFamily: "Inter",
-                fontWeight: FontWeight.w300,
-                fontSize: 16,
+            content: SizedBox(
+              width: 400, // Set a max width
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40.0), // push content down below the X
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Apartment Details",
+                          style: TextStyle(
+                            color: Color(0xFF4F768E),
+                            fontFamily: "Krub",
+                            fontWeight: FontWeight.bold,
+                            fontSize: 25,
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+
+                        // Wrap _infoRow inside an Align widget to control its horizontal alignment
+                        Padding(
+                          padding: const EdgeInsets.only(left: 53.0),
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Landlord", apartment['landlord_name']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Property Name", apartment['PropertyName']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Availability", apartment['Availability']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Address", apartment['Address']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Allowed Gender", apartment['Allowed_Gender']),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IconButton(
+                      icon: Image.asset(
+                        'assets/images/back_image.png', // your custom "x" image
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
               ),
             ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isApproved || isRejected
+                      ? Colors.grey
+                      : const Color(0xFF79BD85),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // Increased padding for larger button size
+                  minimumSize: const Size(150, 50), // Ensure the buttons are larger
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: (isApproved || isRejected)
+                    ? null
+                    : () {
+                  _approveAccount();
+                  setState(() => isApproved = true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Apartment approved!"),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+                child: Text(
+                  isApproved ? "Approved" : "Approve",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isRejected || isApproved
+                      ? Colors.grey
+                      : const Color(0xFFDE5959),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // Increased padding for larger button size
+                  minimumSize: const Size(150, 50), // Ensure the buttons are larger
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: (isRejected || isApproved)
+                    ? null
+                    : () {
+                  _rejectAccount();
+                  setState(() => isRejected = true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Apartment rejected!"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                },
+                child: Text(
+                  isRejected ? "Rejected" : "Reject",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+
+
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-
   Widget _infoRow(String label, String? value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(vertical: 6), // Adds vertical spacing between rows
       child: Row(
         children: [
-          Text(
-            "$label:",
-            style: const TextStyle(
-              fontFamily: "Inter",
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          // Label text aligned to the left
+          SizedBox(
+            width: 150, // Adjust width to match the label size or keep fixed
+            child: Text(
+              "$label:",
+              style: const TextStyle(
+                fontFamily: "Inter",
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
+          // Value text aligned to the left, takes the remaining space
           Expanded(
             child: Text(
               value ?? '',
@@ -764,6 +985,8 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
       ),
     );
   }
+
+
 
 
   Widget _buildPaginationBar() {
