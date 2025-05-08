@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:rentxpert_flutter_web/Main_Screen.dart';
+import 'package:rentxpert_flutter_web/MainScreen.dart';
 import 'package:rentxpert_flutter_web/service/api.dart';
+import 'package:rentxpert_flutter_web/Dashboard_Screen.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences for token storage
+
 
 class Login extends StatefulWidget {
   @override
@@ -17,15 +20,34 @@ class _LoginState extends State<Login> {
     setState(() => _isLoading = true);
 
     try {
+      // Debug print for login attempt
+      print('🟡 Attempting admin login');
+      print('📡 Endpoint: http://10.21.1.220:8080/admin/login');
+      print('📨 Request Body: {"email":"${_emailController.text.trim()}","password":"${_passwordController.text.trim()}"}');
+
       final response = await AdminAuthService.loginAdmin(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
+      print('🔵 Response Status: ${response['status']}');
+      print('🔵 Response Body: ${response.toString()}');
+
       if (response['success'] == true) {
-        Navigator.pushReplacement(
+        final token = response['data']['token']; // Token from API response
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('authToken', token);  // Save token in SharedPreferences
+        print('Token saved: $token');  // Debug print
+        print('🔍 Full Parsed Response: $response');
+
+
+        Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => MainScreen()),
+          MaterialPageRoute(
+            builder: (context) => Mainscreen(),
+            settings: const RouteSettings(name: '/dashboard'),
+          ),
+              (route) => false,
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -46,6 +68,9 @@ class _LoginState extends State<Login> {
       setState(() => _isLoading = false);
     }
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +201,7 @@ class _LoginState extends State<Login> {
                 ),
 
                 const SizedBox(height: 10),
+
 
 
                 const SizedBox(height: 20),
