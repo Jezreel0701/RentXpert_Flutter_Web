@@ -17,7 +17,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showSaveTopSnackBar(String message, {bool isError = false}) {
     final overlay = Overlay.of(context);
-    final color = isError ? const Color(0xFFD32F2F) : const Color(0xFF2E7D32);
+    final color = isError ? Colors.red : Colors.green;
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 800;
+    const double snackbarHeight = 80;
 
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(

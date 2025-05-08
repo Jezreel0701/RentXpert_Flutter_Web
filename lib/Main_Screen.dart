@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'User_ManagementTenant.dart';
 import 'User_ManagementLandlord.dart';
 import 'Dashboard_Screen.dart';
@@ -7,7 +6,8 @@ import 'Properties_Management.dart';
 import 'Analytics_Managenent.dart';
 import 'Settings_Screen.dart';
 import 'login.dart';
-import 'theme_provider.dart';
+
+
 
 class MainScreen extends StatefulWidget {
   @override
@@ -15,15 +15,19 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  // Hover states
   bool isHoveredDashboard = false;
   bool isHoveredUsers = false;
   bool isHoveredProperties = false;
   bool isHoveredAnalytics = false;
   bool isHoveredSettings = false;
   bool isHoveredLogout = false;
+
+  // Dropdown state
   bool isUserDropdownExpanded = false;
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
+
   int _selectedIndex = 0;
   final Duration _transitionDuration = const Duration(milliseconds: 300);
 
@@ -37,17 +41,16 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
   void _navigateToPage(int index) {
-    setState(() => _selectedIndex = index);
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   void _showLogoutDialog() {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    final isDarkMode = themeProvider.isDarkMode;
-
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -58,13 +61,12 @@ class _MainScreenState extends State<MainScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'Are you sure you want to log out?',
                 style: TextStyle(
                   fontSize: 20,
                   fontFamily: "Krub",
                   fontWeight: FontWeight.w600,
-                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -77,9 +79,11 @@ class _MainScreenState extends State<MainScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         elevation: 4,
-                        backgroundColor: const Color(0xFF4A758F),
+                        backgroundColor: Color(0xFF4A758F),
                       ),
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the dialog
+                      },
                       child: const Text(
                         'Cancel',
                         style: TextStyle(color: Colors.white),
@@ -92,10 +96,10 @@ class _MainScreenState extends State<MainScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         elevation: 4,
-                        backgroundColor: const Color(0xFFDE5959),
+                        backgroundColor: Color(0xFFDE5959),
                       ),
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(); // Close the dialog
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(builder: (context) => Login()),
@@ -118,74 +122,89 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             bool isMobile = constraints.maxWidth < 1000;
-            return isMobile ? _buildMobileLayout(isDarkMode) : _buildDesktopLayout(isDarkMode);
+
+            return isMobile
+                ? _buildMobileLayout()
+                : _buildDesktopLayout();
           },
         ),
       ),
     );
   }
 
-  Widget _buildMobileLayout(bool isDarkMode) {
+  Widget _buildMobileLayout() {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF4A758F),
+        backgroundColor: Color(0xFF4A758F),
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
+            icon: Icon(Icons.menu),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
       ),
       drawer: Drawer(
         child: Container(
-          color: const Color(0xFF4A758F),
+          color: Color(0xFF4A758F),
           child: Column(
             children: [
-              const DrawerHeader(
-                child: Image(
-                  image: AssetImage("assets/images/white_logo.png"),
-                  height: 120,
-                  fit: BoxFit.contain,
-                ),
+              DrawerHeader(
+                child: Image.asset(
+                    "assets/images/white_logo.png",
+                    height: 120,
+                    fit: BoxFit.contain),
               ),
               ..._buildSidebarItems(),
             ],
           ),
         ),
       ),
+
+
+      //Transition effect
       body: AnimatedSwitcher(
         duration: _transitionDuration,
-        transitionBuilder: (child, animation) => _buildTransition(child, animation),
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          );
+        },
         child: _screens[_selectedIndex],
       ),
     );
   }
 
-  Widget _buildDesktopLayout(bool isDarkMode) {
+
+
+  Widget _buildDesktopLayout() {
     return Row(
       children: [
+        // Sidebar
         Expanded(
           flex: 1,
           child: Container(
-            color: const Color(0xFF4A758F),
+            color: Color(0xFF4A758F),
             child: Column(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 30),
-                  child: const Column(
+                  child: Column(
                     children: [
-                      Image(
-                        image: AssetImage("assets/images/white_logo.png"),
-                        height: 120,
-                      ),
+                      Image.asset(
+                          "assets/images/white_logo.png",
+                          height: 120),
                       Divider(color: Colors.white, thickness: 1),
                     ],
                   ),
@@ -195,13 +214,26 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
         ),
+
+        // Main Content
         Expanded(
           flex: 5,
           child: Container(
-            color: isDarkMode ? Colors.grey[900] : const Color(0xFFF5F5F5),
+            color: Color(0xFFF5F5F5),
             child: AnimatedSwitcher(
               duration: _transitionDuration,
-              transitionBuilder: (child, animation) => _buildTransition(child, animation),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.1, 0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
               child: _screens[_selectedIndex],
             ),
           ),
@@ -210,19 +242,8 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildTransition(Widget child, Animation<double> animation) {
-    return FadeTransition(
-      opacity: animation,
-      child: SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0.1, 0),
-          end: Offset.zero,
-        ).animate(animation),
-        child: child,
-      ),
-    );
-  }
 
+  //Sidebar Items
   List<Widget> _buildSidebarItems() {
     return [
       _buildSidebarTile(
@@ -269,6 +290,8 @@ class _MainScreenState extends State<MainScreen> {
     ];
   }
 
+
+  //Dropdown User management
   Widget _buildUsersDropdown() {
     return Column(
       children: [
@@ -281,31 +304,33 @@ class _MainScreenState extends State<MainScreen> {
               child: Row(
                 children: [
                   Transform.translate(
-                    offset: const Offset(5, -1),
+                    offset: Offset(5, -1),
                     child: SizedBox(
                       width: 20,
                       height: 20,
                       child: Image.asset(
                         "assets/images/user.png",
-                        color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
+                        color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       "Users Management",
                       style: TextStyle(
-                        color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
+                        color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
                         fontWeight: FontWeight.w300,
                         fontSize: 13,
                       ),
                     ),
                   ),
                   Icon(
-                    isUserDropdownExpanded ? Icons.keyboard_arrow_down : Icons.arrow_forward_ios,
+                    isUserDropdownExpanded
+                        ? Icons.keyboard_arrow_down
+                        : Icons.arrow_forward_ios,
                     size: 12,
-                    color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
+                    color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
                   ),
                 ],
               ),
@@ -321,15 +346,18 @@ class _MainScreenState extends State<MainScreen> {
                   onEnter: (_) => setState(() => isHoveredTenant = true),
                   onExit: (_) => setState(() => isHoveredTenant = false),
                   child: GestureDetector(
-                    onTap: () => _navigateToPage(1),
+                    onTap: () => setState(() {
+                      _selectedIndex = 1; // Tenant screen
+                      // isUserDropdownExpanded = false;
+                    }),
                     child: Container(
                       alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      padding: EdgeInsets.symmetric(vertical: 2),
                       child: Text(
                         "Tenant",
                         style: TextStyle(
                           color: (_selectedIndex == 1 || isHoveredTenant)
-                              ? const Color(0xFFF9E9B6)
+                              ? Color(0xFFF9E9B6)
                               : Colors.white70,
                           fontSize: 12,
                         ),
@@ -341,15 +369,18 @@ class _MainScreenState extends State<MainScreen> {
                   onEnter: (_) => setState(() => isHoveredLandlord = true),
                   onExit: (_) => setState(() => isHoveredLandlord = false),
                   child: GestureDetector(
-                    onTap: () => _navigateToPage(2),
+                    onTap: () => setState(() {
+                      _selectedIndex = 2; // Landlord screen
+                      // isUserDropdownExpanded = false;
+                    }),
                     child: Container(
                       alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      padding: EdgeInsets.symmetric(vertical: 2),
                       child: Text(
                         "Landlord",
                         style: TextStyle(
                           color: (_selectedIndex == 2 || isHoveredLandlord)
-                              ? const Color(0xFFF9E9B6)
+                              ? Color(0xFFF9E9B6)
                               : Colors.white70,
                           fontSize: 12,
                         ),
@@ -387,22 +418,22 @@ class _MainScreenState extends State<MainScreen> {
               child: Row(
                 children: [
                   Transform.translate(
-                    offset: const Offset(5, -1),
+                    offset: Offset(5, -1),
                     child: SizedBox(
                       width: 20,
                       height: 20,
                       child: Image.asset(
                         iconPath,
-                        color: isHovered || isSelected ? const Color(0xFFF9E9B6) : Colors.white,
+                        color: isHovered || isSelected ? Color(0xFFF9E9B6) : Colors.white,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       title,
                       style: TextStyle(
-                        color: isHovered || isSelected ? const Color(0xFFF9E9B6) : Colors.white,
+                        color: isHovered || isSelected ? Color(0xFFF9E9B6) : Colors.white,
                         fontWeight: FontWeight.w300,
                         fontSize: 13,
                       ),
@@ -411,14 +442,14 @@ class _MainScreenState extends State<MainScreen> {
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 12,
-                    color: isHovered || isSelected ? const Color(0xFFF9E9B6) : Colors.white,
+                    color: isHovered || isSelected ? Color(0xFFF9E9B6) : Colors.white,
                   ),
                 ],
               ),
             ),
           ),
         ),
-        const SizedBox(
+        SizedBox(
           width: 220,
           child: Divider(color: Colors.white, thickness: 1),
         ),

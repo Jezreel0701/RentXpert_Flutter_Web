@@ -42,13 +42,13 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
         landlordName: _appliedFilter == 'Landlord' ? _searchController.text : null,
         status: _appliedFilter == 'Status' ? _searchController.text : null,
         propertyType: _appliedFilter == 'Property Type' ? _searchController.text : null,
-        uid: _appliedFilter == 'UID' ? _searchController.text : null, // Add UID case
+        uid: _appliedFilter == 'UID' ? _searchController.text : null,
       );
 
       if (result != null) {
         setState(() {
           apartmentData = result.apartments.map((apartment) => {
-            'id': apartment.id.toString(),
+            'ID': apartment.id.toString(),
             'Uid': apartment.uid,
             'PropertyName': apartment.propertyName,
             'PropertyType': apartment.propertyType,
@@ -75,7 +75,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
 
   int get _totalPages => (_totalApartments / _rowsPerPage).ceil();
 
-
   List<Map<String, dynamic>> get _paginatedData {
     final startIndex = (_currentPage - 1) * _rowsPerPage;
     final endIndex = startIndex + _rowsPerPage;
@@ -93,6 +92,7 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
       ),
     );
   }
+
   void _showDeleteConfirmationDialog() {
     showDialog(
       context: context,
@@ -173,32 +173,17 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     Future.delayed(Duration(seconds: 3), () => overlayEntry.remove());
   }
 
-  //Snakcbar notification for Approve button
-
-  void _approveAccount() {
-    // Add your account deletion logic here.
-
-    // Show custom top snack bar
-    _showApproveTopSnackBar("Property successfully approved");
-  }
-
   void _showApproveTopSnackBar(String message) {
     final overlay = Overlay.of(context);
-    final screenSize = MediaQuery.of(context).size;
-    const double snackbarWidth = 300;
-    const double snackbarHeight = 80;
-
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50,  // Adjust the top value as per your needs
-        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
-        right: MediaQuery.of(context).size.width / 2 - 150,
+        top: 50,
+        left: MediaQuery.of(context).size.width / 2 - 150,
         child: Material(
           color: Colors.transparent,
           child: Container(
-            width: snackbarWidth,
-            height: snackbarHeight,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            width: 300,
+            height: 80,
             decoration: BoxDecoration(
               color: Colors.green,
               borderRadius: BorderRadius.circular(10),
@@ -207,50 +192,27 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
               child: Text(
                 message,
                 style: TextStyle(color: Colors.white, fontSize: 16),
-                textAlign: TextAlign.center,
               ),
             ),
           ),
         ),
       ),
     );
-
-    // Insert the overlay
     overlay.insert(overlayEntry);
-
-    // Remove the overlay after 3 seconds
-    Future.delayed(Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
-  }
-
-
-//Snakcbar notification for Reject button
-
-  void _rejectAccount() {
-    // Add your account deletion logic here.
-
-    // Show custom top snack bar
-    _showRejectTopSnackBar("Property successfully rejected");
+    Future.delayed(Duration(seconds: 3), () => overlayEntry.remove());
   }
 
   void _showRejectTopSnackBar(String message) {
     final overlay = Overlay.of(context);
-    final screenSize = MediaQuery.of(context).size;
-    const double snackbarWidth = 300;
-    const double snackbarHeight = 80;
-
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50,  // Adjust the top value as per your needs
-        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
-        right: MediaQuery.of(context).size.width / 2 - 150,
+        top: 50,
+        left: MediaQuery.of(context).size.width / 2 - 150,
         child: Material(
           color: Colors.transparent,
           child: Container(
-            width: snackbarWidth,
-            height: snackbarHeight,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            width: 300,
+            height: 80,
             decoration: BoxDecoration(
               color: Colors.red,
               borderRadius: BorderRadius.circular(10),
@@ -259,26 +221,16 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
               child: Text(
                 message,
                 style: TextStyle(color: Colors.white, fontSize: 16),
-                textAlign: TextAlign.center,
               ),
             ),
           ),
         ),
       ),
     );
-
-    // Insert the overlay
     overlay.insert(overlayEntry);
-
-    // Remove the overlay after 3 seconds
-    Future.delayed(Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
+    Future.delayed(Duration(seconds: 3), () => overlayEntry.remove());
   }
 
-
-
-  // Dialog for filter
   void _showFilterDialog() {
     final filterOptions = [
       'Landlord',
@@ -367,9 +319,9 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                     Navigator.pop(context);
                     setState(() {
                       _appliedFilter = selectedOption;
-                      _currentPage = 1; // Reset to first page when filter changes
+                      _currentPage = 1;
                     });
-                    _fetchApartments(); // Trigger immediate refresh
+                    _fetchApartments();
                   },
                   style: _filterButtonStyle(Color(0xFF9AD47F), Colors.white),
                   child: const Text('Apply filters', style: _filterTextStyle),
@@ -382,8 +334,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     );
   }
 
-
-  //Data cell Styles
   DataCell buildCenteredTextCell(String? text) {
     return DataCell(
       Center(
@@ -400,7 +350,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     );
   }
 
-  // Update the Text widget in build method
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -416,8 +365,11 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
             Text(
               "Properties Management: Apartments",
               style: TextStyle(
-                fontSize: 25, // Reduced from 45 to prevent overflow
-                color: isDarkMode ? Colors.white : Colors.black,
+                fontSize: 45,
+                fontFamily: "Inter",
+                color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                fontWeight: FontWeight.w600,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(height: 20),
@@ -434,7 +386,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     );
   }
 
-  // Search bar widget
   Widget _buildSearchBar() {
     return Row(
       children: [
@@ -495,7 +446,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     );
   }
 
-// Style helpers
   ButtonStyle _filterButtonStyle(Color bgColor, Color textColor) {
     return TextButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
@@ -516,7 +466,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     fontWeight: FontWeight.w500,
   );
 
-  // Table  widget
   Widget _buildUserTable({Key? key}) {
     final paginatedApartments = _paginatedData;
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -529,7 +478,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
       'Customize',
     ];
 
-    // Consistent width for columns (except Customize)
     const double columnWidth = 120;
 
     return LayoutBuilder(
@@ -579,9 +527,9 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                           ),
                         ),
                     ],
-
                     rows: paginatedApartments.map((apartment) {
-                      final isEditing = editingUserId == apartment['Uid'];
+                      final isEditing = editingUserId == apartment['ID'];
+
 
                       return DataRow(cells: [
                         DataCell(SizedBox(
@@ -616,7 +564,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                           width: columnWidth,
                           child: Center(child: Text(apartment['Status'] ?? '', textAlign: TextAlign.center)),
                         )),
-
                         DataCell(
                           SizedBox(
                             width: 260,
@@ -628,7 +575,7 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                                       ? TextButton.icon(
                                     onPressed: () {
                                       setState(() {
-                                        final index = apartmentData.indexWhere((u) => u['uid'] == apartment['uid']);
+                                        final index = apartmentData.indexWhere((u) => u['ID'] == apartment['ID']);
                                         if (index != -1) {
                                           apartmentData[index] = {
                                             ...apartmentData[index],
@@ -646,12 +593,18 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                                       backgroundColor: Colors.green,
                                       foregroundColor: Colors.white,
                                     ),
+
                                   )
                                       : TextButton.icon(
                                     onPressed: () {
                                       setState(() {
-                                        editingUserId = apartment['Uid'];
+                                        editingUserId = apartment['ID'];
                                         editedUser = Map<String, dynamic>.from(apartment);
+
+                                        print("Saving for ID: ${apartment['Uid']}");
+                                        print("EditedUser: $editedUser");
+
+
                                       });
                                     },
                                     icon: const Icon(Icons.edit, size: 15),
@@ -697,178 +650,10 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                         ),
                       ]);
                     }).toList(),
-
-
                   ),
                 ),
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-
-
-
-//More options Dialog
-  void _showUserDetailsDialog(Map<String, dynamic> apartment) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        bool isApproved = false;
-        bool isRejected = false;
-
-        return StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-
-            content: SizedBox(
-              width: 400, // Set a max width
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40.0), // push content down below the X
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Apartment Details",
-                          style: TextStyle(
-                            color: Color(0xFF4F768E),
-                            fontFamily: "Krub",
-                            fontWeight: FontWeight.bold,
-                            fontSize: 25,
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-
-                        // Wrap _infoRow inside an Align widget to control its horizontal alignment
-                        Padding(
-                          padding: const EdgeInsets.only(left: 53.0),
-                          child: Column(
-                            children: [
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Landlord", apartment['landlord_name']),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Property Name", apartment['PropertyName']),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Availability", apartment['Availability']),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Address", apartment['Address']),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Allowed Gender", apartment['Allowed_Gender']),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Rent Price", apartment['Rent_Price']),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("LandMarks", apartment['Landmarks']),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: IconButton(
-                      icon: Image.asset(
-                        'assets/images/back_image.png', // your custom "x" image
-                        width: 20,
-                        height: 20,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actionsAlignment: MainAxisAlignment.center,
-            actions: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isApproved || isRejected
-                      ? Colors.grey
-                      : const Color(0xFF79BD85),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // Increased padding for larger button size
-                  minimumSize: const Size(150, 50), // Ensure the buttons are larger
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: (isApproved || isRejected)
-                    ? null
-                    : () {
-                  _approveAccount();
-                  setState(() => isApproved = true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Apartment approved!"),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                child: Text(
-                  isApproved ? "Approved" : "Approve",
-                  style: const TextStyle(
-                    fontFamily: "Inter",
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isRejected || isApproved
-                      ? Colors.grey
-                      : const Color(0xFFDE5959),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // Increased padding for larger button size
-                  minimumSize: const Size(150, 50), // Ensure the buttons are larger
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: (isRejected || isApproved)
-                    ? null
-                    : () {
-                  _rejectAccount();
-                  setState(() => isRejected = true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Apartment rejected!"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                },
-                child: Text(
-                  isRejected ? "Rejected" : "Reject",
-                  style: const TextStyle(
-                    fontFamily: "Inter",
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-
-
           ),
         );
       },
@@ -877,12 +662,11 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
 
   Widget _infoRow(String label, String? value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6), // Adds vertical spacing between rows
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          // Label text aligned to the left
           SizedBox(
-            width: 150, // Adjust width to match the label size or keep fixed
+            width: 150,
             child: Text(
               "$label:",
               style: const TextStyle(
@@ -892,7 +676,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
               ),
             ),
           ),
-          // Value text aligned to the left, takes the remaining space
           Expanded(
             child: Text(
               value ?? '',
@@ -906,9 +689,6 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
       ),
     );
   }
-
-
-
 
   Widget _buildPaginationBar() {
     return Padding(
@@ -1029,5 +809,196 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
       ),
     );
   }
-}
 
+  void _showUserDetailsDialog(Map<String, dynamic> apartment) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        bool isApproved = apartment['Status'] == 'Approved';
+        bool isRejected = apartment['Status'] == 'Rejected';
+        bool isProcessing = false;
+
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            content: SizedBox(
+              width: 400,
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Apartment Details",
+                          style: TextStyle(
+                            color: Color(0xFF4F768E),
+                            fontFamily: "Krub",
+                            fontWeight: FontWeight.bold,
+                            fontSize: 25,
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 53.0),
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Apartment ID", apartment['ID']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Landlord", apartment['landlord_name']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Property Name", apartment['PropertyName']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Availability", apartment['Availability']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Address", apartment['Address']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Allowed Gender", apartment['Allowed_Gender']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Rent Price", apartment['Rent_Price']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("LandMarks", apartment['Landmarks']),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IconButton(
+                      icon: Image.asset(
+                        'assets/images/back_image.png',
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isApproved
+                      ? Colors.green
+                      : (isRejected ? Colors.grey : const Color(0xFF79BD85)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  minimumSize: const Size(150, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: (isApproved || isRejected || isProcessing)
+                    ? null
+                    : () async {
+                  setState(() => isProcessing = true);
+                  final success = await ApartmentManagementFetch.updateApartmentStatus(
+                    apartment['Uid'],
+                    'Approved',
+                  );
+                  setState(() => isProcessing = false);
+
+                  if (success) {
+                    _showApproveTopSnackBar("Apartment approved successfully");
+                    _fetchApartments();
+                    Navigator.of(context).pop();
+                  } else {
+                    _showErrorSnackBar("Failed to approve apartment");
+                  }
+                },
+                child: isProcessing && !isApproved && !isRejected
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+                    : Text(
+                  isApproved ? "Approved" : "Approve",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isRejected
+                      ? Colors.red
+                      : (isApproved ? Colors.grey : const Color(0xFFDE5959)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  minimumSize: const Size(150, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: (isRejected || isApproved || isProcessing)
+                    ? null
+                    : () async {
+                  setState(() => isProcessing = true);
+                  final success = await ApartmentManagementFetch.updateApartmentStatus(
+                    apartment['Uid'],
+                    'Rejected',
+                  );
+                  setState(() => isProcessing = false);
+
+                  if (success) {
+                    _showRejectTopSnackBar("Apartment rejected successfully");
+                    _fetchApartments();
+                    Navigator.of(context).pop();
+                  } else {
+                    _showErrorSnackBar("Failed to reject apartment");
+                  }
+                },
+                child: isProcessing && !isApproved && !isRejected
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+                    : Text(
+                  isRejected ? "Rejected" : "Reject",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

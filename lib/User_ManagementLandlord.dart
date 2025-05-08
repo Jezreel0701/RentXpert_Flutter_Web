@@ -919,12 +919,12 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
   void _showUserDetailsDialog(Map<String, dynamic> user) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
-
     showDialog(
       context: context,
       builder: (context) {
         bool isApproved = false;
         bool isRejected = false;
+
 
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
@@ -932,140 +932,196 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
+            contentPadding: const EdgeInsets.all(20),
             content: SizedBox(
-              width: 400,
+              width: 800,
+              height: 500,
               child: Stack(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "User Details",
-                          style: TextStyle(
-                            color: isDarkMode ? Colors.white : Color(0xFF4F768E),
-                            fontFamily: "Krub",
-                            fontWeight: FontWeight.bold,
-                            fontSize: 25,
-                          ),
+                  // Back button
+                  Positioned(
+                    top: 5.0,
+                    right: 5.0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 5.0, right: 20.0),
+                      child: IconButton(
+                        icon: Image.asset(
+                          'assets/images/back_image.png',
+                          width: 30,
+                          height: 30,
                         ),
-                        const SizedBox(height: 40),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 53.0),
-                          child: Column(
-                            children: [
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Name", user['fullname'], isDarkMode),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Address", user['address'], isDarkMode),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
                     ),
                   ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: IconButton(
-                      icon: Image.asset(
-                        'assets/images/back_image.png',
-                        width: 20,
-                        height: 20,
-                        color: isDarkMode ? Colors.white : null,
+
+
+                  Column(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            // Left section: User Details
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "User Details",
+                                      style: TextStyle(
+                                        color: isDarkMode ? Colors.white : Color(0xFF4F768E),
+                                        fontFamily: "Krub",
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 35,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 30.0, left: 30.0),
+                                      child: SingleChildScrollView(
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minHeight: 0,
+                                            maxHeight: 350,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: _infoRow("Name", user['fullname'], isDarkMode),
+                                              ),
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
+                                              ),
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: _infoRow("Address", user['address'], isDarkMode),
+                                              ),
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            // Right section: Valid ID
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Center(
+                                  child: user['valid_id'] != null
+                                      ? Image.network(
+                                    user['valid_id'],
+                                    fit: BoxFit.cover,
+                                    width: 200,
+                                    height: 200,
+                                  )
+                                      : const Icon(
+                                    Icons.image_not_supported,
+                                    size: 100,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
+                      const SizedBox(height: 10),
+                      // Buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isApproved || isRejected
+                                  ? Colors.grey
+                                  : const Color(0xFF79BD85),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              minimumSize: const Size(150, 50),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            onPressed: (isApproved || isRejected)
+                                ? null
+                                : () {
+                              _approveUser(); // replace with your real method
+                              setState(() => isApproved = true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("User approved!"),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            },
+                            child: Text(
+                              isApproved ? "Approved" : "Approve",
+                              style: const TextStyle(
+                                fontFamily: "Inter",
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isRejected || isApproved
+                                  ? Colors.grey
+                                  : const Color(0xFFDE5959),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              minimumSize: const Size(150, 50),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            onPressed: (isRejected || isApproved)
+                                ? null
+                                : () {
+                              _rejectUser(); // replace with your real method
+                              setState(() => isRejected = true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("User rejected!"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            },
+                            child: Text(
+                              isRejected ? "Rejected" : "Reject",
+                              style: const TextStyle(
+                                fontFamily: "Inter",
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ),
                 ],
               ),
             ),
-            actionsAlignment: MainAxisAlignment.center,
-            actions: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isApproved || isRejected
-                      ? (isDarkMode ? Colors.grey[700]! : Colors.grey)
-                      : const Color(0xFF79BD85),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  minimumSize: const Size(150, 50),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: (isApproved || isRejected)
-                    ? null
-                    : () {
-                  _approveUser();
-                  setState(() => isApproved = true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("User approved!"),
-                      backgroundColor: isDarkMode ? Colors.green[800]! : Colors.green,
-                    ),
-                  );
-                },
-                child: Text(
-                  isApproved ? "Approved" : "Approve",
-                  style: TextStyle(
-                    fontFamily: "Inter",
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isRejected || isApproved
-                      ? (isDarkMode ? Colors.grey[700]! : Colors.grey)
-                      : const Color(0xFFDE5959),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  minimumSize: const Size(150, 50),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: (isRejected || isApproved)
-                    ? null
-                    : () {
-                  _rejectUser();
-                  setState(() => isRejected = true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("User rejected!"),
-                      backgroundColor: isDarkMode ? Colors.red[800]! : Colors.red,
-                    ),
-                  );
-                },
-                child: Text(
-                  isRejected ? "Rejected" : "Reject",
-                  style: TextStyle(
-                    fontFamily: "Inter",
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
           ),
         );
       },
     );
   }
+
 
 // Updated _infoRow with dark mode support
   Widget _infoRow(String label, String? value, bool isDarkMode) {

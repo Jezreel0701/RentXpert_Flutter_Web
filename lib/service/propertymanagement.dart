@@ -2,8 +2,30 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:rentxpert_flutter_web/config/config.dart'; // Your baseUrl config
 
+
+
 class ApartmentManagementFetch {
   static const bool debug = true;
+
+
+  // In your propertymanagement.dart service file
+  static Future<bool> updateApartmentStatus(String uid, String newStatus) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/apartments/$uid/status'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'status': newStatus}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
 
   static Future<ApartmentFetchResult?> fetchApartments({
     // Add uid parameter
