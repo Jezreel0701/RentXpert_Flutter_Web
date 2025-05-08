@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:rentxpert_flutter_web/service/api.dart'; // Your API service
+import 'package:rentxpert_flutter_web/service/api.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
+import 'theme_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -11,39 +13,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int? allUserCount;
   int? landlordCount;
   int? tenantCount;
-  int? apartmentCount; // New: Store apartment count
-  int? pendingApartmentCount = 20; // Placeholder for pending count, replace with real data
+  int? apartmentCount;
+  int? pendingApartmentCount = 20;
 
   @override
   void initState() {
     super.initState();
-    fetchCounts(); // Fetch counts when the screen initializes
+    fetchCounts();
   }
 
   Future<void> fetchCounts() async {
-    print('Fetching all counts...');
-
     allUserCount = await ApiService.fetchUserCount('All');
     landlordCount = await ApiService.fetchUserCount('Landlord');
     tenantCount = await ApiService.fetchUserCount('Tenant');
-    apartmentCount = await ApiService.fetchApprovedApartmentCount(); // 🏠 Fetch apartments
-    pendingApartmentCount = await ApiService.fetchPendingApartmentCount(); // 🏠 Fetch pending apartments
-
-    print(
-      'Counts: Users = $allUserCount, Landlords = $landlordCount, Tenants = $tenantCount, Apartments = $apartmentCount, Pending Apartments = $pendingApartmentCount',
-    );
-
+    apartmentCount = await ApiService.fetchApprovedApartmentCount();
+    pendingApartmentCount = await ApiService.fetchPendingApartmentCount();
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final RentXpertText = screenWidth * 0.03;
 
+    // Theme colors
+    final backgroundColor = isDarkMode ? Colors.grey[900] : Color(0xFFF5F5F5);
+    final textColor = isDarkMode ? Colors.white : Color(0xFF4F768E);
+    final cardColor = isDarkMode ? Colors.grey[800] : Colors.white;
+    final chartTextColor = isDarkMode ? Colors.white : Colors.black87;
+
     return Scaffold(
-      backgroundColor: Color(0xFFFF5F5F5),
+      backgroundColor: backgroundColor,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(
                   fontSize: 50,
                   fontFamily: "Inter",
-                  color: Color(0xFF4F768E),
+                  color: textColor,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -67,40 +70,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: screenWidth * 0.8,
                 height: screenHeight * 0.15,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardColor,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 12,
-                      offset: Offset(0, 6),
-                    ),
+                    BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 6)),
                   ],
                 ),
-                child: Stack(
-                  alignment: Alignment.bottomLeft,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        "Welcome to RentXpert",
-                        style: TextStyle(
-                          color: Color(0xFF4F768E),
-                          fontSize: RentXpertText,
-                          fontFamily: "Krub-SemiBold",
-                          fontWeight: FontWeight.w700,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        textAlign: TextAlign.left,
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    "Welcome to RentXpert",
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: RentXpertText,
+                      fontFamily: "Krub-SemiBold",
+                      fontWeight: FontWeight.w700,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
+                    textAlign: TextAlign.left,
+                  ),
                 ),
               ),
             ),
             SizedBox(height: 30),
-
-            // Dashboard Statistic Boxes
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -112,8 +104,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     allUserCount?.toString() ?? "0",
                     "Registered\nUser",
                     "Total Users",
-                    Color(0xFFD0D9DF),
-
+                    isDarkMode ? Colors.grey[700]! : Color(0xFFD0D9DF),
+                    isDarkMode,
                   ),
                   _dashboardBox(
                     context,
@@ -121,7 +113,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     landlordCount?.toString() ?? "0",
                     "Landlords",
                     " ",
-                    Color(0xFFC5D9E6),
+                    isDarkMode ? Colors.grey[700]! : Color(0xFFC5D9E6),
+                    isDarkMode,
                   ),
                   _dashboardBox(
                     context,
@@ -129,43 +122,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     tenantCount?.toString() ?? "0",
                     "Tenants",
                     " ",
-                    Color(0xFFB4C8D5),
+                    isDarkMode ? Colors.grey[700]! : Color(0xFFB4C8D5),
+                    isDarkMode,
                   ),
                   _dashboardBox(
                     context,
                     'assets/images/bank.png',
-                    apartmentCount?.toString() ?? "0", // ✅ Now dynamic
+                    apartmentCount?.toString() ?? "0",
                     "Available\nRents",
                     "Total Listed Properties",
-                    Color(0xFF9BBFD8),
+                    isDarkMode ? Colors.grey[700]! : Color(0xFF9BBFD8),
+                    isDarkMode,
                   ),
                 ],
               ),
             ),
-
-            /// ✅ Barchart Widget here
             SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.all(25.0),
               child: Align(
-                alignment: Alignment.centerLeft, // Center vertically and align to the left
+                alignment: Alignment.centerLeft,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    // Bar Chart Container
+                    // Bar Chart Container (unchanged)
                     Container(
                       width: screenWidth * 0.22,
                       height: screenHeight * 0.45,
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
-                          ),
+                          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
                         ],
                       ),
                       child: Column(
@@ -177,17 +166,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               children: [
                                 Icon(Icons.square, color: Color(0xFF8979FF), size: 14),
                                 SizedBox(width: 8),
-                                Text("2025", style: TextStyle(
-                                    fontSize: 16,
-                                    fontFamily: "Inter",
-                                    fontWeight: FontWeight.w500)),
+                                Text("2025",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontFamily: "Inter",
+                                        fontWeight: FontWeight.w500,
+                                        color: chartTextColor)),
                               ],
                             ),
                           ),
                           SizedBox(height: 12),
                           SizedBox(
-                            width: screenWidth * 0.3,  // 80% of screen width for the chart
-                            height: screenHeight * 0.35,  // 25% of screen height for the chart
+                            width: screenWidth * 0.3,
+                            height: screenHeight * 0.35,
                             child: RotatedBox(
                               quarterTurns: 1,
                               child: BarChart(
@@ -205,7 +196,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           backDrawRodData: BackgroundBarChartRodData(
                                             show: true,
                                             toY: 100,
-                                            color: Color(0xFFD6DBED).withOpacity(0.5),
+                                            color: isDarkMode
+                                                ? Colors.grey[700]!.withOpacity(0.5)
+                                                : Color(0xFFD6DBED).withOpacity(0.5),
                                           ),
                                         ),
                                       ],
@@ -221,7 +214,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           backDrawRodData: BackgroundBarChartRodData(
                                             show: true,
                                             toY: 100,
-                                            color: Color(0xFFD6DBED).withOpacity(0.5),
+                                            color: isDarkMode
+                                                ? Colors.grey[700]!.withOpacity(0.5)
+                                                : Color(0xFFD6DBED).withOpacity(0.5),
                                           ),
                                         ),
                                       ],
@@ -233,11 +228,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         showTitles: true,
                                         getTitlesWidget: (value, meta) {
                                           return Transform.rotate(
-                                            angle: -1.5708, // 90 degrees counterclockwise in radians
+                                            angle: -1.5708,
                                             child: Text(
                                               value.toInt().toString(),
                                               style: TextStyle(
-                                                color: Colors.black87,
+                                                color: chartTextColor,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -251,28 +246,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     bottomTitles: AxisTitles(
                                       sideTitles: SideTitles(
                                         showTitles: true,
-                                        reservedSize: 55,  // Add margin to increase space between bars and the left titles
+                                        reservedSize: 55,
                                         getTitlesWidget: (value, meta) {
-                                          String label;
-                                          switch (value.toInt()) {
-                                            case 0:
-                                              label = "Tenants";
-                                              break;
-                                            case 1:
-                                              label = "Landlords";
-                                              break;
-                                            default:
-                                              label = "";
-                                          }
-
+                                          final label = value.toInt() == 0 ? "Tenants" : "Landlords";
                                           return Transform.rotate(
-                                            angle: -1.5708, // 90 degrees counterclockwise in radians
+                                            angle: -1.5708,
                                             child: Padding(
                                               padding: const EdgeInsets.only(top: 20.0),
                                               child: Text(
                                                 label,
                                                 style: TextStyle(
-                                                  color: Colors.black87,
+                                                  color: chartTextColor,
                                                   fontFamily: "Inter",
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w500,
@@ -288,9 +272,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   barTouchData: BarTouchData(enabled: false),
                                   borderData: FlBorderData(
                                     show: true,
-                                    border: Border(
-                                      bottom: BorderSide(color: Colors.black),
-                                    ),
+                                    border: Border(bottom: BorderSide(color: chartTextColor)),
                                   ),
                                 ),
                               ),
@@ -302,20 +284,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     SizedBox(width: 40),
 
-                    // ✅ Pie Chart Container
+                    // Pie Chart Container (revised)
                     Container(
                       width: screenWidth * 0.45,
                       height: screenHeight * 0.45,
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
-                          ),
+                          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
                         ],
                       ),
                       child: LayoutBuilder(
@@ -323,106 +301,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           final maxWidth = constraints.maxWidth;
                           final maxHeight = constraints.maxHeight;
                           final chartSize = maxWidth < maxHeight ? maxWidth : maxHeight;
-
-                          // Use MediaQuery to determine screen width
-                          double screenWidth = MediaQuery.of(context).size.width;
-
-                          // Check if screen width is smaller than 600px to hide the legend
-                          bool isSmallScreen = screenWidth < 1100; // Set your threshold here
+                          bool isSmallScreen = screenWidth < 1100;
 
                           return Padding(
                             padding: const EdgeInsets.only(left: 16.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                // Pie Chart Container
                                 SizedBox(
                                   width: chartSize * 0.9,
                                   height: chartSize * 0.9,
                                   child: PieChart(
                                     PieChartData(
                                       sections: [
-
                                         PieChartSectionData(
                                           value: apartmentCount?.toDouble() ?? 0,
                                           color: Color(0xFF69769F),
                                           radius: chartSize * 0.38,
-                                          title: '', // leave blank
-                                          badgeWidget: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                '       Approved Apartments',
-                                                style: TextStyle(
-                                                  fontFamily: "Inter",
-                                                  fontSize: 12,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              Text(
-                                                '${apartmentCount ?? 0}',
-                                                style: TextStyle(
-                                                  fontFamily: "Inter",
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ],
+                                          title: '${apartmentCount ?? 0}',
+                                          titleStyle: TextStyle(
+                                            fontFamily: "Inter",
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
-                                          badgePositionPercentageOffset: 0.6, // Adjust position as needed
                                         ),
-
-
                                         PieChartSectionData(
                                           value: pendingApartmentCount?.toDouble() ?? 0,
                                           color: Color(0xFF393F4C),
                                           radius: chartSize * 0.40,
-                                          title: '', // leave blank
-                                          badgeWidget: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                'Pending Apartments',
-                                                style: TextStyle(
-                                                  fontFamily: "Inter",
-                                                  fontSize: 12,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              Text(
-                                                '${pendingApartmentCount ?? 0}',
-                                                style: TextStyle(
-                                                  fontFamily: "Inter",
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ],
+                                          title: '${pendingApartmentCount ?? 0}',
+                                          titleStyle: TextStyle(
+                                            fontFamily: "Inter",
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
-                                          badgePositionPercentageOffset: 0.6, // Adjust position as needed
                                         ),
-
-
                                       ],
                                       sectionsSpace: 2,
                                       centerSpaceRadius: chartSize * 0.1,
                                     ),
                                   ),
                                 ),
-
-                                // Empty Space to Push Legend to the Right
-                                Expanded(child: Container()),
-
-                                // Conditionally show/hide the legend based on screen size
-                                if (!isSmallScreen)
+                                if (!isSmallScreen) ...[
+                                  SizedBox(width: 32), // space between pie and legend
                                   Container(
                                     padding: EdgeInsets.only(left: 16),
-                                    width: screenWidth * 0.15,  // Adjust width for the legend container
-                                    height: screenHeight * 0.45,  // Adjust height to match the chart's height
+                                    width: screenWidth * 0.15,
+                                    height: screenHeight * 0.45,
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisAlignment: MainAxisAlignment.center,
@@ -431,7 +358,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           children: [
                                             Icon(Icons.circle, color: Color(0xFF69769F), size: 12),
                                             SizedBox(width: 8),
-                                            Text("Approved Rents", style: TextStyle(fontSize: 14)),
+                                            Text("Approved Rents",
+                                                style: TextStyle(fontSize: 14, color: chartTextColor)),
                                           ],
                                         ),
                                         SizedBox(height: 10),
@@ -439,24 +367,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           children: [
                                             Icon(Icons.circle, color: Color(0xFF393F4C), size: 12),
                                             SizedBox(width: 8),
-                                            Text("Pending Rents", style: TextStyle(fontSize: 14)),
+                                            Text("Pending Rents",
+                                                style: TextStyle(fontSize: 14, color: chartTextColor)),
                                           ],
                                         ),
                                       ],
                                     ),
                                   ),
+                                ],
                               ],
                             ),
                           );
                         },
                       ),
                     ),
-
-
-
-
-
-
 
                   ],
                 ),
@@ -468,7 +392,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Small 4 Dashboard Box Widget
   Widget _dashboardBox(
       BuildContext context,
       String imageUrl,
@@ -476,16 +399,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       String smallLabel,
       String subtitle,
       Color bgColor,
-
+      bool isDarkMode,
       ) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
     final isSmallScreen = screenWidth < 1300;
-    // Adjust font size based on screen width
     final double countFontSize = isSmallScreen
-        ? screenWidth * 0.035  // bigger count on small screen
-        : screenWidth * 0.025; // regular size on wide screen
+        ? screenWidth * 0.035
+        : screenWidth * 0.025;
+    final textColor = isDarkMode ? Colors.white : Color(0xFF4D4B4B);
 
     return Expanded(
       child: Container(
@@ -520,13 +441,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       children: [
                         Flexible(
-                          child: Text(            // Number
+                          child: Text(
                             mainNumber,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: countFontSize,
-                              color: Color(0xFF69769F),
+                              color: isDarkMode ? Colors.white : Color(0xFF69769F),
                               fontFamily: "Inter",
                               fontWeight: FontWeight.w600,
                             ),
@@ -534,27 +453,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         SizedBox(width: 6),
                         Flexible(
-                          child: Text(            // Text beside number
+                          child: Text(
                             smallLabel,
-                            // maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 14,
                               fontFamily: "Inter",
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF4D4B4B),
+                              color: textColor,
                             ),
                           ),
                         ),
                       ],
                     ),
                     SizedBox(height: 4),
-                    Text(                         // Text below number
+                    Text(
                       subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Color(0xFF4D4B4B),
+                        color: textColor,
                         fontFamily: "Inter",
                         fontSize: 14,
                         fontWeight: FontWeight.w400,

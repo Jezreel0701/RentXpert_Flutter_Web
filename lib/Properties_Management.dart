@@ -1,236 +1,176 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
+import 'package:rentxpert_flutter_web/service/propertymanagement.dart';
+import 'theme_provider.dart';
 
 class PropertiesManagementScreen extends StatefulWidget {
   @override
-  _UserManagementScreenState createState() => _UserManagementScreenState();
+  _PropertiesManagementScreenState createState() => _PropertiesManagementScreenState();
 }
 
-class _UserManagementScreenState extends State<PropertiesManagementScreen> {
+class _PropertiesManagementScreenState extends State<PropertiesManagementScreen> {
   List<Map<String, dynamic>> apartmentData = [];
-  bool isLoading = true;
+  bool isLoading = false;
   int _rowsPerPage = 10;
   int _currentPage = 1;
+  int _totalApartments = 0;
   String? _appliedFilter;
   String? editingUserId;
   Map<String, dynamic> editedUser = {};
-
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    loadApartments();
+    _fetchApartments();
   }
 
-  Future<void> loadApartments({int page = 1}) async {
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchApartments() async {
     setState(() => isLoading = true);
-
     try {
-      final apartments = await fetchApartments(page, _rowsPerPage);
+      final result = await ApartmentManagementFetch.fetchApartments(
+        page: _currentPage,
+        limit: _rowsPerPage,
+        propertyName: _appliedFilter == 'Property Name' ? _searchController.text : null,
+        landlordName: _appliedFilter == 'Landlord' ? _searchController.text : null,
+        status: _appliedFilter == 'Status' ? _searchController.text : null,
+        propertyType: _appliedFilter == 'Property Type' ? _searchController.text : null,
+        uid: _appliedFilter == 'UID' ? _searchController.text : null, // Add UID case
+      );
 
-      setState(() {
-        apartmentData = apartments;
-        isLoading = false;
-      });
-
-      print('\n🟡 Fetched apartments: $apartments');
-      if (apartments.isNotEmpty) {
-        print('\n🟢 Successfully fetched apartments: $apartments');
+      if (result != null) {
+        setState(() {
+          apartmentData = result.apartments.map((apartment) => {
+            'id': apartment.id.toString(),
+            'Uid': apartment.uid,
+            'PropertyName': apartment.propertyName,
+            'PropertyType': apartment.propertyType,
+            'Status': apartment.status,
+            'landlord_name': apartment.landlordName,
+            'Rent_Price': apartment.rentPrice.toStringAsFixed(2),
+            'Address': apartment.address,
+            'Landmarks': apartment.landmarks,
+            'Allowed_Gender': apartment.allowedGender,
+            'Availability': apartment.availability,
+          }).toList();
+          _totalApartments = result.total;
+          isLoading = false;
+        });
       } else {
-        print('\n🔴 No apartments found.');
+        setState(() => isLoading = false);
+        _showErrorSnackBar("Failed to fetch apartments");
       }
-
     } catch (e) {
-      print('🔴 Error fetching apartments: $e');
       setState(() => isLoading = false);
+      _showErrorSnackBar("Failed to fetch apartments: ${e.toString()}");
     }
   }
 
-
-  Future<List<Map<String, dynamic>>> fetchApartments(int page, int limit) async {
-
-    final response = await http.get(
-      Uri.parse('http://localhost:8080/admin/apartments/details?page=$page&limit=$limit'),
-      headers: {'Content-Type': 'application/json'},
-
-
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      List<dynamic> apartments = data['data']['apartments'];
-      return apartments.cast<Map<String, dynamic>>();
-    } else {
-      throw Exception('Failed to load apartments');
-    }
-  }
-
-
-  int get _totalPages => (apartmentData.length / _rowsPerPage).ceil();
+  int get _totalPages => (_totalApartments / _rowsPerPage).ceil();
 
 
   List<Map<String, dynamic>> get _paginatedData {
     final startIndex = (_currentPage - 1) * _rowsPerPage;
     final endIndex = startIndex + _rowsPerPage;
     return apartmentData.sublist(
-      startIndex,
-      endIndex > apartmentData.length ? apartmentData.length : endIndex,
+      startIndex.clamp(0, apartmentData.length),
+      endIndex.clamp(0, apartmentData.length),
     );
   }
 
-  // Delete function and design
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
   void _showDeleteConfirmationDialog() {
     showDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(45),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(45)),
         child: Container(
           padding: const EdgeInsets.all(20),
           width: 400,
           height: 300,
-
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               FittedBox(
                 fit: BoxFit.contain,
-                child: Image.asset(
-                  'assets/images/delete.png',
-                  width: 75,
-                  height: 75,
-                ),
+                child: Image.asset('assets/images/delete.png', width: 75, height: 75),
               ),
               const SizedBox(height: 12),
-
-              const Text(
-                'Delete',
-                style: TextStyle(
-                    color: Color(0xFF000000),
-                    fontSize: 25,
-                    fontFamily: "Krub",
-                    fontWeight: FontWeight.w600),
-                textAlign: TextAlign.center,
-              ),
-
+              const Text('Delete', style: TextStyle(color: Color(0xFF000000), fontSize: 25)),
               const SizedBox(height: 12),
-
-              const Text(
-                'Are you sure you want to delete?',
-                style: TextStyle(
-                    color: Color(0xFF979797),
-                    fontSize: 18,
-                    fontFamily: "Krub",
-                    fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
-              ),
-
+              const Text('Are you sure you want to delete?', style: TextStyle(color: Color(0xFF979797))),
               const SizedBox(height: 40),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   SizedBox(
-                    width: 170, // Adjust the width here
-                    height: 50, // Adjust the height here
+                    width: 170,
+                    height: 50,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 4,
-                        backgroundColor: Color(0xFFEDEDED),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                      },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.black),
-                      ),
-                    ),
+                        style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFEDEDED)),
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel', style: TextStyle(fontSize: 20))),
                   ),
                   SizedBox(
-                    width: 170, // Adjust the width here
-                    height: 50, // Adjust the height here
+                    width: 170,
+                    height: 50,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 4,
-                        backgroundColor: Color(0xFF79BD85),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                        //   Function for delete account
-                        _deleteAccount();
-                      },
-                      child: const Text(
-                          'Confirm',
-                          style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.white)),
-                    ),
+                        style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF79BD85)),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _deleteAccount();
+                        },
+                        child: const Text('Confirm', style: TextStyle(color: Colors.white))),
                   ),
                 ],
               ),
             ],
           ),
-
         ),
       ),
     );
   }
 
   void _deleteAccount() {
-    // Add your account deletion logic here.
-
-    // Show custom top snack bar
     _showDeleteTopSnackBar("Account deleted successfully");
   }
 
-  //Snakcbar notification for delete button
   void _showDeleteTopSnackBar(String message) {
     final overlay = Overlay.of(context);
-    final screenSize = MediaQuery.of(context).size;
-    const double snackbarWidth = 300;
-    const double snackbarHeight = 80;
-
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50,  // Adjust the top value as per your needs
-        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
-        right: MediaQuery.of(context).size.width / 2 - 150,
+        top: 50,
+        left: MediaQuery.of(context).size.width / 2 - 150,
         child: Material(
           color: Colors.transparent,
           child: Container(
-            width: snackbarWidth,
-            height: snackbarHeight,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            width: 300,
+            height: 80,
             decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                message,
-                style: TextStyle(color: Colors.white, fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-            ),
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(10)),
+            child: Center(child: Text(message, style: TextStyle(color: Colors.white))),
           ),
         ),
       ),
     );
-
-    // Insert the overlay
     overlay.insert(overlayEntry);
-
-    // Remove the overlay after 3 seconds
-    Future.delayed(Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
+    Future.delayed(Duration(seconds: 3), () => overlayEntry.remove());
   }
 
   //Snakcbar notification for Approve button
@@ -338,22 +278,19 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
 
 
 
-  //Dialog for filter
+  // Dialog for filter
   void _showFilterDialog() {
-    // List of filter options
     final filterOptions = [
       'Landlord',
       'UID',
       'Property Name',
       'Property Type',
       'Status',
-
     ];
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // Initialize with the currently applied filter (if any)
         String? selectedOption = _appliedFilter;
 
         return StatefulBuilder(
@@ -376,18 +313,17 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                         alignment: WrapAlignment.start,
                         children: filterOptions.map((option) {
                           final isSelected = selectedOption == option;
-                          final isFixedSize = option == 'Landlord' ||
-                              option == 'UID' ||
-                              option == 'Property Name' ||
-                              option == 'Property Type' ||
-                              option == 'Status';
+                          final isFixedSize = [
+                            'Landlord',
+                            'UID',
+                            'Property Name',
+                            'Property Type',
+                            'Status'
+                          ].contains(option);
 
                           return GestureDetector(
-                            onTap: () {
-                              setStateDialog(() {
-                                selectedOption = isSelected ? null : option;
-                              });
-                            },
+                            onTap: () => setStateDialog(() =>
+                            selectedOption = isSelected ? null : option),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16.0,
@@ -422,52 +358,21 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
-                    backgroundColor: const Color(0xFFFFFFFF),
-                    foregroundColor: const Color(0xFF000000),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      side: const BorderSide(
-                        color: Color(0xFFC3C3C3),
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontFamily: "Krub",
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  onPressed: () => Navigator.pop(context),
+                  style: _filterButtonStyle(Colors.white, Colors.black),
+                  child: const Text('Cancel', style: _filterTextStyle),
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    // Update the parent widget's state
+                    Navigator.pop(context);
                     setState(() {
                       _appliedFilter = selectedOption;
+                      _currentPage = 1; // Reset to first page when filter changes
                     });
+                    _fetchApartments(); // Trigger immediate refresh
                   },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
-                    backgroundColor: const Color(0xFF9AD47F),
-                    foregroundColor: const Color(0xFFFFFFFF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Text(
-                    'Apply filters',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontFamily: "Krub",
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  style: _filterButtonStyle(Color(0xFF9AD47F), Colors.white),
+                  child: const Text('Apply filters', style: _filterTextStyle),
                 ),
               ],
             );
@@ -476,6 +381,7 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
       },
     );
   }
+
 
   //Data cell Styles
   DataCell buildCenteredTextCell(String? text) {
@@ -494,35 +400,32 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
     );
   }
 
+  // Update the Text widget in build method
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: isDarkMode ? Colors.grey[900] : Color(0xFFF5F5F5),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Properties Management: Apartments",
               style: TextStyle(
-                fontSize: 45,
-                fontFamily: "Inter",
-                color: Color(0xFF4F768E),
-                fontWeight: FontWeight.w600,
+                fontSize: 25, // Reduced from 45 to prevent overflow
+                color: isDarkMode ? Colors.white : Colors.black,
               ),
             ),
             const SizedBox(height: 20),
             _buildSearchBar(),
             const SizedBox(height: 20),
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _buildUserTable(key: ValueKey(_currentPage)),
-              ),
-            ),
+            isLoading
+                ? Center(child: CircularProgressIndicator())
+                : Expanded(child: _buildUserTable()),
             const SizedBox(height: 20),
             _buildPaginationBar(),
           ],
@@ -531,58 +434,50 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
     );
   }
 
-  //Search bar widget
+  // Search bar widget
   Widget _buildSearchBar() {
     return Row(
       children: [
-        FittedBox(
-
-          child: IconButton(
-            icon: _appliedFilter == null
-                ? Image.asset(
-              'assets/images/filter_icon.png',
-              width: 55,
-              height: 55,
-            )
-                : Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4F768E),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Text(
-                _appliedFilter!,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontFamily: 'Krub',
-                  fontWeight: FontWeight.w500,
-                ),
+        IconButton(
+          icon: _appliedFilter == null
+              ? Image.asset('assets/images/filter_icon.png', width: 55, height: 55)
+              : Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4F768E),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Text(
+              _appliedFilter!,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontFamily: 'Krub',
+                fontWeight: FontWeight.w500,
               ),
             ),
-            onPressed: _showFilterDialog,
           ),
-
-
-
-
+          onPressed: _showFilterDialog,
         ),
-
         const SizedBox(width: 10),
-
         SizedBox(
-          width: MediaQuery.of(context).size.width * 0.3, // Set the desired width for the search bar
+          width: MediaQuery.of(context).size.width * 0.3,
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minWidth: 200, // Minimum width for the search bar
-              maxWidth: 400, // Maximum width for the search bar
+            constraints: const BoxConstraints(
+              minWidth: 200,
+              maxWidth: 400,
             ),
             child: TextField(
+              controller: _searchController,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.close),
-                  onPressed: () {},
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _appliedFilter = null);
+                    _fetchApartments();
+                  },
                 ),
                 hintText: 'Search...',
                 border: OutlineInputBorder(
@@ -592,23 +487,40 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                 fillColor: Colors.white,
                 filled: true,
               ),
+              onSubmitted: (value) => _fetchApartments(),
             ),
           ),
-
-
         ),
       ],
     );
   }
 
+// Style helpers
+  ButtonStyle _filterButtonStyle(Color bgColor, Color textColor) {
+    return TextButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
+      backgroundColor: bgColor,
+      foregroundColor: textColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: bgColor == Colors.white
+            ? const BorderSide(color: Color(0xFFC3C3C3), width: 1)
+            : BorderSide.none,
+      ),
+    );
+  }
 
-
-
+  static const TextStyle _filterTextStyle = TextStyle(
+    fontSize: 19,
+    fontFamily: "Krub",
+    fontWeight: FontWeight.w500,
+  );
 
   // Table  widget
   Widget _buildUserTable({Key? key}) {
     final paginatedApartments = _paginatedData;
-
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
     final columnTitles = [
       'UID',
       'Property Name',
@@ -630,9 +542,9 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
               minHeight: MediaQuery.of(context).size.height * 0.9,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode ? Colors.grey[800] : Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -656,10 +568,11 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                             child: Center(
                               child: Text(
                                 title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: "Krub",
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
+                                  color: isDarkMode ? Colors.white : Colors.black,
                                 ),
                               ),
                             ),
@@ -860,6 +773,14 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
                                 alignment: Alignment.center,
                                 child: _infoRow("Allowed Gender", apartment['Allowed_Gender']),
                               ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("Rent Price", apartment['Rent_Price']),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: _infoRow("LandMarks", apartment['Landmarks']),
+                              ),
                             ],
                           ),
                         ),
@@ -995,24 +916,25 @@ class _UserManagementScreenState extends State<PropertiesManagementScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Results per page: ${apartmentData.length}",
-              style: TextStyle(
-                fontWeight:  FontWeight.w300,
-                fontFamily: "Inter",
-                fontSize: 16,
-              )),
+          Text("Results: $_totalApartments"),
           Row(
             children: [
               _buildPaginateButton(
                 icon: Icons.arrow_back,
                 label: 'Previous',
-                onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+                onPressed: _currentPage > 1 ? () {
+                  setState(() => _currentPage--);
+                  _fetchApartments();
+                } : null,
               ),
               ..._buildPageNumbers(),
               _buildPaginateButton(
                 icon: Icons.arrow_forward,
                 label: 'Next',
-                onPressed: _currentPage < _totalPages ? () => setState(() => _currentPage++) : null,
+                onPressed: _currentPage < _totalPages ? () {
+                  setState(() => _currentPage++);
+                  _fetchApartments();
+                } : null,
               ),
             ],
           ),

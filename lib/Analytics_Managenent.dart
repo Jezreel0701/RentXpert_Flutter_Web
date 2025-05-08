@@ -1,8 +1,11 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:rentxpert_flutter_web/service/api.dart'; // Your API service, YearCountService, YearCount
+import 'package:rentxpert_flutter_web/service/api.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'theme_provider.dart';
+import 'package:provider/provider.dart';
+
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({Key? key}) : super(key: key);
@@ -58,26 +61,32 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
     final yearData = {
       for (var yc in yearCounts) yc.year.toString(): yc.count.toDouble()
     };
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F5F9),
+      backgroundColor: isDarkMode ? Colors.grey[900] : const Color(0xFFF3F5F9),
       body: SafeArea(
         child: isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+          child: CircularProgressIndicator(
+            color: isDarkMode ? Colors.white : null,
+          ),
+        )
             : SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "Reports & Analytics",
                 style: TextStyle(
                   fontSize: 45,
                   fontFamily: "Inter",
-                  color: Color(0xFF4F768E),
+                  color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -90,6 +99,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       ["Landlords", "Tenants"],
                       [landlordCount?.toDouble() ?? 0, tenantCount?.toDouble() ?? 0],
                       [landlordsColor, tenantsColor],
+                      isDarkMode: isDarkMode,
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -104,6 +114,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         transientCount?.toDouble() ?? 0,
                       ],
                       [boardingColor, dormColor, apartmentColor, transientColor],
+                      isDarkMode: isDarkMode,
                     ),
                   ),
                 ],
@@ -112,6 +123,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               _BarChartWithYearSelector(
                 title: "Engagement Metrics",
                 yearData: yearData,
+                isDarkMode: isDarkMode,
               ),
             ],
           ),
@@ -120,8 +132,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  // Pie Chart builder
-  Widget _buildPieChart(String title, List<String> labels, List<double> values, List<Color> colors) {
+  Widget _buildPieChart(
+      String title,
+      List<String> labels,
+      List<double> values,
+      List<Color> colors, {
+        required bool isDarkMode,
+      }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isSmall = constraints.maxWidth < 390;
@@ -132,9 +149,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               height: isSmall ? 220 : 280,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDarkMode ? Colors.grey[800] : Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+                boxShadow: [
+                  BoxShadow(
+                    color: isDarkMode ? Colors.black.withOpacity(0.5) : Colors.black26,
+                    blurRadius: 10,
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -176,9 +198,24 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 6),
                             child: Row(
                               children: [
-                                Container(width: 10, height: 10, decoration: BoxDecoration(color: colors[i], shape: BoxShape.circle)),
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: colors[i],
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
                                 const SizedBox(width: 8),
-                                Text(labels[i], style: const TextStyle(fontFamily: "Inter", fontSize: 14, fontWeight: FontWeight.w500)),
+                                Text(
+                                  labels[i],
+                                  style: TextStyle(
+                                    fontFamily: "Inter",
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDarkMode ? Colors.white : Colors.black,
+                                  ),
+                                ),
                               ],
                             ),
                           );
@@ -190,15 +227,27 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.blueGrey)),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isDarkMode ? Colors.white : Colors.blueGrey,
+              ),
+            ),
           ],
         );
       },
     );
   }
 
-  // Donut Chart builder
-  Widget _buildDonutChart(String title, List<String> labels, List<double> values, List<Color> colors) {
+  Widget _buildDonutChart(
+      String title,
+      List<String> labels,
+      List<double> values,
+      List<Color> colors, {
+        required bool isDarkMode,
+      }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isSmall = constraints.maxWidth < 430;
@@ -218,9 +267,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               height: isSmall ? 220 : 280,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDarkMode ? Colors.grey[800] : Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+                boxShadow: [
+                  BoxShadow(
+                    color: isDarkMode ? Colors.black.withOpacity(0.5) : Colors.black26,
+                    blurRadius: 10,
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -236,20 +290,30 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               centerSpaceRadius: centerRadius,
                               sections: List.generate(values.length, (i) {
                                 final ratio = values[i] / total;
-                                final fs    = fontSizeForWidth(constraints.maxWidth);
+                                final fs = fontSizeForWidth(constraints.maxWidth);
                                 return PieChartSectionData(
                                   value: values[i],
                                   color: colors[i],
                                   radius: radius,
                                   title: '${values[i] % 1 == 0 ? values[i].toInt() : values[i].toStringAsFixed(2)}',
-
-                                  titleStyle: TextStyle(fontSize: fs, fontWeight: FontWeight.w500, color: Colors.white),
+                                  titleStyle: TextStyle(
+                                    fontSize: fs,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
                                   titlePositionPercentageOffset: ratio >= 0.1 ? 0.6 : 0.7,
                                 );
                               }),
                             ),
                           ),
-                          Text(total.toInt().toString(), style: TextStyle(fontSize: isSmall ? 14 : 16, fontWeight: FontWeight.bold)),
+                          Text(
+                            total.toInt().toString(),
+                            style: TextStyle(
+                              fontSize: isSmall ? 14 : 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : Colors.black,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -266,9 +330,24 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 6),
                             child: Row(
                               children: [
-                                Container(width: 10, height: 10, decoration: BoxDecoration(color: colors[i], shape: BoxShape.circle)),
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: colors[i],
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
                                 const SizedBox(width: 8),
-                                Text(labels[i], style: const TextStyle(fontFamily: "Inter", fontSize: 14, fontWeight: FontWeight.w500)),
+                                Text(
+                                  labels[i],
+                                  style: TextStyle(
+                                    fontFamily: "Inter",
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDarkMode ? Colors.white : Colors.black,
+                                  ),
+                                ),
                               ],
                             ),
                           );
@@ -280,7 +359,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.blueGrey)),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isDarkMode ? Colors.white : Colors.blueGrey,
+              ),
+            ),
           ],
         );
       },
@@ -288,16 +374,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Bar Chart with fixed height to avoid infinite constraints
-// ───────────────────────────────────────────────────────────────────────────────
 class _BarChartWithYearSelector extends StatefulWidget {
   final String title;
   final Map<String, double> yearData;
+  final bool isDarkMode;
 
   const _BarChartWithYearSelector({
     required this.title,
     required this.yearData,
+    required this.isDarkMode,
   });
 
   @override
@@ -329,7 +414,6 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
     }
   }
 
-  // Update the getSelectedYears method in _BarChartWithYearSelectorState
   List<String> getSelectedYears() {
     if (startYear.isEmpty || endYear.isEmpty) return [];
     final start = int.parse(startYear);
@@ -337,17 +421,11 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
     return List.generate(end - start + 1, (index) => (start + index).toString());
   }
 
-  // Update the build method in _BarChartWithYearSelectorState
   @override
   Widget build(BuildContext context) {
-    final allYears = widget.yearData.keys.toList()
-      ..sort();
+    final allYears = widget.yearData.keys.toList()..sort();
     final selectedYears = getSelectedYears();
-
-    // Get data for all years in range, default to 0 if no data
     final selectedData = selectedYears.map((y) => widget.yearData[y] ?? 0.0).toList();
-
-    // Compute Y-axis bounds
     final rawMax = selectedData.isEmpty ? 0 : selectedData.reduce(math.max);
     final maxY = (rawMax * 1.1).ceilToDouble();
     final yInt = (maxY / 5).ceilToDouble();
@@ -358,7 +436,6 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
       const Color(0xFF848FB1),
     ];
 
-    // Create bar groups for all years in range
     final barGroups = List.generate(selectedData.length, (i) {
       return BarChartGroupData(
         x: i,
@@ -379,23 +456,40 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
         width: MediaQuery.of(context).size.width * 0.8,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: widget.isDarkMode ? Colors.grey[800] : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+          boxShadow: [
+            BoxShadow(
+              color: widget.isDarkMode ? Colors.black.withOpacity(0.5) : Colors.black26,
+              blurRadius: 10,
+            ),
+          ],
         ),
         child: allYears.isEmpty
-            ? const Center(child: Text("No year data available"))
+            ? Center(
+          child: Text(
+            "No year data available",
+            style: TextStyle(
+              color: widget.isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
+        )
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Year selectors with DropdownButton2
                 Column(
                   children: [
-                    const Text("Start Year:",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    Text(
+                      "Start Year:",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: widget.isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
                     DropdownButton2<String>(
                       value: startYear,
                       onChanged: (v) => setState(() => startYear = v!),
@@ -403,7 +497,14 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                           .where((y) => int.parse(y) <= int.parse(endYear))
                           .map((y) => DropdownMenuItem(
                         value: y,
-                        child: Text(y),
+                        child: Text(
+                          y,
+                          style: TextStyle(
+                            color: widget.isDarkMode
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                        ),
                       ))
                           .toList(),
                       buttonStyleData: ButtonStyleData(
@@ -412,7 +513,9 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          color: Colors.white,
+                          color: widget.isDarkMode
+                              ? Colors.grey[700]
+                              : Colors.white,
                         ),
                       ),
                       dropdownStyleData: DropdownStyleData(
@@ -420,7 +523,9 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                         width: 120,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          color: Colors.white,
+                          color: widget.isDarkMode
+                              ? Colors.grey[800]
+                              : Colors.white,
                         ),
                         offset: const Offset(0, -5),
                         scrollbarTheme: ScrollbarThemeData(
@@ -435,8 +540,14 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    const Text("End Year:",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    Text(
+                      "End Year:",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: widget.isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
                     DropdownButton2<String>(
                       value: endYear,
                       onChanged: (v) => setState(() => endYear = v!),
@@ -444,7 +555,14 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                           .where((y) => int.parse(y) >= int.parse(startYear))
                           .map((y) => DropdownMenuItem(
                         value: y,
-                        child: Text(y),
+                        child: Text(
+                          y,
+                          style: TextStyle(
+                            color: widget.isDarkMode
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                        ),
                       ))
                           .toList(),
                       buttonStyleData: ButtonStyleData(
@@ -453,7 +571,9 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          color: Colors.white,
+                          color: widget.isDarkMode
+                              ? Colors.grey[700]
+                              : Colors.white,
                         ),
                       ),
                       dropdownStyleData: DropdownStyleData(
@@ -461,7 +581,9 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                         width: 120,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          color: Colors.white,
+                          color: widget.isDarkMode
+                              ? Colors.grey[800]
+                              : Colors.white,
                         ),
                         offset: const Offset(0, -5),
                       ),
@@ -473,7 +595,6 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                   ],
                 ),
                 const SizedBox(width: 20),
-                // Bar chart
                 Expanded(
                   child: SizedBox(
                     height: 250,
@@ -482,7 +603,9 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                         barTouchData: BarTouchData(
                           enabled: true,
                           touchTooltipData: BarTouchTooltipData(
-                            tooltipBgColor: Colors.blueGrey,
+                            tooltipBgColor: widget.isDarkMode
+                                ? Colors.grey[700]!
+                                : Colors.blueGrey,
                             getTooltipItem: (group, groupIndex, rod, rodIndex) {
                               final year = selectedYears[group.x.toInt()];
                               final value = rod.toY;
@@ -502,13 +625,16 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                           drawVerticalLine: false,
                           horizontalInterval: yInt,
                           getDrawingHorizontalLine: (_) => FlLine(
-                            color: Colors.grey.withOpacity(0.2),
+                            color: widget.isDarkMode
+                                ? Colors.grey.withOpacity(0.4)
+                                : Colors.grey.withOpacity(0.2),
                             strokeWidth: 1,
                           ),
                         ),
                         borderData: FlBorderData(show: false),
                         barGroups: barGroups,
                         titlesData: FlTitlesData(
+                          show: true,
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
@@ -520,9 +646,12 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                                 }
                                 return Text(
                                   selectedYears[index],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
+                                    color: widget.isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
                                   ),
                                 );
                               },
@@ -535,7 +664,12 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                               interval: yInt,
                               getTitlesWidget: (value, meta) => Text(
                                 value.toInt().toString(),
-                                style: const TextStyle(fontSize: 10),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: widget.isDarkMode
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
                               ),
                             ),
                           ),
@@ -555,8 +689,11 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
               padding: const EdgeInsets.only(left: 500.0),
               child: Text(
                 'Users Growth report from $startYear to $endYear',
-                style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: widget.isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
             )
           ],
