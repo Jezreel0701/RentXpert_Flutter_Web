@@ -99,7 +99,7 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     );
   }
 
-  void _showDeleteConfirmationDialog() {
+  void _showDeleteConfirmationDialog(String apartmentId) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -117,9 +117,10 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                 child: Image.asset('assets/images/delete.png', width: 75, height: 75),
               ),
               const SizedBox(height: 12),
-              const Text('Delete', style: TextStyle(color: Color(0xFF000000), fontSize: 25)),
+              const Text('Delete Apartment', style: TextStyle(color: Color(0xFF000000), fontSize: 25)),
               const SizedBox(height: 12),
-              const Text('Are you sure you want to delete?', style: TextStyle(color: Color(0xFF979797))),
+              const Text('Are you sure you want to delete this apartment?',
+                  style: TextStyle(color: Color(0xFF979797))),
               const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -139,7 +140,7 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                         style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF79BD85)),
                         onPressed: () {
                           Navigator.pop(context);
-                          _deleteAccount();
+                          _deleteApartment(apartmentId);
                         },
                         child: const Text('Confirm', style: TextStyle(color: Colors.white))),
                   ),
@@ -152,9 +153,16 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     );
   }
 
-  void _deleteAccount() {
-    _showDeleteTopSnackBar("Account deleted successfully");
+  Future<void> _deleteApartment(String id) async {
+    final success = await ApartmentManagementDelete.deleteApartment(id);
+    if (success) {
+      _showDeleteTopSnackBar("Apartment deleted successfully");
+      _fetchApartments(); // Refresh the list after deletion
+    } else {
+      _showErrorSnackBar("Failed to delete apartment");
+    }
   }
+
 
   void _showDeleteTopSnackBar(String message) {
     final overlay = Overlay.of(context);
@@ -634,13 +642,14 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                                         },
                                       ),
                                     ),
+                                  // In your DataTable row's delete IconButton:
                                   if (!isEditing)
                                     Padding(
                                       padding: const EdgeInsets.only(left: 13.0),
                                       child: IconButton(
                                         icon: Image.asset('assets/images/white_delete.png', width: 30, height: 30),
                                         onPressed: () {
-                                          _showDeleteConfirmationDialog();
+                                          _showDeleteConfirmationDialog(apartment['ID']); // Add ID parameter here
                                         },
                                       ),
                                     ),

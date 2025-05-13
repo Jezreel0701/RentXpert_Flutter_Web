@@ -188,3 +188,44 @@ class ApartmentData {
     );
   }
 }
+
+class ApartmentManagementDelete {
+  static const bool debug = true;
+
+  /// Delete apartment by ID
+  static Future<bool> deleteApartment(String id) async {
+    final url = Uri.parse('$baseUrl/admin/apartment/delete/$id');
+
+    if (debug) {
+      print('\n🟡 Deleting apartment at: $url');
+    }
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      );
+
+      if (debug) {
+        print('🔵 Response Status Code: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      final responseData = jsonDecode(response.body);
+
+      // Handle different response formats
+      final successCode = responseData['RetCode'] ?? responseData['retCode'];
+      if (response.statusCode == 200 && successCode.toString() == '200') {
+        if (debug) print('🟢 Apartment deleted successfully');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      if (debug) print('🔴 Exception deleting apartment: $e');
+      return false;
+    }
+  }
+}
