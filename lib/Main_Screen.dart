@@ -148,22 +148,6 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      drawer: Drawer(
-        child: Container(
-          color: Color(0xFF4A758F),
-          child: Column(
-            children: [
-              DrawerHeader(
-                child: Image.asset(
-                    "assets/images/white_logo.png",
-                    height: 120,
-                    fit: BoxFit.contain),
-              ),
-              ..._buildSidebarItems(),
-            ],
-          ),
-        ),
-      ),
 
 
       //Transition effect

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rentxpert_flutter_web/MainScreen.dart';
 import 'package:rentxpert_flutter_web/service/api.dart';
-import 'package:rentxpert_flutter_web/Dashboard_Screen.dart';
+//import 'package:rentxpert_flutter_web/Dashboard_Screen.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences for token storage
 
 
@@ -21,17 +21,17 @@ class _LoginState extends State<Login> {
 
     try {
       // Debug print for login attempt
-      print('🟡 Attempting admin login');
-      print('📡 Endpoint: http://10.21.1.220:8080/admin/login');
-      print('📨 Request Body: {"email":"${_emailController.text.trim()}","password":"${_passwordController.text.trim()}"}');
+     // print('🟡 Attempting admin login...');
+     // print('📨 Request Body: {"email":"${_emailController.text.trim()}","password":"${_passwordController.text.trim()}"}');
 
       final response = await AdminAuthService.loginAdmin(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      print('🔵 Response Status: ${response['status']}');
-      print('🔵 Response Body: ${response.toString()}');
+    //  print('🔵 Login Result: ${response.toString()}');
+    //  print('🔵 Status Code: ${response['status']}');
+    //  print('🔵 Message: ${response['message'] ?? response['data']['message'] ?? 'No message'}');
 
       if (response['success'] == true) {
         final token = response['data']['token']; // Token from API response

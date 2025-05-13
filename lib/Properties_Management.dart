@@ -73,6 +73,12 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     }
   }
 
+  // Helper method to calculate the ending index of the current page
+  int get _endIndex {
+    final end = _currentPage * _rowsPerPage;
+    return end > _totalApartments ? _totalApartments : end;
+  }
+
   int get _totalPages => (_totalApartments / _rowsPerPage).ceil();
 
   List<Map<String, dynamic>> get _paginatedData {
@@ -379,7 +385,7 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
                 ? Center(child: CircularProgressIndicator())
                 : Expanded(child: _buildUserTable()),
             const SizedBox(height: 20),
-            _buildPaginationBar(),
+            _buildPaginationBar(isDarkMode),
           ],
         ),
       ),
@@ -690,13 +696,22 @@ class _PropertiesManagementScreenState extends State<PropertiesManagementScreen>
     );
   }
 
-  Widget _buildPaginationBar() {
+  Widget _buildPaginationBar(bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.only(right: 60.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Results: $_totalApartments"),
+          Text(
+            // "Showing ${_rowsPerPage} of $_totalUsers results",
+            "Showing ${_endIndex} of $_totalApartments results",
+            style: TextStyle(
+              fontWeight: FontWeight.w300,
+              fontFamily: "Inter",
+              fontSize: 16,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
           Row(
             children: [
               _buildPaginateButton(

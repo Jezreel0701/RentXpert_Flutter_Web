@@ -267,7 +267,6 @@ class AdminApiService {
   }
 }
 
-//LOGIN
 class AdminAuthService {
   static const String _loginEndpoint = '/admin/login';
   static const bool debug = true;
@@ -280,7 +279,7 @@ class AdminAuthService {
       final url = Uri.parse('$baseUrl$_loginEndpoint');
 
       if (debug) {
-        print('\n🟡 Attempting admin login');
+        print('\n🟡 Attempting admin login...');
         print('📡 Endpoint: $url');
         print('📨 Request Body: ${jsonEncode({'email': email, 'password': password})}');
       }
@@ -302,7 +301,12 @@ class AdminAuthService {
         print('🔵 Response Body: ${response.body}');
       }
 
-      final responseData = jsonDecode(response.body);
+      final dynamic responseData = jsonDecode(response.body);
+
+      if (debug) {
+        print('🟢 Decoded Response Data: $responseData');
+        print('🧪 Type of "message" field: ${responseData['message']?.runtimeType}');
+      }
 
       if (response.statusCode == 200) {
         return {
@@ -310,18 +314,22 @@ class AdminAuthService {
           'data': responseData,
         };
       } else {
+        final String message = responseData['message'] is String
+            ? responseData['message']
+            : 'Login failed';
+
         return {
           'success': false,
-          'message': responseData['message'] ?? 'Login failed',
+          'message': message,
           'statusCode': response.statusCode,
         };
       }
     } on http.ClientException catch (e) {
-      throw Exception('Network error: ${e.message}');
+      throw Exception('❌ Network error: ${e.message}');
     } on FormatException catch (e) {
-      throw Exception('Invalid response format: ${e.message}');
+      throw Exception('❌ Invalid response format: ${e.message}');
     } catch (e) {
-      throw Exception('Login failed: ${e.toString()}');
+      throw Exception('❌ Login failed: ${e.toString()}');
     }
   }
 }

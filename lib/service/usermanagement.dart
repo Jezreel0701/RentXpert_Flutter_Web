@@ -2,13 +2,16 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:rentxpert_flutter_web/config/config.dart'; // Your baseUrl config
 
+
 class UserManagementUpdate {  // PascalCase for class name
   static const bool debug = true;  // Add debug constant matching original pattern
+
 
   static Future<Map<String, dynamic>?> updateUserDetails({
     required Map<String, dynamic> payload,
   }) async {
     final url = Uri.parse('$baseUrl/users/update');
+
 
     try {
       final response = await http.put(
@@ -17,7 +20,9 @@ class UserManagementUpdate {  // PascalCase for class name
         body: jsonEncode(payload),
       );
 
+
       final responseData = jsonDecode(response.body);
+
 
       // Add detailed logging
       if (debug) {
@@ -25,11 +30,13 @@ class UserManagementUpdate {  // PascalCase for class name
         print('Full Response Body: $responseData');
       }
 
+
       // Flexible status code check
       if (response.statusCode >= 200 && response.statusCode < 300) {
         // Handle different response formats
         final successCode = responseData['RetCode'] ?? responseData['retCode'];
         final userData = responseData['Data'] ?? responseData['data'];
+
 
         if (successCode.toString() == '200' && userData != null) {
           return userData.cast<String, dynamic>();
@@ -44,16 +51,21 @@ class UserManagementUpdate {  // PascalCase for class name
 }  // Removed extra closing brace
 
 
+
+
 class UserManagementDelete {
   static const bool debug = true;
+
 
   /// Delete user by UID
   static Future<bool> deleteUser(String uid) async {
     final url = Uri.parse('$baseUrl/admin/user/$uid');
 
+
     if (debug) {
       print('\n🟡 Deleting user at: $url');
     }
+
 
     try {
       final response = await http.delete(
@@ -64,12 +76,15 @@ class UserManagementDelete {
         },
       );
 
+
       if (debug) {
         print('🔵 Response Status Code: ${response.statusCode}');
         print('🔵 Response Body: ${response.body}');
       }
 
+
       final responseData = jsonDecode(response.body);
+
 
       // Handle different response formats
       final successCode = responseData['RetCode'] ?? responseData['retCode'];
@@ -85,8 +100,10 @@ class UserManagementDelete {
   }
 }
 
+
 class UserManagementFetch {
   static const bool debug = true;
+
 
   static Future<UserFetchResult?> fetchUsers({
     String? userType,
@@ -99,11 +116,13 @@ class UserManagementFetch {
   }) async {
     final url = Uri.parse('$baseUrl/adminuserinfo/search');
 
+
     // Prepare query parameters
     final params = <String, String>{
       'page': page.toString(),
       'limit': limit.toString(),
     };
+
 
     if (userType?.isNotEmpty ?? false) params['user_type'] = userType!;
     if (accountStatus?.isNotEmpty ?? false) params['account_status'] = accountStatus!;
@@ -111,10 +130,12 @@ class UserManagementFetch {
     if (searchField?.isNotEmpty ?? false) params['field'] = searchField!;
     if (searchTerm?.isNotEmpty ?? false) params['search_term'] = searchTerm!;
 
+
     if (debug) {
       print('\n🟡 Fetching users from: $url');
       print('🔵 Query parameters: $params');
     }
+
 
     try {
       final response = await http.get(
@@ -125,10 +146,12 @@ class UserManagementFetch {
         },
       );
 
+
       if (debug) {
         print('🔵 Response Status Code: ${response.statusCode}');
         print('🔵 Response Body: ${response.body}');
       }
+
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -143,12 +166,14 @@ class UserManagementFetch {
   }
 }
 
+
 class UserFetchResult {
   final int limit;
   final int page;
   final int total;
   final int totalPages;
   final List<UserData> users;
+
 
   UserFetchResult({
     required this.limit,
@@ -157,6 +182,7 @@ class UserFetchResult {
     required this.totalPages,
     required this.users,
   });
+
 
   factory UserFetchResult.fromJson(Map<String, dynamic> json) {
     return UserFetchResult(
@@ -171,6 +197,7 @@ class UserFetchResult {
   }
 }
 
+
 class UserData {
   final String uid;
   final String email;
@@ -180,6 +207,7 @@ class UserData {
   final String validId;
   final String accountStatus;
   final String userType;
+
 
   UserData({
     required this.uid,
@@ -191,6 +219,7 @@ class UserData {
     required this.accountStatus,
     required this.userType,
   });
+
 
   factory UserData.fromJson(Map<String, dynamic> json) {
     return UserData(
@@ -205,3 +234,6 @@ class UserData {
     );
   }
 }
+
+
+

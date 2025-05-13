@@ -29,6 +29,14 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
     'User Type': 'user_type',
   };
 
+
+// Helper method to calculate the ending index of the current page
+  int get _endIndex {
+    final end = _currentPage * _rowsPerPage;
+    return end > _totalUsers ? _totalUsers : end;
+  }
+
+
   @override
   void initState() {
     super.initState();
@@ -275,6 +283,9 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
   Future<void> _deleteAccount(String uid) async {
     try {
       final success = await UserManagementDelete.deleteUser(uid);
+
+      print('Delete response: $success');
+
       if (success) {
         await loadUsers();
         _showDeleteTopSnackBar("Account deleted successfully", true);
@@ -1163,7 +1174,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            "Showing ${_rowsPerPage} of $_totalUsers results",
+            "Showing ${_endIndex} of $_totalUsers results",
             style: TextStyle(
               fontWeight: FontWeight.w300,
               fontFamily: "Inter",
