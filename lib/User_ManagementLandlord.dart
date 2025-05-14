@@ -45,6 +45,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
   Future<void> loadUsers({int page = 1}) async {
     setState(() => isLoading = true);
     try {
+      // Default: Explicitly fetch "Verified" and "Pending"
       String? accountStatus;
       String? name;
       String? searchField;
@@ -56,7 +57,10 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
         switch (filter) {
           case 'Account Status':
-            accountStatus = term;
+          // Clean the user input to remove "Unverified"
+            final statuses = term.split(',').map((s) => s.trim()).toList();
+            statuses.removeWhere((s) => s == 'Unverified');
+            accountStatus = statuses.isNotEmpty ? statuses.join(',') : null;
             break;
           case 'Name':
             name = term;
@@ -68,6 +72,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
         }
       }
 
+      // Fetch data from the API
       final result = await UserManagementFetch.fetchUsers(
         userType: 'Landlord',
         page: page,
@@ -79,9 +84,14 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
       );
 
       if (result != null) {
+        // Client-side filtering to exclude "Unverified" (safety net)
+        final filteredUsers = result.users
+            .where((user) => user.accountStatus != 'Unverified')
+            .toList();
+
         setState(() {
-          userData = result.users.map(_userToMap).toList();
-          _totalUsers = result.total;
+          userData = filteredUsers.map(_userToMap).toList();
+          _totalUsers = result.total; // Note: If API counts include Unverified, adjust accordingly
           _totalPages = result.totalPages;
           _currentPage = page;
           isLoading = false;

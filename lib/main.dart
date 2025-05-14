@@ -18,16 +18,19 @@ import 'MainLayout.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
+  final isDarkMode = prefs.getBool('isDarkMode') ?? false;
   final token = prefs.getString('authToken');
   final isLoggedIn = token != null;
 
   runApp(
     ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+      // Use the public initialize method instead of direct field access
+      create: (context) => ThemeProvider()..initializeTheme(isDarkMode),
       child: AdminWeb(isLoggedIn: isLoggedIn),
     ),
   );
 }
+
 
 class AdminWeb extends StatelessWidget {
   final bool isLoggedIn;
@@ -52,73 +55,105 @@ class AdminWeb extends StatelessWidget {
     return validRoutes.contains(route);
   }
 
+  String _getInitialRoute(bool isLoggedIn) {
+    if (kIsWeb) {
+      final currentHash = html.window.location.hash.replaceFirst('#', '');
+      if (_isValidRoute(currentHash)) return currentHash;
+      return isLoggedIn ? '/dashboard' : '/login';
+    }
+    return isLoggedIn ? '/dashboard' : '/login';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final initialRoute = kIsWeb
-        ? _isValidRoute(html.window.location.hash.replaceFirst('#', ''))
-        ? html.window.location.hash.replaceFirst('#', '')
-        : isLoggedIn ? '/dashboard' : '/login'
-        : isLoggedIn ? '/dashboard' : '/login';
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        final initialRoute = _getInitialRoute(isLoggedIn);
 
-    // Force initial hash if empty
-    if (kIsWeb && html.window.location.hash.isEmpty) {
-      html.window.location.replace('${html.window.location.origin}/#$initialRoute');
-    }
+        if (kIsWeb && html.window.location.hash.isEmpty) {
+          html.window.location.replace(
+              '${html.window.location.origin}/#$initialRoute'
+          );
+        }
 
-    return MaterialApp(
-      title: 'Admin RentXpert',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Krub-Regular',
-      ),
-      darkTheme: ThemeData.dark(),
-      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      initialRoute: initialRoute,
-      routes: {
-        '/': (context) => MainScreen(),
-      },
-      onGenerateRoute: (settings) {
-        final sidebarRoutes = {
-          '/dashboard': DashboardScreen(),
-          '/users-tenant': UserManagementTenant(),
-          '/users-landlord': UserManagementLandlord(),
-          '/properties-management': PropertiesManagementScreen(),
-          '/analytics': AnalyticsScreen(),
-          '/settings': SettingsScreen(),
-        };
-
-        final isSidebarPage = sidebarRoutes.containsKey(settings.name);
-
-        return MaterialPageRoute(
-          builder: (context) => FutureBuilder<bool>(
-            future: _checkLogin(),
-            builder: (context, snapshot) {
-              final loggedIn = snapshot.data ?? false;
-
-              if (loggedIn) {
-                if (isSidebarPage) {
-                  return MainLayout(
-                    initialRoute: settings.name ?? '/dashboard',
-                    showSidebar: true,
-                  );
-                } else if (settings.name == '/') {
-                  return MainScreen();
-                } else {
-                  return Login(); // fallback for non-sidebar routes
-                }
-              }
-
-              // Not logged in
-              if (settings.name == '/login') {
-                return Login();
-              } else {
-                return Login(); // redirect to login
-              }
-            },
-          ),
+        return MaterialApp(
+          title: 'Admin RentXpert',
+          debugShowCheckedModeBanner: false,
+          theme: _buildLightTheme(),
+          darkTheme: _buildDarkTheme(),
+          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          initialRoute: initialRoute,
+          routes: {
+            '/': (context) => MainScreen(),
+          },
+          onGenerateRoute: (settings) => _generateRoute(settings, themeProvider),
         );
       },
     );
+  }
+
+  ThemeData _buildLightTheme() {
+    return ThemeData(
+      fontFamily: 'Krub-Regular',
+      colorScheme: ColorScheme.light(
+        primary: Color(0xFF4F768E),
+        secondary: Color(0xFFD7E4ED),
+      ),
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    return ThemeData.dark().copyWith(
+      textTheme: ThemeData.dark().textTheme.apply(
+        fontFamily: 'Krub-Regular',
+      ),
+      colorScheme: ColorScheme.dark(
+        primary: Color(0xFF4F768E),
+        secondary: Color(0xFF2C4A5B),
+      ),
+    );
+  }
+
+  Route<dynamic> _generateRoute(RouteSettings settings, ThemeProvider themeProvider) {
+    final sidebarRoutes = {
+      '/dashboard': DashboardScreen(),
+      '/users-tenant': UserManagementTenant(),
+      '/users-landlord': UserManagementLandlord(),
+      '/properties-management': PropertiesManagementScreen(),
+      '/analytics': AnalyticsScreen(),
+      '/settings': SettingsScreen(),
+    };
+
+    return MaterialPageRoute(
+      builder: (context) => FutureBuilder<bool>(
+        future: _checkLogin(),
+        builder: (context, snapshot) {
+          final loggedIn = snapshot.data ?? false;
+          final isSidebarPage = sidebarRoutes.containsKey(settings.name);
+
+          if (!loggedIn) return Login();
+
+          return _buildAuthenticatedUI(
+            isSidebarPage: isSidebarPage,
+            settings: settings,
+            sidebarRoutes: sidebarRoutes,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildAuthenticatedUI({
+    required bool isSidebarPage,
+    required RouteSettings settings,
+    required Map<String, Widget> sidebarRoutes,
+  }) {
+    if (isSidebarPage) {
+      return MainLayout(
+        initialRoute: settings.name ?? '/dashboard',
+        showSidebar: true,
+      );
+    }
+    return settings.name == '/' ? MainScreen() : Login();
   }
 }
