@@ -13,7 +13,7 @@ import 'User_ManagementLandlord.dart';
 import 'Properties_Management.dart';
 import 'Analytics_Managenent.dart';
 import 'Settings_Screen.dart';
-import 'MainLayout.dart';
+import 'Routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +55,8 @@ class AdminWeb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+
+    // This handles the initial route from browser URL
     final initialRoute = kIsWeb
         ? _isValidRoute(html.window.location.hash.replaceFirst('#', ''))
         ? html.window.location.hash.replaceFirst('#', '')
@@ -74,10 +76,12 @@ class AdminWeb extends StatelessWidget {
       ),
       darkTheme: ThemeData.dark(),
       themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      initialRoute: initialRoute,
+
+      initialRoute: '/',
       routes: {
-        '/': (context) => MainScreen(),
+        '/': (context) => Routes(initialRoute: initialRoute),
       },
+
       onGenerateRoute: (settings) {
         final sidebarRoutes = {
           '/dashboard': DashboardScreen(),
@@ -98,7 +102,7 @@ class AdminWeb extends StatelessWidget {
 
               if (loggedIn) {
                 if (isSidebarPage) {
-                  return MainLayout(
+                  return Routes(
                     initialRoute: settings.name ?? '/dashboard',
                     showSidebar: true,
                   );

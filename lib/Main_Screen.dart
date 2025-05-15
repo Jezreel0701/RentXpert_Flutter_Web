@@ -6,10 +6,14 @@ import 'Properties_Management.dart';
 import 'Analytics_Managenent.dart';
 import 'Settings_Screen.dart';
 import 'login.dart';
-
-
+import 'sidebar.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:html' as html;
 
 class MainScreen extends StatefulWidget {
+  final String initialRoute;
+  const MainScreen({Key? key, this.initialRoute = '/dashboard'}) : super(key: key);
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
@@ -28,22 +32,69 @@ class _MainScreenState extends State<MainScreen> {
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
 
-  int _selectedIndex = 0;
+  // Current route management
+  late String _currentRoute;
   final Duration _transitionDuration = const Duration(milliseconds: 300);
 
-  final List<Widget> _screens = [
-    DashboardScreen(),
-    UserManagementTenant(),
-    UserManagementLandlord(),
-    PropertiesManagementScreen(),
-    AnalyticsScreen(),
-    SettingsScreen(),
-  ];
+  // Route to content mapping
+  final Map<String, Widget> _routeContentMap = {
+    '/dashboard': DashboardScreen(),
+    '/users-tenant': UserManagementTenant(),
+    '/users-landlord': UserManagementLandlord(),
+    '/properties-management': PropertiesManagementScreen(),
+    '/analytics': AnalyticsScreen(),
+    '/settings': SettingsScreen(),
+  };
 
-  void _navigateToPage(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  @override
+  void initState() {
+    super.initState();
+
+    if (kIsWeb) {
+      // Set initial route from URL hash
+      final hash = html.window.location.hash;
+      _currentRoute = hash.isNotEmpty ? hash.replaceFirst('#', '') : widget.initialRoute;
+
+      // Listen for hash changes
+      html.window.onHashChange.listen((event) {
+        final newHash = html.window.location.hash;
+        final newRoute = newHash.isNotEmpty ? newHash.replaceFirst('#', '') : '/dashboard';
+        if (_currentRoute != newRoute) {
+          setState(() {
+            _currentRoute = newRoute;
+          });
+        }
+      });
+    } else {
+      _currentRoute = widget.initialRoute;
+    }
+  }
+
+  @override
+  void didUpdateWidget(MainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update current route if initialRoute changed from parent
+    if (widget.initialRoute != oldWidget.initialRoute) {
+      _currentRoute = widget.initialRoute;
+    }
+  }
+
+  Widget _getCurrentContent() {
+    return _routeContentMap[_currentRoute] ?? DashboardScreen();
+  }
+
+  // Handle navigation for Routes links
+  void _handleNavigation(String route) {
+    if (_currentRoute != route) {
+      setState(() {
+        _currentRoute = route;
+      });
+
+      // Update the URL if running on web
+      if (kIsWeb) {
+        html.window.history.pushState(null, '', '#$route');
+      }
+    }
   }
 
   void _showLogoutDialog() {
@@ -123,14 +174,12 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: ValueKey(_currentRoute), // Important for preserving state
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             bool isMobile = constraints.maxWidth < 1000;
-
-            return isMobile
-                ? _buildMobileLayout()
-                : _buildDesktopLayout();
+            return isMobile ? _buildMobileLayout() : _buildDesktopLayout();
           },
         ),
       ),
@@ -148,9 +197,22 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-
-
-      //Transition effect
+      drawer: Drawer(
+        child: Container(
+          color: Color(0xFF4A758F),
+          child: Column(
+            children: [
+              DrawerHeader(
+                child: Image.asset(
+                    "assets/images/white_logo.png",
+                    height: 120,
+                    fit: BoxFit.contain),
+              ),
+              ..._buildSidebarMenuItems(),
+            ],
+          ),
+        ),
+      ),
       body: AnimatedSwitcher(
         duration: _transitionDuration,
         transitionBuilder: (child, animation) {
@@ -165,45 +227,29 @@ class _MainScreenState extends State<MainScreen> {
             ),
           );
         },
-        child: _screens[_selectedIndex],
+        child: _getCurrentContent(),
       ),
     );
   }
 
-
-
   Widget _buildDesktopLayout() {
     return Row(
       children: [
-        // Sidebar
-        Expanded(
-          flex: 1,
-          child: Container(
-            color: Color(0xFF4A758F),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 30),
-                  child: Column(
-                    children: [
-                      Image.asset(
-                          "assets/images/white_logo.png",
-                          height: 120),
-                      Divider(color: Colors.white, thickness: 1),
-                    ],
-                  ),
-                ),
-                ..._buildSidebarItems(),
-              ],
-            ),
+        // calling sidebar.dart
+        Container(
+          width: 220, // Sidebar width rendered when first running the web
+          color: const Color(0xFF4A758F),
+          child: Sidebar(
+            currentRoute: _currentRoute,
+            onNavigation: _handleNavigation,
+            parentContext: context,
           ),
         ),
 
-        // Main Content
+        // Main Content (keep this part exactly as is)
         Expanded(
-          flex: 5,
           child: Container(
-            color: Color(0xFFF5F5F5),
+            color: const Color(0xFFF5F5F5),
             child: AnimatedSwitcher(
               duration: _transitionDuration,
               transitionBuilder: (child, animation) {
@@ -218,7 +264,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 );
               },
-              child: _screens[_selectedIndex],
+              child: _getCurrentContent(),
             ),
           ),
         ),
@@ -226,17 +272,15 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-
-  //Sidebar Items
-  List<Widget> _buildSidebarItems() {
+  List<Widget> _buildSidebarMenuItems() {
     return [
       _buildSidebarTile(
         iconPath: "assets/images/dashboard.png",
         title: "Dashboard",
         isHovered: isHoveredDashboard,
         onHoverChange: (val) => setState(() => isHoveredDashboard = val),
-        onTap: () => _navigateToPage(0),
-        isSelected: _selectedIndex == 0,
+        onTap: () => _handleNavigation('/dashboard'),
+        isSelected: _currentRoute == '/dashboard',
       ),
       _buildUsersDropdown(),
       _buildSidebarTile(
@@ -244,24 +288,24 @@ class _MainScreenState extends State<MainScreen> {
         title: "Properties Management",
         isHovered: isHoveredProperties,
         onHoverChange: (val) => setState(() => isHoveredProperties = val),
-        onTap: () => _navigateToPage(3),
-        isSelected: _selectedIndex == 3,
+        onTap: () => _handleNavigation('/properties-management'),
+        isSelected: _currentRoute == '/properties-management',
       ),
       _buildSidebarTile(
         iconPath: "assets/images/analytics.png",
         title: "Reports & Analytics",
         isHovered: isHoveredAnalytics,
         onHoverChange: (val) => setState(() => isHoveredAnalytics = val),
-        onTap: () => _navigateToPage(4),
-        isSelected: _selectedIndex == 4,
+        onTap: () => _handleNavigation('/analytics'),
+        isSelected: _currentRoute == '/analytics',
       ),
       _buildSidebarTile(
         iconPath: "assets/images/settings.png",
         title: "Settings",
         isHovered: isHoveredSettings,
         onHoverChange: (val) => setState(() => isHoveredSettings = val),
-        onTap: () => _navigateToPage(5),
-        isSelected: _selectedIndex == 5,
+        onTap: () => _handleNavigation('/settings'),
+        isSelected: _currentRoute == '/settings',
       ),
       _buildSidebarTile(
         iconPath: "assets/images/logout.png",
@@ -274,8 +318,6 @@ class _MainScreenState extends State<MainScreen> {
     ];
   }
 
-
-  //Dropdown User management
   Widget _buildUsersDropdown() {
     return Column(
       children: [
@@ -330,17 +372,14 @@ class _MainScreenState extends State<MainScreen> {
                   onEnter: (_) => setState(() => isHoveredTenant = true),
                   onExit: (_) => setState(() => isHoveredTenant = false),
                   child: GestureDetector(
-                    onTap: () => setState(() {
-                      _selectedIndex = 1; // Tenant screen
-                      // isUserDropdownExpanded = false;
-                    }),
+                    onTap: () => _handleNavigation('/users-tenant'),
                     child: Container(
                       alignment: Alignment.centerLeft,
                       padding: EdgeInsets.symmetric(vertical: 2),
                       child: Text(
                         "Tenant",
                         style: TextStyle(
-                          color: (_selectedIndex == 1 || isHoveredTenant)
+                          color: (_currentRoute == '/users-tenant' || isHoveredTenant)
                               ? Color(0xFFF9E9B6)
                               : Colors.white70,
                           fontSize: 12,
@@ -353,17 +392,14 @@ class _MainScreenState extends State<MainScreen> {
                   onEnter: (_) => setState(() => isHoveredLandlord = true),
                   onExit: (_) => setState(() => isHoveredLandlord = false),
                   child: GestureDetector(
-                    onTap: () => setState(() {
-                      _selectedIndex = 2; // Landlord screen
-                      // isUserDropdownExpanded = false;
-                    }),
+                    onTap: () => _handleNavigation('/users-landlord'),
                     child: Container(
                       alignment: Alignment.centerLeft,
                       padding: EdgeInsets.symmetric(vertical: 2),
                       child: Text(
                         "Landlord",
                         style: TextStyle(
-                          color: (_selectedIndex == 2 || isHoveredLandlord)
+                          color: (_currentRoute == '/users-landlord' || isHoveredLandlord)
                               ? Color(0xFFF9E9B6)
                               : Colors.white70,
                           fontSize: 12,

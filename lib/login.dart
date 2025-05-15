@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:rentxpert_flutter_web/MainScreen.dart';
 import 'package:rentxpert_flutter_web/service/api.dart';
 //import 'package:rentxpert_flutter_web/Dashboard_Screen.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences for token storage
+import 'Main_Screen.dart';
+
 
 
 class Login extends StatefulWidget {
@@ -44,7 +45,7 @@ class _LoginState extends State<Login> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => Mainscreen(),
+            builder: (context) => MainScreen(),
             settings: const RouteSettings(name: '/dashboard'),
           ),
               (route) => false,

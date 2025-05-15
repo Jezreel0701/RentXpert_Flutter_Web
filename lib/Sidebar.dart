@@ -26,14 +26,17 @@ class _SidebarState extends State<Sidebar> {
   bool isHoveredAnalytics = false;
   bool isHoveredSettings = false;
   bool isHoveredLogout = false;
-  bool get shouldKeepDropdownOpen {
-    return widget.currentRoute == '/users-tenant' ||
-        widget.currentRoute == '/users-landlord';
-  }
+
   // Dropdown state
   bool isUserDropdownExpanded = false;
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
+  bool isDropdownLocked = false;
+
+  bool get shouldKeepDropdownOpen {
+    return widget.currentRoute == '/users-tenant' ||
+        widget.currentRoute == '/users-landlord';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,12 +108,15 @@ class _SidebarState extends State<Sidebar> {
     ];
   }
 
-  //User management dropdown
   Widget _buildUsersDropdown() {
     return MouseRegion(
-      onEnter: (_) => setState(() => isUserDropdownExpanded = true),
+      onEnter: (_) {
+        if (!isDropdownLocked) {
+          setState(() => isUserDropdownExpanded = true);
+        }
+      },
       onExit: (_) {
-        if (!shouldKeepDropdownOpen) {
+        if (!isDropdownLocked && !shouldKeepDropdownOpen) {
           setState(() => isUserDropdownExpanded = false);
         }
       },
@@ -175,7 +181,6 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
-
   Widget _buildDropdownItem(String title, String route) {
     bool isActive = widget.currentRoute == route;
     bool isHovered = route == '/users-tenant' ? isHoveredTenant : isHoveredLandlord;
@@ -193,7 +198,8 @@ class _SidebarState extends State<Sidebar> {
         onTap: () {
           widget.onNavigation(route);
           setState(() {
-            isUserDropdownExpanded = true; // Keep dropdown open after click
+            isUserDropdownExpanded = true;
+            isDropdownLocked = true;
           });
         },
         child: Container(
@@ -323,24 +329,18 @@ class _SidebarState extends State<Sidebar> {
                       ),
                       onPressed: () async {
                         final prefs = await SharedPreferences.getInstance();
-                        await prefs.remove('authToken'); // Remove token on logout
+                        await prefs.remove('authToken');
                         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-
                         Navigator.of(context).pop();
-
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
                             builder: (context) => Login(),
                             settings: const RouteSettings(name: '/login'),
-
                           ),
                               (route) => false,
-
                         );
-
                       },
-
                       child: const Text(
                         'Log Out',
                         style: TextStyle(color: Colors.white),
@@ -355,5 +355,4 @@ class _SidebarState extends State<Sidebar> {
       ),
     );
   }
-
 }
