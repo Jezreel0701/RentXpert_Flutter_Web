@@ -694,6 +694,8 @@ class _BarChartWithYearSelectorState extends State<_BarChartWithYearSelector> {
                   fontWeight: FontWeight.w600,
                   color: widget.isDarkMode ? Colors.white : Colors.black,
                 ),
+                overflow: TextOverflow.ellipsis, // Prevents overflow by truncating text
+                maxLines: 1,
               ),
             )
           ],

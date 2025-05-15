@@ -176,6 +176,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           SizedBox(height: 12),
+
+                          // Bar chart container
                           SizedBox(
                             width: screenWidth * 0.3,
                             height: screenHeight * 0.35,

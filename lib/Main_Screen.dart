@@ -215,19 +215,30 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: AnimatedSwitcher(
         duration: _transitionDuration,
+        switchInCurve: Curves.easeIn,
+        switchOutCurve: Curves.easeOut,
         transitionBuilder: (child, animation) {
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(
               position: Tween<Offset>(
-                begin: const Offset(0.1, 0),
+                begin: const Offset(0.1, 0), // Slide in from the right
                 end: Offset.zero,
               ).animate(animation),
               child: child,
             ),
           );
         },
-        child: _getCurrentContent(),
+        child: _getCurrentContent(), // Ensure this changes based on _currentRoute
+        layoutBuilder: (currentChild, previousChildren) {
+          return Stack(
+            children: [
+              ...previousChildren,
+              if (currentChild != null) currentChild,
+            ],
+          );
+        },
+        key: ValueKey(_currentRoute), // Ensure the key updates with the route
       ),
     );
   }
