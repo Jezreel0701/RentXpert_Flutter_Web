@@ -270,8 +270,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CircleAvatar(
-                        radius: 35,
-                        backgroundImage: NetworkImage('https://via.placeholder.com/150')),
+                      radius: 35,
+                      backgroundImage: AssetImage('assets/images/admin_icon.png'),
+                    ),
                     const SizedBox(width: 12),
                   ],
                 ),

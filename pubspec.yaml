@@ -84,6 +84,7 @@ flutter:
       - assets/images/more_options.png
       - assets/images/filter_icon.png
       - assets/images/back_image.png
+      - assets/images/admin_icon.png
 
   #   - images/a_dot_ham.jpeg
 

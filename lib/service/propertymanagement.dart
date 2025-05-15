@@ -7,26 +7,6 @@ import 'package:rentxpert_flutter_web/config/config.dart'; // Your baseUrl confi
 class ApartmentManagementFetch {
   static const bool debug = true;
 
-
-  // In your propertymanagement.dart service file
-  static Future<bool> updateApartmentStatus(String uid, String newStatus) async {
-    try {
-      final response = await http.put(
-        Uri.parse('$baseUrl/apartments/$uid/status'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'status': newStatus}),
-      );
-
-      if (response.statusCode == 200) {
-        return true;
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
-
-
   static Future<ApartmentFetchResult?> fetchApartments({
     // Add uid parameter
     String? uid,
@@ -186,5 +166,80 @@ class ApartmentData {
       updatedAt: DateTime.parse(json['updated_at'] as String),
       landlordName: json['landlord_name'] as String,
     );
+  }
+}
+
+class ApartmentManagementDelete {
+  static const bool debug = true;
+
+  /// Delete apartment by ID
+  static Future<bool> deleteApartment(String id) async {
+    final url = Uri.parse('$baseUrl/admin/apartment/delete/$id');
+
+    if (debug) {
+      print('\n🟡 Deleting apartment at: $url');
+    }
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      );
+
+      if (debug) {
+        print('🔵 Response Status Code: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      final responseData = jsonDecode(response.body);
+
+      // Handle different response formats
+      final successCode = responseData['RetCode'] ?? responseData['retCode'];
+      if (response.statusCode == 200 && successCode.toString() == '200') {
+        if (debug) print('🟢 Apartment deleted successfully');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      if (debug) print('🔴 Exception deleting apartment: $e');
+      return false;
+    }
+  }
+}
+
+
+class ApartmentManagementStatus {
+  static const bool debug = true;
+
+  /// Update apartment status
+  static Future<bool> updateApartmentStatus(String ID, String status) async {
+    final url = Uri.parse('$baseUrl/apartments/verify/$ID');
+
+    if (debug) print('\n🟡 Updating apartment status at: $url');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: jsonEncode({'status': status}),
+      );
+
+      if (debug) {
+        print('🔵 Response Status Code: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      // Check only the HTTP status code for success
+      return response.statusCode == 200;
+    } catch (e) {
+      if (debug) print('🔴 Exception updating apartment status: $e');
+      return false;
+    }
   }
 }

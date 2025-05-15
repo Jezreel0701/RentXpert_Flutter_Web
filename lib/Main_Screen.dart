@@ -319,103 +319,106 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildUsersDropdown() {
-    return Column(
-      children: [
-        ListTile(
-          title: MouseRegion(
-            onEnter: (_) => setState(() => isHoveredUsers = true),
-            onExit: (_) => setState(() => isHoveredUsers = false),
-            child: GestureDetector(
-              onTap: () => setState(() => isUserDropdownExpanded = !isUserDropdownExpanded),
-              child: Row(
-                children: [
-                  Transform.translate(
-                    offset: Offset(5, -1),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Image.asset(
-                        "assets/images/user.png",
-                        color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      "Users Management",
-                      style: TextStyle(
-                        color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
-                        fontWeight: FontWeight.w300,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                  Icon(
-                    isUserDropdownExpanded
-                        ? Icons.keyboard_arrow_down
-                        : Icons.arrow_forward_ios,
-                    size: 12,
-                    color: isHoveredUsers ? Color(0xFFF9E9B6) : Colors.white,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        if (isUserDropdownExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 40),
-            child: Column(
+    return MouseRegion(
+      onEnter: (_) => setState(() => isUserDropdownExpanded = true),
+      onExit: (_) => setState(() => isUserDropdownExpanded = false),
+      child: Column(
+        children: [
+          ListTile(
+            title: Row(
               children: [
-                MouseRegion(
-                  onEnter: (_) => setState(() => isHoveredTenant = true),
-                  onExit: (_) => setState(() => isHoveredTenant = false),
-                  child: GestureDetector(
-                    onTap: () => _handleNavigation('/users-tenant'),
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      padding: EdgeInsets.symmetric(vertical: 2),
-                      child: Text(
-                        "Tenant",
-                        style: TextStyle(
-                          color: (_currentRoute == '/users-tenant' || isHoveredTenant)
-                              ? Color(0xFFF9E9B6)
-                              : Colors.white70,
-                          fontSize: 12,
-                        ),
-                      ),
+                Transform.translate(
+                  offset: Offset(5, -1),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Image.asset(
+                      "assets/images/user.png",
+                      color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
                     ),
                   ),
                 ),
-                MouseRegion(
-                  onEnter: (_) => setState(() => isHoveredLandlord = true),
-                  onExit: (_) => setState(() => isHoveredLandlord = false),
-                  child: GestureDetector(
-                    onTap: () => _handleNavigation('/users-landlord'),
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      padding: EdgeInsets.symmetric(vertical: 2),
-                      child: Text(
-                        "Landlord",
-                        style: TextStyle(
-                          color: (_currentRoute == '/users-landlord' || isHoveredLandlord)
-                              ? Color(0xFFF9E9B6)
-                              : Colors.white70,
-                          fontSize: 12,
-                        ),
-                      ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "Users Management",
+                    style: TextStyle(
+                      color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
+                      fontWeight: FontWeight.w300,
+                      fontSize: 13,
                     ),
                   ),
+                ),
+                Icon(
+                  isUserDropdownExpanded
+                      ? Icons.keyboard_arrow_down
+                      : Icons.arrow_forward_ios,
+                  size: 12,
+                  color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
                 ),
               ],
             ),
           ),
-        const SizedBox(
-          width: 220,
-          child: Divider(color: Colors.white, thickness: 1),
-        ),
-      ],
+          if (isUserDropdownExpanded)
+            Padding(
+              padding: const EdgeInsets.only(left: 40),
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      _handleNavigation('/users-tenant');
+                      setState(() => isUserDropdownExpanded = true);
+                    },
+                    child: MouseRegion(
+                      onEnter: (_) => setState(() => isHoveredTenant = true),
+                      onExit: (_) => setState(() => isHoveredTenant = false),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text(
+                          "Tenant",
+                          style: TextStyle(
+                            color: (_currentRoute == '/users-tenant' || isHoveredTenant)
+                                ? const Color(0xFFF9E9B6)
+                                : Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      _handleNavigation('/users-landlord');
+                      setState(() => isUserDropdownExpanded = true);
+                    },
+                    child: MouseRegion(
+                      onEnter: (_) => setState(() => isHoveredLandlord = true),
+                      onExit: (_) => setState(() => isHoveredLandlord = false),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text(
+                          "Landlord",
+                          style: TextStyle(
+                            color: (_currentRoute == '/users-landlord' || isHoveredLandlord)
+                                ? const Color(0xFFF9E9B6)
+                                : Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(
+            width: 220,
+            child: Divider(color: Colors.white, thickness: 1),
+          ),
+        ],
+      ),
     );
   }
 
