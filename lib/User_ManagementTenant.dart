@@ -98,6 +98,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
   Map<String, dynamic> _userToMap(UserData user) {
     return {
+      'id': user.ID,
       'uid': user.uid,
       'email': user.email,
       'phone_number': user.phoneNumber,
@@ -721,7 +722,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                             width: 55,
                                             height: 55,
                                           ),
-                                          onPressed: () => _showUserDetailsDialog(user),
+                                          onPressed: () => showStatusBasedDialog(user), // New method names
                                         ),
                                       ]
                                     ],
@@ -805,7 +806,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
           ),
           IconButton(
             icon: Image.asset('assets/images/more_options.png', width: 55),
-            onPressed: () => _showUserDetailsDialog(user),
+            onPressed: () => showStatusBasedDialog(user), // New method name
           ),
         ]
       ],
@@ -818,16 +819,21 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     foregroundColor: Colors.white, // This affects both icon and text color
   );
 
+  void showStatusBasedDialog(Map<String, dynamic> user) {
+    if (user['account_status'] == 'Pending') {
+      _showPendingDialog(user);
+    } else if (user['account_status'] == 'Unverified') {
+      _showUnverifiedDialog(user);
+    }
+  }
 
-
-  void _showUserDetailsDialog(Map<String, dynamic> user) {
+  void _showUnverifiedDialog(Map<String, dynamic> user) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
 
     showDialog(
       context: context,
       builder: (context) {
-
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
             backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
@@ -901,7 +907,293 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       },
     );
   }
+  void _showPendingDialog(Map<String, dynamic> user) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDarkMode = themeProvider.isDarkMode;
 
+    showDialog(
+      context: context,
+      builder: (context) {
+        bool isVerified = false;
+        bool isRejected = false;
+        bool isProcessing = false;
+
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            contentPadding: const EdgeInsets.all(20),
+            content: SizedBox(
+              width: 800,
+              height: 500,
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 5.0,
+                    right: 5.0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 5.0, right: 20.0),
+                      child: IconButton(
+                        icon: Image.asset(
+                          'assets/images/back_image.png',
+                          width: 30,
+                          height: 30,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "User Details",
+                                      style: TextStyle(
+                                        color: isDarkMode ? Colors.white : Color(0xFF4F768E),
+                                        fontFamily: "Krub",
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 35,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 30.0, left: 30.0),
+                                      child: SingleChildScrollView(
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minHeight: 0,
+                                            maxHeight: 350,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: _infoRow("Name", user['fullname'], isDarkMode),
+                                              ),
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
+                                              ),
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: _infoRow("Address", user['address'], isDarkMode),
+                                              ),
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Center(
+                                  child: user['valid_id'] != null
+                                      ? Image.network(
+                                    user['valid_id'],
+                                    fit: BoxFit.cover,
+                                    width: 200,
+                                    height: 200,
+                                  )
+                                      : const Icon(
+                                    Icons.image_not_supported,
+                                    size: 100,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: (user['account_status'] != 'Pending' || isProcessing)
+                                  ? Colors.grey
+                                  : const Color(0xFF79BD85),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              minimumSize: const Size(150, 50),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            onPressed: (user['account_status'] != 'Pending' || isProcessing)
+                                ? null
+                                : () async {
+                              // Verification logic here
+                            },
+                            child: Text(
+                              isVerified ? "Verified" : "Verify",
+                              style: const TextStyle(
+                                fontFamily: "Inter",
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: (user['account_status'] != 'Pending' || isProcessing)
+                                  ? Colors.grey
+                                  : const Color(0xFFDE5959),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              minimumSize: const Size(150, 50),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            onPressed: (user['account_status'] != 'Pending' || isProcessing)
+                                ? null
+                                : () async {
+                              // Rejection logic here
+                            },
+                            child: Text(
+                              isRejected ? "Rejected" : "Reject",
+                              style: const TextStyle(
+                                fontFamily: "Inter",
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+  //Approve Snackbar style
+  void _showApproveTopSnackBar(String message) {
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 300;
+    const double snackbarHeight = 80;
+
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,  // Adjust the top value as per your needs
+        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
+        right: MediaQuery.of(context).size.width / 2 - 150,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: snackbarWidth,
+            height: snackbarHeight,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                message,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert the overlay
+    overlay.insert(overlayEntry);
+
+    // Remove the overlay after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _showSuccessrSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+  //Reject Snackbar style
+  void _showRejectTopSnackBar(String message) {
+    final overlay = Overlay.of(context);
+    final screenSize = MediaQuery.of(context).size;
+    const double snackbarWidth = 300;
+    const double snackbarHeight = 80;
+
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,  // Adjust the top value as per your needs
+        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
+        right: MediaQuery.of(context).size.width / 2 - 150,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: snackbarWidth,
+            height: snackbarHeight,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                message,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insert the overlay
+    overlay.insert(overlayEntry);
+
+    // Remove the overlay after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
 // Updated _infoRow with dark mode support
   Widget _infoRow(String label, String? value, bool isDarkMode) {
     return Padding(
