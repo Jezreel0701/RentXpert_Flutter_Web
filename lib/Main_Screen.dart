@@ -6,7 +6,7 @@ import 'Properties_Management.dart';
 import 'Analytics_Managenent.dart';
 import 'Settings_Screen.dart';
 import 'login.dart';
-import 'sidebar.dart';
+import 'Sidebar.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:html' as html;
 
@@ -97,79 +97,6 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          width: 300,
-          height: 180,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Are you sure you want to log out?',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontFamily: "Krub",
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 4,
-                        backgroundColor: Color(0xFF4A758F),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                      },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 120,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 4,
-                        backgroundColor: Color(0xFFDE5959),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => Login()),
-                        );
-                      },
-                      child: const Text(
-                        'Log Out',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -189,27 +116,21 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildMobileLayout() {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF4A758F),
+        backgroundColor: const Color(0xFF4A758F),
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(), // Open the drawer
           ),
         ),
       ),
       drawer: Drawer(
         child: Container(
-          color: Color(0xFF4A758F),
-          child: Column(
-            children: [
-              DrawerHeader(
-                child: Image.asset(
-                    "assets/images/white_logo.png",
-                    height: 120,
-                    fit: BoxFit.contain),
-              ),
-              ..._buildSidebarMenuItems(),
-            ],
+          color: const Color(0xFF4A758F), // Set the background color
+          child: Sidebar(
+            currentRoute: _currentRoute, // Pass the current route
+            onNavigation: _handleNavigation, // Pass the navigation handler
+            parentContext: context, // Pass the parent context
           ),
         ),
       ),
@@ -230,14 +151,6 @@ class _MainScreenState extends State<MainScreen> {
           );
         },
         child: _getCurrentContent(), // Ensure this changes based on _currentRoute
-        layoutBuilder: (currentChild, previousChildren) {
-          return Stack(
-            children: [
-              ...previousChildren,
-              if (currentChild != null) currentChild,
-            ],
-          );
-        },
         key: ValueKey(_currentRoute), // Ensure the key updates with the route
       ),
     );
@@ -246,21 +159,21 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildDesktopLayout() {
     return Row(
       children: [
-        // calling sidebar.dart
+        // Sidebar implementation
         Container(
-          width: 220, // Sidebar width rendered when first running the web
-          color: const Color(0xFF4A758F),
+          width: 220, // Sidebar width
+          color: const Color(0xFF4A758F), // Sidebar background color
           child: Sidebar(
-            currentRoute: _currentRoute,
-            onNavigation: _handleNavigation,
-            parentContext: context,
+            currentRoute: _currentRoute, // Pass the current route
+            onNavigation: _handleNavigation, // Pass the navigation handler
+            parentContext: context, // Pass the parent context
           ),
         ),
 
-        // Main Content (keep this part exactly as is)
+        // Main content area
         Expanded(
           child: Container(
-            color: const Color(0xFFF5F5F5),
+            color: const Color(0xFFF5F5F5), // Main content background color
             child: AnimatedSwitcher(
               duration: _transitionDuration,
               transitionBuilder: (child, animation) {
@@ -268,21 +181,20 @@ class _MainScreenState extends State<MainScreen> {
                   opacity: animation,
                   child: SlideTransition(
                     position: Tween<Offset>(
-                      begin: const Offset(0.1, 0),
+                      begin: const Offset(0.1, 0), // Slide in from the right
                       end: Offset.zero,
                     ).animate(animation),
                     child: child,
                   ),
                 );
               },
-              child: _getCurrentContent(),
+              child: _getCurrentContent(), // Display the current content
             ),
           ),
         ),
       ],
     );
   }
-
   List<Widget> _buildSidebarMenuItems() {
     return [
       _buildSidebarTile(
@@ -318,13 +230,10 @@ class _MainScreenState extends State<MainScreen> {
         onTap: () => _handleNavigation('/settings'),
         isSelected: _currentRoute == '/settings',
       ),
-      _buildSidebarTile(
-        iconPath: "assets/images/logout.png",
-        title: "Logout",
-        isHovered: isHoveredLogout,
-        onHoverChange: (val) => setState(() => isHoveredLogout = val),
-        onTap: _showLogoutDialog,
-        isSelected: false,
+      Sidebar(
+        currentRoute: _currentRoute, // Pass the current route
+        onNavigation: _handleNavigation, // Pass the navigation handler
+        parentContext: context, // Pass the parent context
       ),
     ];
   }

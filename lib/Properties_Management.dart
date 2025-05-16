@@ -296,6 +296,9 @@ class _PropertiesManagementScreenState
 
   //Filter function
   void _showFilterDialog() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDarkMode = themeProvider.isDarkMode;
+
     final filterOptions = [
       'Landlord',
       'UID',
@@ -312,7 +315,7 @@ class _PropertiesManagementScreenState
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              backgroundColor: const Color(0xFFFFFFFF),
+              backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
@@ -339,7 +342,7 @@ class _PropertiesManagementScreenState
 
                           return GestureDetector(
                             onTap: () => setStateDialog(() =>
-                                selectedOption = isSelected ? null : option),
+                            selectedOption = isSelected ? null : option),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16.0,
@@ -348,13 +351,17 @@ class _PropertiesManagementScreenState
                               width: isFixedSize ? 160.0 : null,
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? const Color(0xFF4F768E)
-                                    : Colors.white,
+                                    ? (isDarkMode
+                                    ? Colors.blueGrey
+                                    : const Color(0xFF4F768E))
+                                    : (isDarkMode ? Colors.grey[700] : Colors.white),
                                 borderRadius: BorderRadius.circular(30),
                                 border: Border.all(
                                   color: isSelected
                                       ? Colors.transparent
-                                      : const Color(0xFF818181),
+                                      : (isDarkMode
+                                      ? Colors.grey[500]!
+                                      : const Color(0xFF818181)),
                                 ),
                               ),
                               child: Center(
@@ -366,7 +373,7 @@ class _PropertiesManagementScreenState
                                     fontFamily: "Krub",
                                     color: isSelected
                                         ? Colors.white
-                                        : Colors.black,
+                                        : (isDarkMode ? Colors.white : Colors.black),
                                   ),
                                 ),
                               ),
@@ -381,7 +388,10 @@ class _PropertiesManagementScreenState
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  style: _filterButtonStyle(Colors.white, Colors.black),
+                  style: _filterButtonStyle(
+                    isDarkMode ? Colors.grey[700]! : Colors.white,
+                    isDarkMode ? Colors.white : Colors.black,
+                  ),
                   child: const Text('Cancel', style: _filterTextStyle),
                 ),
                 TextButton(
@@ -393,7 +403,10 @@ class _PropertiesManagementScreenState
                     });
                     _fetchApartments();
                   },
-                  style: _filterButtonStyle(Color(0xFF9AD47F), Colors.white),
+                  style: _filterButtonStyle(
+                    isDarkMode ? Colors.green[700]! : const Color(0xFF9AD47F),
+                    Colors.white,
+                  ),
                   child: const Text('Apply filters', style: _filterTextStyle),
                 ),
               ],
@@ -457,29 +470,34 @@ class _PropertiesManagementScreenState
   }
 
   Widget _buildSearchBar() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return Row(
       children: [
         IconButton(
           icon: _appliedFilter == null
-              ? Image.asset('assets/images/filter_icon.png',
-                  width: 55, height: 55)
+              ? Image.asset(
+            'assets/images/filter_icon.png',
+            width: 55,
+            height: 55,
+          )
               : Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4F768E),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Text(
-                    _appliedFilter!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontFamily: 'Krub',
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.grey[700] : const Color(0xFF4F768E),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Text(
+              _appliedFilter!,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontFamily: 'Krub',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
           onPressed: _showFilterDialog,
         ),
         const SizedBox(width: 10),
@@ -493,9 +511,15 @@ class _PropertiesManagementScreenState
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: isDarkMode ? Colors.white70 : Colors.black54,
+                ),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: Icon(
+                    Icons.close,
+                    color: isDarkMode ? Colors.white70 : Colors.black54,
+                  ),
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _appliedFilter = null);
@@ -503,12 +527,18 @@ class _PropertiesManagementScreenState
                   },
                 ),
                 hintText: 'Search...',
+                hintStyle: TextStyle(
+                  color: isDarkMode ? Colors.white70 : Colors.black54,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                fillColor: Colors.white,
+                fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
                 filled: true,
+              ),
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
               ),
               onSubmitted: (value) => _fetchApartments(),
             ),
@@ -761,7 +791,7 @@ class _PropertiesManagementScreenState
     );
   }
 
-  Widget _infoRow(String label, String? value, {bool isEditing = false}) {
+  Widget _infoRow(String label, String? value, bool isDarkMode, {bool isEditing = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -770,10 +800,11 @@ class _PropertiesManagementScreenState
             width: 150,
             child: Text(
               "$label:",
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: "Inter",
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black, // Set text color
               ),
             ),
           ),
@@ -783,8 +814,8 @@ class _PropertiesManagementScreenState
               style: TextStyle(
                 fontFamily: "Inter",
                 fontSize: 16,
-                decoration:
-                    isEditing ? TextDecoration.underline : TextDecoration.none,
+                color: isDarkMode ? Colors.white : Colors.black, // Set text color
+                decoration: isEditing ? TextDecoration.underline : TextDecoration.none,
                 decorationColor: Colors.blue,
               ),
             ),
@@ -932,6 +963,9 @@ class _PropertiesManagementScreenState
 
   //More options dialog
   void _showUserDetailsDialog(Map<String, dynamic> apartment) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDarkMode = themeProvider.isDarkMode;
+
     showDialog(
       context: context,
       builder: (context) {
@@ -942,7 +976,7 @@ class _PropertiesManagementScreenState
 
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-            backgroundColor: Colors.white,
+            backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
@@ -959,10 +993,10 @@ class _PropertiesManagementScreenState
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               "Apartment Details",
                               style: TextStyle(
-                                color: Color(0xFF4F768E),
+                                color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
                                 fontFamily: "Krub",
                                 fontWeight: FontWeight.bold,
                                 fontSize: 25,
@@ -974,51 +1008,34 @@ class _PropertiesManagementScreenState
                                   TextButton(
                                     onPressed: () {
                                       final index = apartmentData.indexWhere(
-                                          (a) => a['ID'] == apartment['ID']);
+                                              (a) => a['ID'] == apartment['ID']);
                                       if (index != -1) {
                                         setState(() {
                                           apartmentData[index] = {
                                             ...apartmentData[index],
-                                            'landlord_name':
-                                                _landlordController.text,
+                                            'landlord_name': _landlordController.text,
                                             'Address': _addressController.text,
-                                            'Rent_Price':
-                                                _rentPriceController.text,
-                                            'Landmarks':
-                                                _landmarksController.text,
+                                            'Rent_Price': _rentPriceController.text,
+                                            'Landmarks': _landmarksController.text,
                                           };
                                         });
-                                        _showApproveTopSnackBar(
-                                            "Changes saved successfully");
+                                        _showApproveTopSnackBar("Changes saved successfully");
                                         isEditing = !isEditing;
                                       }
                                     },
-                                    child: TextButton(
-                                      onPressed: () {
-                                        // Your save logic here
-                                        _showApproveTopSnackBar(
-                                            "Changes saved successfully");
-                                      },
-                                      child: const Text('Save',
-                                          style:
-                                              TextStyle(color: Colors.green)),
-                                    ),
+                                    child: const Text('Save', style: TextStyle(color: Colors.green)),
                                   ),
                                 IconButton(
                                   icon: Icon(
                                     isEditing ? Icons.edit_off : Icons.edit,
-                                    color: const Color(0xFF4F768E),
+                                    color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
                                   ),
                                   onPressed: () {
                                     if (!isEditing) {
-                                      _landlordController.text =
-                                          apartment['landlord_name'];
-                                      _addressController.text =
-                                          apartment['Address'];
-                                      _rentPriceController.text =
-                                          apartment['Rent_Price'];
-                                      _landmarksController.text =
-                                          apartment['Landmarks'];
+                                      _landlordController.text = apartment['landlord_name'];
+                                      _addressController.text = apartment['Address'];
+                                      _rentPriceController.text = apartment['Rent_Price'];
+                                      _landmarksController.text = apartment['Landmarks'];
                                     }
                                     setState(() {
                                       isEditing = !isEditing;
@@ -1036,54 +1053,43 @@ class _PropertiesManagementScreenState
                             children: [
                               Align(
                                 alignment: Alignment.center,
-                                child:
-                                    _infoRow("Apartment ID", apartment['ID']),
+                                child: _infoRow("Apartment ID", apartment['ID'], isDarkMode),
                               ),
                               Align(
                                 alignment: Alignment.center,
                                 child: isEditing
-                                    ? _editableInfoRow(
-                                        "Landlord", _landlordController)
-                                    : _infoRow(
-                                        "Landlord", apartment['landlord_name']),
+                                    ? _editableInfoRow("Landlord", _landlordController)
+                                    : _infoRow("Landlord", apartment['landlord_name'], isDarkMode),
                               ),
                               Align(
                                 alignment: Alignment.center,
-                                child: _infoRow(
-                                    "Property Name", apartment['PropertyName']),
+                                child: _infoRow("Property Name", apartment['PropertyName'], isDarkMode),
                               ),
                               Align(
                                 alignment: Alignment.center,
-                                child: _infoRow(
-                                    "Availability", apartment['Availability']),
+                                child: _infoRow("Availability", apartment['Availability'], isDarkMode),
                               ),
                               Align(
                                 alignment: Alignment.center,
                                 child: isEditing
-                                    ? _editableInfoRow(
-                                        "Address", _addressController)
-                                    : _infoRow("Address", apartment['Address']),
+                                    ? _editableInfoRow("Address", _addressController)
+                                    : _infoRow("Address", apartment['Address'], isDarkMode),
                               ),
                               Align(
                                 alignment: Alignment.center,
-                                child: _infoRow("Allowed Gender",
-                                    apartment['Allowed_Gender']),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: isEditing
-                                    ? _editableInfoRow(
-                                        "Rent Price", _rentPriceController)
-                                    : _infoRow(
-                                        "Rent Price", apartment['Rent_Price']),
+                                child: _infoRow("Allowed Gender", apartment['Allowed_Gender'], isDarkMode),
                               ),
                               Align(
                                 alignment: Alignment.center,
                                 child: isEditing
-                                    ? _editableInfoRow(
-                                        "LandMarks", _landmarksController)
-                                    : _infoRow(
-                                        "LandMarks", apartment['Landmarks']),
+                                    ? _editableInfoRow("Rent Price", _rentPriceController)
+                                    : _infoRow("Rent Price", apartment['Rent_Price'], isDarkMode),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: isEditing
+                                    ? _editableInfoRow("LandMarks", _landmarksController)
+                                    : _infoRow("LandMarks", apartment['Landmarks'], isDarkMode),
                               ),
                             ],
                           ),
@@ -1113,191 +1119,183 @@ class _PropertiesManagementScreenState
                   backgroundColor: isApproved
                       ? Colors.green
                       : (isRejected ? Colors.grey : const Color(0xFF79BD85)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   minimumSize: const Size(150, 50),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 onPressed: (isApproved || isRejected || isProcessing)
                     ? null
                     : () async {
-                        setState(() => isProcessing = true);
-                        final success = await ApartmentManagementStatus
-                            .updateApartmentStatus(
-                          apartment['ID'],
-                          'Approved',
-                        );
-                        setState(() => isProcessing = false);
+                  setState(() => isProcessing = true);
+                  final success = await ApartmentManagementStatus.updateApartmentStatus(
+                    apartment['ID'],
+                    'Approved',
+                  );
+                  setState(() => isProcessing = false);
 
-                        if (success) {
-                          _showApproveTopSnackBar(
-                              "Apartment approved successfully");
-                          _showSuccessrSnackBar(
-                              "Apartment approved successfully");
-                          _fetchApartments();
-                          Navigator.of(context).pop();
-                        } else {
-                          _showErrorSnackBar("Failed to approve apartment");
-                        }
-                      },
+                  if (success) {
+                    _showApproveTopSnackBar("Apartment approved successfully");
+                    _showSuccessrSnackBar("Apartment approved successfully");
+                    _fetchApartments();
+                    Navigator.of(context).pop();
+                  } else {
+                    _showErrorSnackBar("Failed to approve apartment");
+                  }
+                },
                 child: isProcessing && !isApproved && !isRejected
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
                     : Text(
-                        isApproved ? "Approved" : "Approve",
-                        style: const TextStyle(
-                          fontFamily: "Inter",
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
+                  isApproved ? "Approved" : "Approve",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isRejected
                       ? Colors.red
                       : (isApproved ? Colors.grey : const Color(0xFFDE5959)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   minimumSize: const Size(150, 50),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 onPressed: (isRejected || isApproved || isProcessing)
                     ? null
                     : () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            final TextEditingController _messageController =
-                                TextEditingController();
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      final TextEditingController _messageController = TextEditingController();
 
-                            return AlertDialog(
-                              backgroundColor: Colors.white, // Set your desired color here
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15), // Optional: Add rounded corners
+                      return AlertDialog(
+                        backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        title: Text(
+                          "Reject Apartment",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            fontFamily: "Krub",
+                            color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                          ),
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Please provide a reason for rejection:",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                fontFamily: "Inter",
+                                color: isDarkMode ? Colors.white : Colors.black,
                               ),
-
-                              title: const Text(
-                                "Reject Apartment",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    fontFamily: "Krub",
-                                    color: Color(0xFF4F768E)),
-                              ),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    "Please provide a reason for rejection:",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                        fontFamily: "Inter",
-                                        color: Colors.black),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  TextField(
-                                    controller: _messageController,
-                                    maxLines: 3,
-                                    decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      hintText: "Type your message here...",
-                                      hintStyle: TextStyle(
-                                        fontFamily: "Inter", // Replace with your desired font family
-                                        fontSize: 14, // Set the font size
-                                        color: Colors.grey, // Set the font color
-                                        fontStyle: FontStyle.italic, // Optional: make the text italic
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text("Cancel",
-                                      style: TextStyle(
-                                          fontFamily: "Inter",
-                                          fontSize: 16,
-                                          color: Color(0xFF4F768E)
-                                      )
-                                  ),
+                            ),
+                            const SizedBox(height: 10),
+                            TextField(
+                              controller: _messageController,
+                              maxLines: 3,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: "Type your message here...",
+                                hintStyle: TextStyle(
+                                  fontFamily: "Inter",
+                                  fontSize: 14,
+                                  color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                                  fontStyle: FontStyle.italic,
                                 ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF4F768E), // Button background color
-                                  ),
-                                  onPressed: () async {
-                                    final message =
-                                        _messageController.text.trim();
-                                    if (message.isNotEmpty) {
-                                      Navigator.pop(
-                                          context); // Close the dialog
-                                      setState(() => isProcessing = true);
-                                      final success =
-                                          await ApartmentManagementStatus
-                                              .updateApartmentStatus(
-                                        apartment['ID'],
-                                        'Rejected',
-                                      );
-                                      setState(() => isProcessing = false);
+                              ),
+                              style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              "Cancel",
+                              style: TextStyle(
+                                fontFamily: "Inter",
+                                fontSize: 16,
+                                color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                              ),
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDarkMode
+                                  ? Colors.blueGrey
+                                  : const Color(0xFF4F768E),
+                            ),
+                            onPressed: () async {
+                              final message = _messageController.text.trim();
+                              if (message.isNotEmpty) {
+                                Navigator.pop(context);
+                                setState(() => isProcessing = true);
+                                final success = await ApartmentManagementStatus
+                                    .updateApartmentStatus(
+                                  apartment['ID'],
+                                  'Rejected',
+                                );
+                                setState(() => isProcessing = false);
 
-                                      if (success) {
-                                        _showRejectTopSnackBar(
-                                            "Apartment rejected successfully");
-                                        _fetchApartments();
-                                      } else {
-                                        _showErrorSnackBar(
-                                            "Failed to reject apartment");
-                                      }
-                                    } else {
-                                      _showErrorSnackBar(
-                                          "Message cannot be empty");
-                                    }
-                                  },
-
-                                  child: const Text("Submit",
-                                      style: TextStyle(
-                                          fontFamily: "Inter",
-                                          fontSize: 16,
-                                          color: Colors.white
-                                      )
-                                  ),
-
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
+                                if (success) {
+                                  _showRejectTopSnackBar("Apartment rejected successfully");
+                                  _fetchApartments();
+                                } else {
+                                  _showErrorSnackBar("Failed to reject apartment");
+                                }
+                              } else {
+                                _showErrorSnackBar("Message cannot be empty");
+                              }
+                            },
+                            child: const Text(
+                              "Submit",
+                              style: TextStyle(
+                                fontFamily: "Inter",
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
                 child: isProcessing && !isApproved && !isRejected
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
                     : Text(
-                        isRejected ? "Rejected" : "Reject",
-                        style: const TextStyle(
-                          fontFamily: "Inter",
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
+                  isRejected ? "Rejected" : "Reject",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ],
           ),

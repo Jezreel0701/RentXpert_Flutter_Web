@@ -6,12 +6,14 @@ class Sidebar extends StatefulWidget {
   final String currentRoute;
   final Function(String) onNavigation;
   final BuildContext parentContext;
+  final VoidCallback? onLogout;// log out call back for main_screen
 
   const Sidebar({
     Key? key,
     required this.currentRoute,
     required this.onNavigation,
     required this.parentContext,
+    this.onLogout, // Initialize the callback
   }) : super(key: key);
 
   @override
@@ -102,7 +104,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Logout",
         isHovered: isHoveredLogout,
         onHoverChange: (val) => setState(() => isHoveredLogout = val),
-        onTap: _showLogoutDialog,
+        onTap: _showLogoutDialog, // Call the logout dialog directly
         isSelected: false,
       ),
     ];
@@ -331,15 +333,6 @@ class _SidebarState extends State<Sidebar> {
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.remove('authToken');
                         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                        Navigator.of(context).pop();
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Login(),
-                            settings: const RouteSettings(name: '/login'),
-                          ),
-                              (route) => false,
-                        );
                       },
                       child: const Text(
                         'Log Out',

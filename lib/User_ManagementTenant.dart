@@ -335,109 +335,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
 
 
-  //Snakcbar notification for Approve button
-  void _approveUser() {
-    // Add your account deletion logic here.
-
-    // Show custom top snack bar
-    _showApproveTopSnackBar("User account successfully approved");
-  }
-
-  //Approve Snackbar style
-  void _showApproveTopSnackBar(String message) {
-    final overlay = Overlay.of(context);
-    final screenSize = MediaQuery.of(context).size;
-    const double snackbarWidth = 300;
-    const double snackbarHeight = 80;
-
-    final overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: 50,  // Adjust the top value as per your needs
-        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
-        right: MediaQuery.of(context).size.width / 2 - 150,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: snackbarWidth,
-            height: snackbarHeight,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                message,
-                style: TextStyle(color: Colors.white, fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // Insert the overlay
-    overlay.insert(overlayEntry);
-
-    // Remove the overlay after 3 seconds
-    Future.delayed(Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
-  }
-
-
-//Snakcbar notification for Reject button
-  void _rejectUser() {
-    // Add your account deletion logic here.
-
-    // Show custom top snack bar
-    _showRejectTopSnackBar("Account successfully rejected");
-  }
-
-  //Reject Snackbar style
-  void _showRejectTopSnackBar(String message) {
-    final overlay = Overlay.of(context);
-    final screenSize = MediaQuery.of(context).size;
-    const double snackbarWidth = 300;
-    const double snackbarHeight = 80;
-
-    final overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: 50,  // Adjust the top value as per your needs
-        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
-        right: MediaQuery.of(context).size.width / 2 - 150,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: snackbarWidth,
-            height: snackbarHeight,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                message,
-                style: TextStyle(color: Colors.white, fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // Insert the overlay
-    overlay.insert(overlayEntry);
-
-    // Remove the overlay after 3 seconds
-    Future.delayed(Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
-  }
-
   //Dialog for filter
   void _showFilterDialog() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
@@ -930,8 +827,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     showDialog(
       context: context,
       builder: (context) {
-        bool isApproved = false;
-        bool isRejected = false;
 
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
@@ -1001,73 +896,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                 ],
               ),
             ),
-            actionsAlignment: MainAxisAlignment.center,
-            actions: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isApproved || isRejected
-                      ? (isDarkMode ? Colors.grey[700]! : Colors.grey)
-                      : const Color(0xFF79BD85),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  minimumSize: const Size(150, 50),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: (isApproved || isRejected)
-                    ? null
-                    : () {
-                  _approveUser();
-                  setState(() => isApproved = true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("User approved!"),
-                      backgroundColor: isDarkMode ? Colors.green[800]! : Colors.green,
-                    ),
-                  );
-                },
-                child: Text(
-                  isApproved ? "Approved" : "Approve",
-                  style: TextStyle(
-                    fontFamily: "Inter",
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isRejected || isApproved
-                      ? (isDarkMode ? Colors.grey[700]! : Colors.grey)
-                      : const Color(0xFFDE5959),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  minimumSize: const Size(150, 50),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: (isRejected || isApproved)
-                    ? null
-                    : () {
-                  _rejectUser();
-                  setState(() => isRejected = true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("User rejected!"),
-                      backgroundColor: isDarkMode ? Colors.red[800]! : Colors.red,
-                    ),
-                  );
-                },
-                child: Text(
-                  isRejected ? "Rejected" : "Reject",
-                  style: TextStyle(
-                    fontFamily: "Inter",
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
           ),
         );
       },

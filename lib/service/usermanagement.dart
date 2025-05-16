@@ -199,6 +199,7 @@ class UserFetchResult {
 
 
 class UserData {
+  final int? ID;
   final String uid;
   final String email;
   final String phoneNumber;
@@ -210,6 +211,7 @@ class UserData {
 
 
   UserData({
+    required this.ID,
     required this.uid,
     required this.email,
     required this.phoneNumber,
@@ -223,6 +225,7 @@ class UserData {
 
   factory UserData.fromJson(Map<String, dynamic> json) {
     return UserData(
+      ID: json['id'] as int?, // Parse ID from JSON
       uid: json['uid'] as String,
       email: json['email'] as String,
       phoneNumber: json['phone_number'] as String,
@@ -232,6 +235,41 @@ class UserData {
       accountStatus: json['account_status'] as String,
       userType: json['user_type'] as String,
     );
+  }
+}
+
+class UserManagementStatus {
+  static const bool debug = true;
+
+  /// Update apartment status
+  static Future<bool> updateUserStatus(String ID, String status) async {
+
+
+    final url = Uri.parse('$baseUrl/user/verify/$ID');
+
+    if (debug) print('\n🟡 Updating user status at: $url');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: jsonEncode({'account_status': status}),
+      );
+
+      if (debug) {
+        print('🔵 Response Status Code: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      // Check only the HTTP status code for success
+      return response.statusCode == 200;
+    } catch (e) {
+      if (debug) print('🔴 Exception updating user status: $e');
+      return false;
+    }
   }
 }
 

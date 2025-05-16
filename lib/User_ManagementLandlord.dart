@@ -45,7 +45,6 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
   Future<void> loadUsers({int page = 1}) async {
     setState(() => isLoading = true);
     try {
-      // Default: Explicitly fetch "Verified" and "Pending"
       String? accountStatus;
       String? name;
       String? searchField;
@@ -57,9 +56,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
         switch (filter) {
           case 'Account Status':
-          // Clean the user input to remove "Unverified"
             final statuses = term.split(',').map((s) => s.trim()).toList();
-            statuses.removeWhere((s) => s == 'Unverified');
             accountStatus = statuses.isNotEmpty ? statuses.join(',') : null;
             break;
           case 'Name':
@@ -72,7 +69,6 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
         }
       }
 
-      // Fetch data from the API
       final result = await UserManagementFetch.fetchUsers(
         userType: 'Landlord',
         page: page,
@@ -84,18 +80,18 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
       );
 
       if (result != null) {
-        // Client-side filtering to exclude "Unverified" (safety net)
-        final filteredUsers = result.users
-            .where((user) => user.accountStatus != 'Unverified')
-            .toList();
-
         setState(() {
-          userData = filteredUsers.map(_userToMap).toList();
-          _totalUsers = result.total; // Note: If API counts include Unverified, adjust accordingly
+          userData = result.users.map(_userToMap).toList();
+          _totalUsers = result.total;
           _totalPages = result.totalPages;
           _currentPage = page;
           isLoading = false;
         });
+
+        // Debugging: Print user data
+        for (var user in result.users) {
+          print('User ID: ${user.ID}, Email: ${user.email}, Status: ${user.accountStatus}');
+        }
       } else {
         setState(() => isLoading = false);
       }
@@ -107,6 +103,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
   Map<String, dynamic> _userToMap(UserData user) {
     return {
+      'ID': user.ID,
       'uid': user.uid,
       'email': user.email,
       'phone_number': user.phoneNumber,
@@ -398,6 +395,24 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
     });
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _showSuccessrSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
 
 //Snakcbar notification for Reject button
   void _rejectUser() {
@@ -454,6 +469,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
   void _showFilterDialog() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
+
     // List of filter options
     final filterOptions = [
       'Name',
@@ -472,7 +488,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              backgroundColor: isDarkMode ? Colors.grey[800] :Color(0xFFFFFFFF),
+              backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
@@ -508,10 +524,18 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                               ),
                               width: isFixedSize ? 160.0 : null,
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFF4F768E) : Colors.white,
+                                color: isSelected
+                                    ? (isDarkMode
+                                    ? Colors.blueGrey
+                                    : const Color(0xFF4F768E))
+                                    : (isDarkMode ? Colors.grey[700] : Colors.white),
                                 borderRadius: BorderRadius.circular(30),
                                 border: Border.all(
-                                  color: isSelected ? Colors.transparent : const Color(0xFF818181),
+                                  color: isSelected
+                                      ? Colors.transparent
+                                      : (isDarkMode
+                                      ? Colors.grey[500]!
+                                      : const Color(0xFF818181)),
                                 ),
                               ),
                               child: Center(
@@ -521,7 +545,9 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                                     fontSize: 17,
                                     fontWeight: FontWeight.w400,
                                     fontFamily: "Krub",
-                                    color: isSelected ? Colors.white : Colors.black,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : (isDarkMode ? Colors.white : Colors.black),
                                   ),
                                 ),
                               ),
@@ -538,12 +564,12 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                   onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
-                    backgroundColor: const Color(0xFFFFFFFF),
-                    foregroundColor: const Color(0xFF000000),
+                    backgroundColor: isDarkMode ? Colors.grey[700] : Colors.white,
+                    foregroundColor: isDarkMode ? Colors.white : Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
-                      side: const BorderSide(
-                        color: Color(0xFFC3C3C3),
+                      side: BorderSide(
+                        color: isDarkMode ? Colors.grey[500]! : const Color(0xFFC3C3C3),
                         width: 1,
                       ),
                     ),
@@ -567,8 +593,8 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                   },
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
-                    backgroundColor: const Color(0xFF9AD47F),
-                    foregroundColor: const Color(0xFFFFFFFF),
+                    backgroundColor: Colors.green[700],
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
@@ -937,14 +963,16 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
 
 
+  //More option dialog
   void _showUserDetailsDialog(Map<String, dynamic> user) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
     showDialog(
       context: context,
       builder: (context) {
-        bool isApproved = false;
+        bool isVerified = false;
         bool isRejected = false;
+        bool isProcessing = false;
 
 
         return StatefulBuilder(
@@ -959,8 +987,9 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
               height: 500,
               child: Stack(
                 children: [
-                  // Back button
-                  Positioned(
+
+
+                  Positioned(    // Back button
                     top: 5.0,
                     right: 5.0,
                     child: Padding(
@@ -982,8 +1011,8 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                       Expanded(
                         child: Row(
                           children: [
-                            // Left section: User Details
-                            Expanded(
+
+                            Expanded(    // Left section: User Details
                               flex: 1,
                               child: Padding(
                                 padding: const EdgeInsets.all(20),
@@ -1037,8 +1066,9 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                                 ),
                               ),
                             ),
-                            // Right section: Valid ID
-                            Expanded(
+
+
+                            Expanded(     // Right section: Valid ID
                               flex: 1,
                               child: Padding(
                                 padding: const EdgeInsets.all(20),
@@ -1062,33 +1092,56 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      // Buttons
-                      Row(
+
+                      Row(   // Buttons
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isApproved || isRejected
+                              backgroundColor: (user['account_status'] != 'Pending' || isProcessing)
                                   ? Colors.grey
                                   : const Color(0xFF79BD85),
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                               minimumSize: const Size(150, 50),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
-                            onPressed: (isApproved || isRejected)
+                            onPressed: (user['account_status'] != 'Pending' || isProcessing)
                                 ? null
-                                : () {
-                              _approveUser(); // replace with your real method
-                              setState(() => isApproved = true);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("User approved!"),
-                                  backgroundColor: Colors.green,
-                                ),
+                                : () async {
+                              setState(() => isProcessing = true);
+                              final userId = user['ID'];
+                              if (userId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("User ID is missing."),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                setState(() => isProcessing = false);
+                                return;
+                              }
+
+                              final success = await UserManagementStatus.updateUserStatus(
+                                userId.toString(),
+                                'Verified',
                               );
+                              setState(() => isProcessing = false);
+
+
+                              if (success) {
+                                _showApproveTopSnackBar(
+                                    "User verified successfully");
+                                _showSuccessrSnackBar(
+                                    "User verified  successfully");
+                                await loadUsers();
+                                Navigator.of(context).pop();
+                              } else {
+                                _showErrorSnackBar("Failed to verify user");
+                              }
                             },
+
                             child: Text(
-                              isApproved ? "Approved" : "Approve",
+                              isVerified ? "Verified" : "Verify",
                               style: const TextStyle(
                                 fontFamily: "Inter",
                                 fontWeight: FontWeight.w500,
@@ -1100,25 +1153,47 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                           const SizedBox(width: 20),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isRejected || isApproved
+                              backgroundColor: (user['account_status'] != 'Pending' || isProcessing)
                                   ? Colors.grey
                                   : const Color(0xFFDE5959),
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                               minimumSize: const Size(150, 50),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
-                            onPressed: (isRejected || isApproved)
+                            onPressed: (user['account_status'] != 'Pending' || isProcessing)
                                 ? null
-                                : () {
-                              _rejectUser(); // replace with your real method
-                              setState(() => isRejected = true);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("User rejected!"),
-                                  backgroundColor: Colors.red,
-                                ),
+                                : () async {
+                              setState(() => isProcessing = true);
+                              final userId = user['ID'];
+                              if (userId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("User ID is missing."),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                setState(() => isProcessing = false);
+                                return;
+                              }
+
+                              final success = await UserManagementStatus.updateUserStatus(
+                                userId.toString(),
+                                'Unverified',
                               );
+                              setState(() => isProcessing = false);
+
+                              if (success) {
+                                _showRejectTopSnackBar(
+                                    "User rejected successfully");
+                                _showErrorSnackBar(
+                                    "User rejected successfully");
+                                await loadUsers();
+                                Navigator.of(context).pop();
+                              } else {
+                                _showErrorSnackBar("Failed to reject user");
+                              }
                             },
+
                             child: Text(
                               isRejected ? "Rejected" : "Reject",
                               style: const TextStyle(
