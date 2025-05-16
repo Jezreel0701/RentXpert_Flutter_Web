@@ -241,13 +241,11 @@ class UserData {
 class UserManagementStatus {
   static const bool debug = true;
 
-  /// Update apartment status
-  static Future<bool> updateUserStatus(String ID, String status) async {
+  /// Verify landlord using UID (admin endpoint)
+  static Future<bool> verifyLandlordViaAdmin(String uid) async {
+    final url = Uri.parse('$baseUrl/accept/landlordrequest/$uid');
 
-
-    final url = Uri.parse('$baseUrl/user/verify/$ID');
-
-    if (debug) print('\n🟡 Updating user status at: $url');
+    if (debug) print('\n🟡 Verifying landlord with UID: $uid at: $url');
 
     try {
       final response = await http.put(
@@ -256,7 +254,6 @@ class UserManagementStatus {
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
-        body: jsonEncode({'account_status': status}),
       );
 
       if (debug) {
@@ -264,14 +261,44 @@ class UserManagementStatus {
         print('🔵 Response Body: ${response.body}');
       }
 
-      // Check only the HTTP status code for success
-      return response.statusCode == 200;
+      // Handle non-200 responses first
+      if (response.statusCode != 200) {
+        if (debug) {
+          // Handle non-JSON responses gracefully
+          final isJson = response.headers['content-type']?.contains('application/json') ?? false;
+          if (isJson) {
+            try {
+              final errorData = json.decode(response.body);
+              print('🔴 Server Error: ${errorData['message']}');
+              if (errorData.containsKey('error')) {
+                print('🔴 Error Details: ${errorData['error']}');
+              }
+            } catch (e) {
+              print('🔴 Malformed JSON error response: $e');
+            }
+          } else {
+            print('🔴 Non-JSON Error Response: ${response.body}');
+          }
+        }
+        return false;
+      }
+
+      // Handle success case
+      try {
+        final responseData = json.decode(response.body);
+        if (debug) {
+          print('🟢 Verification Details:');
+          print('- Profile ID: ${responseData['data']['profile_id']}');
+          print('- Verified At: ${responseData['data']['verified_at']}');
+        }
+        return true;
+      } catch (e) {
+        if (debug) print('🔴 Failed to parse successful response: $e');
+        return false;
+      }
     } catch (e) {
-      if (debug) print('🔴 Exception updating user status: $e');
+      if (debug) print('🔴 Network Exception: ${e.runtimeType}');
       return false;
     }
   }
 }
-
-
-

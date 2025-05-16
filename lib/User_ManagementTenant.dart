@@ -98,7 +98,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
   Map<String, dynamic> _userToMap(UserData user) {
     return {
-      'id': user.ID,
+      'ID': user.ID,
       'uid': user.uid,
       'email': user.email,
       'phone_number': user.phoneNumber,
@@ -981,6 +981,10 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                             children: [
                                               Align(
                                                 alignment: Alignment.center,
+                                                child: _infoRow("ID", int.parse(user['ID'].toString()).toString(), isDarkMode),
+                                              ),
+                                              Align(
+                                                alignment: Alignment.center,
                                                 child: _infoRow("Name", user['fullname'], isDarkMode),
                                               ),
                                               Align(
@@ -1043,7 +1047,33 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                             onPressed: (user['account_status'] != 'Pending' || isProcessing)
                                 ? null
                                 : () async {
-                              // Verification logic here
+                              // Your backend handling code here
+                              setState(() => isProcessing = true);
+                              final userId =  int.parse(user['ID'].toString()).toString();
+
+                              if (userId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("User ID is missing."),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                setState(() => isProcessing = false);
+                                return;
+                              }
+
+                              final success = await UserManagementStatus.verifyLandlordViaAdmin(user['uid']);
+
+                              setState(() => isProcessing = false);
+
+                              if (success) {
+                                _showApproveTopSnackBar("User verified successfully");
+                                _showSuccessrSnackBar("User verified successfully");
+                                await loadUsers();
+                                Navigator.of(context).pop();
+                              } else {
+                                _showErrorSnackBar("Failed to verify user");
+                              }
                             },
                             child: Text(
                               isVerified ? "Verified" : "Verify",
