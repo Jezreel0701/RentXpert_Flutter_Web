@@ -1021,6 +1021,7 @@ class _PropertiesManagementScreenState
                                           // Create a new map with all values converted to strings
                                           final updatedData = {
                                             ...apartmentData[index],
+                                            'landlord_name': _landlordController.text,
                                             'Address': _addressController.text,
                                             'Rent_Price': _rentPriceController.text,
                                             'Landmarks': _landmarksController.text,
@@ -1150,7 +1151,195 @@ class _PropertiesManagementScreenState
             ),
             actionsAlignment: MainAxisAlignment.center,
             actions: [
-              // ... (keep your existing approve/reject buttons)
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isApproved
+                      ? Colors.green
+                      : (isRejected ? Colors.grey : const Color(0xFF79BD85)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  minimumSize: const Size(150, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: (isApproved || isRejected || isProcessing)
+                    ? null
+                    : () async {
+                  setState(() => isProcessing = true);
+                  final success = await ApartmentManagementStatus.updateApartmentStatus(
+                    apartment['ID'],
+                    'Approved',
+                  );
+                  setState(() => isProcessing = false);
+
+                  if (success) {
+                    _showApproveTopSnackBar("Apartment approved successfully");
+                    _showSuccessrSnackBar("Apartment approved successfully");
+                    _fetchApartments();
+                    Navigator.of(context).pop();
+                  } else {
+                    _showErrorSnackBar("Failed to approve apartment");
+                  }
+                },
+                child: isProcessing && !isApproved && !isRejected
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+                    : Text(
+                  isApproved ? "Approved" : "Approve",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isRejected
+                      ? Colors.red
+                      : (isApproved ? Colors.grey : const Color(0xFFDE5959)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  minimumSize: const Size(150, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: (isRejected || isApproved || isProcessing)
+                    ? null
+                    : () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      final TextEditingController _messageController = TextEditingController();
+
+
+                      return AlertDialog(
+                        backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        title: Text(
+                          "Reject Apartment",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            fontFamily: "Krub",
+                            color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                          ),
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Please provide a reason for rejection:",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                fontFamily: "Inter",
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            TextField(
+                              controller: _messageController,
+                              maxLines: 3,
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: "Type your message here...",
+                                hintStyle: TextStyle(
+                                  fontFamily: "Inter",
+                                  fontSize: 14,
+                                  color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              "Cancel",
+                              style: TextStyle(
+                                fontFamily: "Inter",
+                                fontSize: 16,
+                                color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                              ),
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDarkMode
+                                  ? Colors.blueGrey
+                                  : const Color(0xFF4F768E),
+                            ),
+                            onPressed: () async {
+                              final message = _messageController.text.trim();
+                              if (message.isNotEmpty) {
+                                Navigator.pop(context);
+                                setState(() => isProcessing = true);
+                                final success = await ApartmentManagementReject.rejectApartment(
+                                    apartment['ID'],
+                                    message
+                                );
+
+                                setState(() => isProcessing = false);
+
+
+                                if (success) {
+                                  _showRejectTopSnackBar("Apartment rejected successfully");
+                                  _fetchApartments();
+                                } else {
+                                  _showErrorSnackBar("Failed to reject apartment");
+                                }
+                              } else {
+                                _showErrorSnackBar("Message cannot be empty");
+                              }
+                            },
+                            child: const Text(
+                              "Submit",
+                              style: TextStyle(
+                                fontFamily: "Inter",
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                child: isProcessing && !isApproved && !isRejected
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+                    : Text(
+                  isRejected ? "Rejected" : "Reject",
+                  style: const TextStyle(
+                    fontFamily: "Inter",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+
+
+
+
             ],
           ),
         );
@@ -1158,7 +1347,7 @@ class _PropertiesManagementScreenState
     );
   }
 
-// Add this new helper method for dropdown rows
+  // Add this new helper method for dropdown rows
   Widget _dropdownRow(
       String label,
       String? value,
