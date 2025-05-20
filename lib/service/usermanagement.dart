@@ -416,3 +416,73 @@ class RejectionResult {
   @override
   String toString() => 'RejectionResult: $message (Success: $success)';
 }
+
+class ApartmentManagementUpdate {
+  static const bool debug = true;
+
+  static Future<bool> updateApartment({
+    required String id,
+    required String propertyName,
+    required String propertyType,
+    required double rentPrice,
+    required String landmarks,
+    required String allowedGender,
+    required String availability,
+  }) async {
+    final url = Uri.parse('$baseUrl/admin/apartments/update/$id');
+
+    try {
+      if (debug) {
+        print('\n🟡 Updating apartment at: $url');
+        print('🔵 Update Payload:');
+        print(jsonEncode({
+          'property_name': propertyName,
+          'property_type': propertyType,
+          'rent_price': rentPrice,
+          'landmarks': landmarks,
+          'allowed_gender': allowedGender,
+          'availability': availability,
+        }));
+      }
+
+      final response = await http.put(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: jsonEncode({
+          'property_name': propertyName,
+          'property_type': propertyType,
+          'rent_price': rentPrice,
+          'landmarks': landmarks,
+          'allowed_gender': allowedGender,
+          'availability': availability,
+        }),
+      );
+
+      if (debug) {
+        print('🔵 Response Status: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      // Check based on status code and message content
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return (responseData['message'] as String?)
+            ?.toLowerCase()
+            ?.contains('success') ?? false;
+      }
+
+      return false;
+    } catch (e) {
+      if (debug) {
+        print('🔴 Update Error: $e');
+        if (e is http.ClientException) {
+          print('🔴 Request URL: ${e.uri}');
+        }
+      }
+      return false;
+    }
+  }
+}
