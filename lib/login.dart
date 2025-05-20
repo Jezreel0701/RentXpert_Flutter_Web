@@ -100,148 +100,173 @@ class _LoginState extends State<Login> {
                   )
                 ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Log In",
-                      style: TextStyle(
-                        fontSize: 37,
-                        fontFamily: "Krub",
-                        fontWeight: FontWeight.bold,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: constraints.maxWidth * 0.1,
+                        vertical: constraints.maxHeight * 0.05,
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Welcome to RentXpert! Please enter your details",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
-                        fontFamily: "Krub",
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 30),
-
-                    // Email Field
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Email",
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16,
-                          fontFamily: "Krub-SemiBold",
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _emailController,
-                      focusNode: _emailFocusNode,
-                      textInputAction: TextInputAction.next,
-                      onSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(_passwordFocusNode);
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Enter your email',
-                        labelStyle: TextStyle(color: Color(0xFF848484)),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-
-                    // Password Field
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Password",
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16,
-                          fontFamily: "Krub",
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _passwordController,
-                      focusNode: _passwordFocusNode,
-                      obscureText: !_isPasswordVisible,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) {
-                        if (!_isLoading) {
-                          _handleLogin();
-                        }
-                      },
-                      decoration: InputDecoration(
-                        labelText: '••••••',
-                        labelStyle: const TextStyle(color: Color(0xFF848484)),
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        enabledBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey, width: 1),
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
-                        ),
-                        suffixIcon: Padding(
-                          padding: const EdgeInsets.only(right: 20),
-                          child: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                              color: Colors.grey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Log In",
+                            style: TextStyle(
+                              fontSize: 37,
+                              fontFamily: "Krub",
+                              fontWeight: FontWeight.bold,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+                          const SizedBox(height: 10),
+                          const Text(
+                            "Welcome to RentXpert! Please enter your details",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                              fontFamily: "Krub",
+                              fontWeight: FontWeight.w400,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: constraints.maxHeight * 0.05),
 
-                    // Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                          backgroundColor: const Color(0xFF4A758F),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          // Email Field
+                          Text(
+                            "Email",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: constraints.maxWidth * 0.04,
+                              fontFamily: "Krub-SemiBold",
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
-                          'Log In',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontFamily: "Krub",
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                          SizedBox(height: constraints.maxHeight * 0.015),
+                          SizedBox(
+                            height: constraints.maxHeight * 0.1,
+                            child: TextField(
+                              controller: _emailController,
+                              focusNode: _emailFocusNode,
+                              textInputAction: TextInputAction.next,
+                              onSubmitted: (_) {
+                                FocusScope.of(context).requestFocus(_passwordFocusNode);
+                              },
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: constraints.maxWidth * 0.04,
+                                  vertical: constraints.maxHeight * 0.02,
+                                ),
+                                labelText: 'Enter your email',
+                                labelStyle: const TextStyle(color: Color(0xFF848484)),
+                                floatingLabelBehavior: FloatingLabelBehavior.never,
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: Colors.grey, width: 1),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: Color(0xFF4A758F), width: 2),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                              ),
+                            ),
                           ),
-                        ),
+                          SizedBox(height: constraints.maxHeight * 0.03),
+
+                          // Password Field
+                          Text(
+                            "Password",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: constraints.maxWidth * 0.04,
+                              fontFamily: "Krub",
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: constraints.maxHeight * 0.015),
+                          SizedBox(
+                            height: constraints.maxHeight * 0.1,
+                            child: TextField(
+                              controller: _passwordController,
+                              focusNode: _passwordFocusNode,
+                              obscureText: !_isPasswordVisible,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) {
+                                if (!_isLoading) {
+                                  _handleLogin();
+                                }
+                              },
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: constraints.maxWidth * 0.04,
+                                  vertical: constraints.maxHeight * 0.02,
+                                ),
+                                labelText: '••••••',
+                                labelStyle: const TextStyle(color: Color(0xFF848484)),
+                                floatingLabelBehavior: FloatingLabelBehavior.never,
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: Colors.grey, width: 1),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(color: Color(0xFF4A758F), width: 2),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                suffixIcon: Padding(
+                                  padding: EdgeInsets.only(right: constraints.maxWidth * 0.04),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                      color: Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _isPasswordVisible = !_isPasswordVisible;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: constraints.maxHeight * 0.04),
+
+                          // Login Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: constraints.maxHeight * 0.1,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF4A758F),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: _isLoading
+                                  ? const CircularProgressIndicator(color: Colors.white)
+                                  : Text(
+                                'Log In',
+                                style: TextStyle(
+                                  fontSize: constraints.maxWidth * 0.05,
+                                  fontFamily: "Krub",
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
             const SizedBox(width: 20),

@@ -439,31 +439,44 @@ class _PropertiesManagementScreenState
     final isDarkMode = themeProvider.isDarkMode;
 
     return Scaffold(
-      backgroundColor: isDarkMode ? Colors.grey[900] : Color(0xFFF5F5F5),
+      backgroundColor: isDarkMode ? Colors.grey[900] : const Color(0xFFF5F5F5),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Properties Management: Apartments",
-              style: TextStyle(
-                fontSize: 45,
-                fontFamily: "Inter",
-                color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
-                fontWeight: FontWeight.w600,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildSearchBar(),
-            const SizedBox(height: 20),
-            isLoading
-                ? Center(child: CircularProgressIndicator())
-                : Expanded(child: _buildUserTable()),
-            const SizedBox(height: 20),
-            _buildPaginationBar(isDarkMode),
-          ],
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : LayoutBuilder(
+          builder: (context, constraints) {
+            // Check if the available height is too small
+            final isSmallHeight = constraints.maxHeight <= 400;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Properties Management: Apartments",
+                  style: TextStyle(
+                    fontSize: 45,
+                    fontFamily: "Inter",
+                    color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                    fontWeight: FontWeight.w600,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildSearchBar(),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildUserTable(key: ValueKey(_currentPage)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Conditionally hide the pagination bar if the height is too small
+                if (!isSmallHeight) _buildPaginationBar(isDarkMode),
+              ],
+            );
+          },
         ),
       ),
     );

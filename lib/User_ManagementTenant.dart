@@ -340,6 +340,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   void _showFilterDialog() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
+
     // List of filter options
     final filterOptions = [
       'Name',
@@ -358,7 +359,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              backgroundColor: isDarkMode ? Colors.grey[800] : Color(0xFFFFFFFF),
+              backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
@@ -368,7 +369,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                 child: SingleChildScrollView(
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
+                      padding: const EdgeInsets.only(top: 50.0),
                       child: Wrap(
                         spacing: 16.0,
                         runSpacing: 16.0,
@@ -394,10 +395,18 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                               ),
                               width: isFixedSize ? 160.0 : null,
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFF4F768E) : Colors.white,
+                                color: isSelected
+                                    ? (isDarkMode
+                                    ? Colors.blueGrey
+                                    : const Color(0xFF4F768E))
+                                    : (isDarkMode ? Colors.grey[700] : Colors.white),
                                 borderRadius: BorderRadius.circular(30),
                                 border: Border.all(
-                                  color: isSelected ? Colors.transparent : const Color(0xFF818181),
+                                  color: isSelected
+                                      ? Colors.transparent
+                                      : (isDarkMode
+                                      ? Colors.grey[500]!
+                                      : const Color(0xFF818181)),
                                 ),
                               ),
                               child: Center(
@@ -407,7 +416,9 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                     fontSize: 17,
                                     fontWeight: FontWeight.w400,
                                     fontFamily: "Krub",
-                                    color: isSelected ? Colors.white : Colors.black,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : (isDarkMode ? Colors.white : Colors.black),
                                   ),
                                 ),
                               ),
@@ -424,12 +435,12 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                   onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
-                    backgroundColor: const Color(0xFFFFFFFF),
-                    foregroundColor: const Color(0xFF000000),
+                    backgroundColor: isDarkMode ? Colors.grey[700] : Colors.white,
+                    foregroundColor: isDarkMode ? Colors.white : Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
-                      side: const BorderSide(
-                        color: Color(0xFFC3C3C3),
+                      side: BorderSide(
+                        color: isDarkMode ? Colors.grey[500]! : const Color(0xFFC3C3C3),
                         width: 1,
                       ),
                     ),
@@ -453,8 +464,8 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                   },
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
-                    backgroundColor: const Color(0xFF9AD47F),
-                    foregroundColor: const Color(0xFFFFFFFF),
+                    backgroundColor: Colors.green[700],
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
@@ -504,30 +515,39 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
         padding: const EdgeInsets.all(20.0),
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
-            : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "User Management: Tenant",
-              style: TextStyle(
-                fontSize: 45,
-                fontFamily: "Inter",
-                color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildSearchBar(isDarkMode),
-            const SizedBox(height: 20),
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _buildUserTable(isDarkMode, key: ValueKey(_currentPage)),
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildPaginationBar(isDarkMode),
-          ],
+            : LayoutBuilder(
+          builder: (context, constraints) {
+            // Check if the available height is too small
+            final isSmallHeight = constraints.maxHeight <= 400;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "User Management: Tenant",
+                  style: TextStyle(
+                    fontSize: 45,
+                    fontFamily: "Inter",
+                    color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                    fontWeight: FontWeight.w600,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildSearchBar(isDarkMode),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildUserTable(isDarkMode, key: ValueKey(_currentPage)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Conditionally hide the pagination bar if the height is too small
+                if (!isSmallHeight) _buildPaginationBar(isDarkMode),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -598,6 +618,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     );
   }
 
+  //Table Pagination Bar
   Widget _buildUserTable(bool isDarkMode, {Key? key}) {
     final columnTitles = ['Uid', 'Name', 'Email', 'Account Status', 'User Type', 'Customize'];
     const double columnWidth = 120;
@@ -1420,6 +1441,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       ),
     );
   }
+
   Widget _buildPaginateButton({
     required IconData icon,
     required String label,

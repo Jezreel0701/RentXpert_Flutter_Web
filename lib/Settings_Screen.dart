@@ -125,6 +125,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   // Sidebar
                   Container(
+                    height: 900,
                     width: screenWidth * 0.18,
                     margin: const EdgeInsets.only(right: 30),
                     decoration: BoxDecoration(
@@ -132,15 +133,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 50.0),
-                          child: _buildSidebarTile("Account", Icons.verified_user),
-                        ),
-                        _buildSidebarTile("User Permission", Icons.settings),
-                      ],
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 50.0),
+                            child: _buildSidebarTile("Account", Icons.verified_user),
+                          ),
+                          _buildSidebarTile("User Permission", Icons.settings),
+                        ],
+                      ),
                     ),
                   ),
                   // Main Content: Account
