@@ -1178,6 +1178,7 @@ class _PropertiesManagementScreenState
                     builder: (context) {
                       final TextEditingController _messageController = TextEditingController();
 
+
                       return AlertDialog(
                         backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
                         shape: RoundedRectangleBorder(
@@ -1247,12 +1248,13 @@ class _PropertiesManagementScreenState
                               if (message.isNotEmpty) {
                                 Navigator.pop(context);
                                 setState(() => isProcessing = true);
-                                final success = await ApartmentManagementStatus
-                                    .updateApartmentStatus(
-                                  apartment['ID'],
-                                  'Rejected',
+                                final success = await ApartmentManagementReject.rejectApartment(
+                                    apartment['ID'],
+                                    message
                                 );
+
                                 setState(() => isProcessing = false);
+
 
                                 if (success) {
                                   _showRejectTopSnackBar("Apartment rejected successfully");
@@ -1297,6 +1299,10 @@ class _PropertiesManagementScreenState
                   ),
                 ),
               ),
+
+
+
+
             ],
           ),
         );

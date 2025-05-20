@@ -302,3 +302,117 @@ class UserManagementStatus {
     }
   }
 }
+
+class UserManagementRejection {
+  static const bool debug = true;
+  static Future<RejectionResult> rejectLandlordRequest({
+    required String uid,
+    required String rejectionReason,
+  }) async {
+    final url = Uri.parse('$baseUrl/rejecting/landlordrequest/$uid');
+    final Map<String, dynamic> requestBody = {
+      'rejection_reason': rejectionReason,
+    };
+
+    if (debug) {
+      print('\n🟡 Rejecting landlord request for UID: $uid');
+      print('• Endpoint: $url');
+      print('• Request Body: ${json.encode(requestBody)}');
+    }
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: json.encode(requestBody),
+      );
+
+      if (debug) {
+        print('🔵 Response Status: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      final isJson = response.headers['content-type']?.contains('application/json') ?? false;
+      final responseData = isJson ? json.decode(response.body) : null;
+
+      // Handle specific status codes
+      switch (response.statusCode) {
+        case 200:
+          return _handleSuccess(responseData);
+        case 400:
+          return RejectionResult(
+            success: false,
+            message: responseData?['message'] ?? 'Invalid request format',
+          );
+        case 404:
+          return RejectionResult(
+            success: false,
+            message: 'No landlord profile found for UID: $uid',
+          );
+        case 409:
+          return RejectionResult(
+            success: false,
+            message: 'Profile already rejected',
+          );
+        case 500:
+          return RejectionResult(
+            success: false,
+            message: responseData?['message'] ?? 'Server error occurred',
+          );
+        default:
+          return RejectionResult(
+            success: false,
+            message: 'Unexpected response: ${response.statusCode}',
+          );
+      }
+    } catch (e) {
+      if (debug) print('🔴 Network Error: ${e.toString()}');
+      return RejectionResult(
+        success: false,
+        message: 'Network error: ${e.runtimeType.toString().replaceAll('_', ' ')}',
+      );
+    }
+  }
+
+  static RejectionResult _handleSuccess(dynamic responseData) {
+    try {
+      if (debug) {
+        print('🟢 Rejection Successful:');
+        print('• Message: ${responseData['message']}');
+        print('• Profile ID: ${responseData['data']['profile_id']}');
+        print('• Account Status: ${responseData['data']['account_status']}');
+        print('• Rejected At: ${responseData['data']['rejected_at']}');
+      }
+
+      return RejectionResult(
+        success: true,
+        message: responseData['message'],
+        data: responseData['data'],
+      );
+    } catch (e) {
+      if (debug) print('🔴 Success Response Parsing Error: $e');
+      return RejectionResult(
+        success: false,
+        message: 'Failed to parse successful response',
+      );
+    }
+  }
+}
+
+class RejectionResult {
+  final bool success;
+  final String message;
+  final Map<String, dynamic>? data;
+
+  RejectionResult({
+    required this.success,
+    required this.message,
+    this.data,
+  });
+
+  @override
+  String toString() => 'RejectionResult: $message (Success: $success)';
+}

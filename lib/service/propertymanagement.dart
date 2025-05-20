@@ -243,3 +243,45 @@ class ApartmentManagementStatus {
     }
   }
 }
+
+class ApartmentManagementReject {
+  static const bool debug = true;
+
+  static Future<bool> rejectApartment(String id, String rejectionReason) async {
+    final url = Uri.parse('$baseUrl/rejecting/landlordApartment/$id');
+
+    if (debug) {
+      print('\n🟡 Rejecting apartment at: $url');
+      print('🔵 Rejection Reason: $rejectionReason');
+    }
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: jsonEncode({'rejection_reason': rejectionReason}),
+      );
+
+      if (debug) {
+        print('🔵 Response Status Code: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      // Handle response format similar to other endpoints
+      final responseData = jsonDecode(response.body);
+      final successCode = responseData['RetCode'] ?? responseData['retCode'];
+
+      if (response.statusCode == 200 && successCode.toString() == '200') {
+        if (debug) print('🟢 Apartment rejected successfully');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      if (debug) print('🔴 Exception rejecting apartment: $e');
+      return false;
+    }
+  }
+}

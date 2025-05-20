@@ -1097,9 +1097,134 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                             ),
                             onPressed: (user['account_status'] != 'Pending' || isProcessing)
                                 ? null
-                                : () async {
-                              // Rejection logic here
+                                : () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  final TextEditingController _messageController = TextEditingController();
+                                  return AlertDialog(
+                                    backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    title: Text(
+                                      "Reject Landlord",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                        fontFamily: "Krub",
+                                        color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                                      ),
+                                    ),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "Please provide a reason for rejection:",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            fontFamily: "Inter",
+                                            color: isDarkMode ? Colors.white : Colors.black,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        TextField(
+                                          controller: _messageController,
+                                          maxLines: 3,
+                                          decoration: InputDecoration(
+                                            border: const OutlineInputBorder(),
+                                            hintText: "Type your message here...",
+                                            hintStyle: TextStyle(
+                                              fontFamily: "Inter",
+                                              fontSize: 14,
+                                              color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                          style: TextStyle(
+                                            color: isDarkMode ? Colors.white : Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text(
+                                          "Cancel",
+                                          style: TextStyle(
+                                            fontFamily: "Inter",
+                                            fontSize: 16,
+                                            color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                                          ),
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: isDarkMode
+                                              ? Colors.blueGrey
+                                              : const Color(0xFF4F768E),
+                                        ),
+                                        onPressed: () async {
+                                          final message = _messageController.text.trim();
+                                          if (message.isEmpty) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text("Message cannot be empty"),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                          Navigator.pop(context); // Close dialog
+                                          if (!mounted) return;
+                                          setState(() => isProcessing = true);
+                                          try {
+                                            final userId = user['uid'];
+                                            if (userId == null || userId.isEmpty) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text("User UID is missing or invalid."),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                              return;
+                                            }
+
+                                            final result = await UserManagementRejection.rejectLandlordRequest(
+                                              uid: userId,
+                                              rejectionReason: message, // Use dynamic message
+                                            );
+
+                                            if (result.success) {
+                                              _showRejectTopSnackBar(result.message);
+                                              await loadUsers();
+                                              if (mounted) Navigator.of(context).pop(); // Close any bottom sheet
+                                            } else {
+                                              _showErrorSnackBar(result.message);
+                                            }
+                                          } catch (e) {
+                                            _showErrorSnackBar("Operation failed: ${e.toString()}");
+                                          } finally {
+                                            if (mounted) setState(() => isProcessing = false);
+                                          }
+                                        },
+                                        child: const Text(
+                                          "Submit",
+                                          style: TextStyle(
+                                            fontFamily: "Inter",
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
                             },
+
                             child: Text(
                               isRejected ? "Rejected" : "Reject",
                               style: const TextStyle(
