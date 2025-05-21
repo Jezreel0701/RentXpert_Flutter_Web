@@ -976,13 +976,13 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
   void _showUserDetailsDialog(Map<String, dynamic> user) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
+
     showDialog(
       context: context,
       builder: (context) {
         bool isVerified = false;
         bool isRejected = false;
         bool isProcessing = false;
-
 
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
@@ -991,37 +991,32 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
               borderRadius: BorderRadius.circular(15),
             ),
             contentPadding: const EdgeInsets.all(20),
-            content: SizedBox(
-              width: 800,
-              height: 500,
-              child: Stack(
-                children: [
-
-
-                  Positioned(    // Back button
-                    top: 5.0,
-                    right: 5.0,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 5.0, right: 20.0),
-                      child: IconButton(
-                        icon: Image.asset(
-                          'assets/images/back_image.png',
-                          width: 30,
-                          height: 30,
+            content: SingleChildScrollView( // Makes the dialog content scrollable
+              child: SizedBox(
+                width: 800,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Positioned(
+                      top: 5.0,
+                      right: 5.0,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 5.0, right: 20.0),
+                        child: IconButton(
+                          icon: Image.asset(
+                            'assets/images/back_image.png',
+                            width: 30,
+                            height: 30,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
-                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),
-                  ),
-
-
-                  Column(
-                    children: [
-                      Expanded(
-                        child: Row(
+                    Column(
+                      children: [
+                        Row(
                           children: [
-
-                            Expanded(    // Left section: User Details
+                            Expanded(
                               flex: 1,
                               child: Padding(
                                 padding: const EdgeInsets.all(20),
@@ -1031,89 +1026,77 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                                     Text(
                                       "User Details",
                                       style: TextStyle(
-                                        color: isDarkMode ? Colors.white : Color(0xFF4F768E),
+                                        color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
                                         fontFamily: "Krub",
                                         fontWeight: FontWeight.bold,
                                         fontSize: 35,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     const SizedBox(height: 20),
                                     Padding(
                                       padding: const EdgeInsets.only(top: 30.0, left: 30.0),
-                                      child: SingleChildScrollView(
-                                        child: ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            minHeight: 0,
-                                            maxHeight: 350,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Align(
+                                            alignment: Alignment.center,
+                                            child: _infoRow("Name", user['fullname'], isDarkMode),
                                           ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Name", user['fullname'], isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Address", user['address'], isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
-                                              ),
-                                            ],
+                                          Align(
+                                            alignment: Alignment.center,
+                                            child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
                                           ),
-                                        ),
+                                          Align(
+                                            alignment: Alignment.center,
+                                            child: _infoRow("Address", user['address'], isDarkMode),
+                                          ),
+                                          Align(
+                                            alignment: Alignment.center,
+                                            child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-
-
-                            Expanded(     // Right section: Valid ID
+                            Expanded(
                               flex: 1,
                               child: Padding(
                                 padding: const EdgeInsets.all(20),
                                 child: Center(
                                   child: user['valid_id'] != null
                                       ? Image.network(
-                                    user['valid_id'],
-                                    fit: BoxFit.cover,
-                                    width: 200,
-                                    height: 200,
-                                  )
+                                          user['valid_id'],
+                                          fit: BoxFit.cover,
+                                          width: 200,
+                                          height: 200,
+                                        )
                                       : const Icon(
-                                    Icons.image_not_supported,
-                                    size: 100,
-                                    color: Colors.grey,
-                                  ),
+                                          Icons.image_not_supported,
+                                          size: 100,
+                                          color: Colors.grey,
+                                        ),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      Row(   // Buttons
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-
-                          const SizedBox(width: 20),
-
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ],
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(width: 20),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1129,25 +1112,31 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          SizedBox(
-            width: 150,
-            child: Text(
-              "$label:",
-              style: TextStyle(
-                fontFamily: "Inter",
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : Colors.black,
+          Flexible(
+            child: SizedBox(
+              width: 150,
+              child: Text(
+                "$label:",
+                style: TextStyle(
+                  fontFamily: "Inter",
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
             ),
           ),
           Expanded(
-            child: Text(
-              value ?? '',
-              style: TextStyle(
-                fontFamily: "Inter",
-                fontSize: 16,
-                color: isDarkMode ? Colors.white : Colors.black,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal, // Allows horizontal scrolling for long text
+              child: Text(
+                value ?? '',
+                style: TextStyle(
+                  fontFamily: "Inter",
+                  fontSize: 16,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
             ),
           ),
@@ -1199,6 +1188,12 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
     required VoidCallback? onPressed,
     required bool isDarkMode,
   }) {
+
+    // Check if the screen width is greater than 400
+    if (MediaQuery.of(context).size.width <= 600) {
+      return const SizedBox.shrink(); // Return an empty widget if width is 400 or less
+    }
+
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
@@ -1259,6 +1254,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
   Widget _pageNumberButton(int page) {
     final isSelected = page == _currentPage;
+
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),

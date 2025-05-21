@@ -126,7 +126,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       drawer: Drawer(
         child: Container(
-          color: const Color(0xFF4A758F), // Set the background color
+           color: const Color(0xFF4A758F), // Set the background color
           child: Sidebar(
             currentRoute: _currentRoute, // Pass the current route
             onNavigation: _handleNavigation, // Pass the navigation handler
@@ -333,10 +333,6 @@ class _MainScreenState extends State<MainScreen> {
                 ],
               ),
             ),
-          const SizedBox(
-            width: 220,
-            child: Divider(color: Colors.white, thickness: 1),
-          ),
         ],
       ),
     );
@@ -391,10 +387,6 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
           ),
-        ),
-        SizedBox(
-          width: 220,
-          child: Divider(color: Colors.white, thickness: 1),
         ),
       ],
     );

@@ -863,48 +863,51 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
             ),
             content: SizedBox(
               width: 400,
+              height: 300, // Set a fixed height for the content
               child: Stack(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "User Details",
-                          style: TextStyle(
-                            color: isDarkMode ? Colors.white : Color(0xFF4F768E),
-                            fontFamily: "Krub",
-                            fontWeight: FontWeight.bold,
-                            fontSize: 25,
+                  SingleChildScrollView( // Wrap Column with SingleChildScrollView
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 40.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "User Details",
+                            style: TextStyle(
+                              color: isDarkMode ? Colors.white : Color(0xFF4F768E),
+                              fontFamily: "Krub",
+                              fontWeight: FontWeight.bold,
+                              fontSize: 25,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 40),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 53.0),
-                          child: Column(
-                            children: [
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Name", user['fullname'], isDarkMode),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Address", user['address'], isDarkMode),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
-                              ),
-                            ],
+                          const SizedBox(height: 40),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 53.0),
+                            child: Column(
+                              children: [
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: _infoRow("Name", user['fullname'], isDarkMode),
+                                ),
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
+                                ),
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: _infoRow("Address", user['address'], isDarkMode),
+                                ),
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   Positioned(
@@ -946,30 +949,30 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
               borderRadius: BorderRadius.circular(15),
             ),
             contentPadding: const EdgeInsets.all(20),
-            content: SizedBox(
-              width: 800,
-              height: 500,
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 5.0,
-                    right: 5.0,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 5.0, right: 20.0),
-                      child: IconButton(
-                        icon: Image.asset(
-                          'assets/images/back_image.png',
-                          width: 30,
-                          height: 30,
+            content: SingleChildScrollView( // Makes the content scrollable
+              child: SizedBox(
+                width: 800,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Positioned(
+                      top: 5.0,
+                      right: 5.0,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 5.0, right: 20.0),
+                        child: IconButton(
+                          icon: Image.asset(
+                            'assets/images/back_image.png',
+                            width: 30,
+                            height: 30,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
-                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),
-                  ),
-                  Column(
-                    children: [
-                      Expanded(
-                        child: Row(
+                    Column(
+                      children: [
+                        Row(
                           children: [
                             Expanded(
                               flex: 1,
@@ -985,44 +988,37 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                         fontFamily: "Krub",
                                         fontWeight: FontWeight.bold,
                                         fontSize: 35,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     const SizedBox(height: 20),
                                     Padding(
                                       padding: const EdgeInsets.only(top: 30.0, left: 30.0),
-                                      child: SingleChildScrollView(
-                                        child: ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            minHeight: 0,
-                                            maxHeight: 350,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Align(
+                                            alignment: Alignment.center,
+                                            child: _infoRow("ID", int.parse(user['ID'].toString()).toString(), isDarkMode),
                                           ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("ID", int.parse(user['ID'].toString()).toString(), isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Name", user['fullname'], isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Address", user['address'], isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
-                                              ),
-                                            ],
+                                          Align(
+                                            alignment: Alignment.center,
+                                            child: _infoRow("Name", user['fullname'], isDarkMode),
                                           ),
-                                        ),
+                                          Align(
+                                            alignment: Alignment.center,
+                                            child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
+                                          ),
+                                          Align(
+                                            alignment: Alignment.center,
+                                            child: _infoRow("Address", user['address'], isDarkMode),
+                                          ),
+                                          Align(
+                                            alignment: Alignment.center,
+                                            child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
@@ -1051,217 +1047,216 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: (user['account_status'] != 'Pending' || isProcessing)
-                                  ? Colors.grey
-                                  : const Color(0xFF79BD85),
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                              minimumSize: const Size(150, 50),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            onPressed: (user['account_status'] != 'Pending' || isProcessing)
-                                ? null
-                                : () async {
-                              // Your backend handling code here
-                              setState(() => isProcessing = true);
-                              final userId =  int.parse(user['ID'].toString()).toString();
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: (user['account_status'] != 'Pending' || isProcessing)
+                                    ? Colors.grey
+                                    : const Color(0xFF79BD85),
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                minimumSize: const Size(150, 50),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              onPressed: (user['account_status'] != 'Pending' || isProcessing)
+                                  ? null
+                                  : () async {
+                                setState(() => isProcessing = true);
+                                final userId = int.parse(user['ID'].toString()).toString();
 
-                              if (userId == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("User ID is missing."),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
+                                if (userId == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("User ID is missing."),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  setState(() => isProcessing = false);
+                                  return;
+                                }
+
+                                final success = await UserManagementStatus.verifyLandlordViaAdmin(user['uid']);
+
                                 setState(() => isProcessing = false);
-                                return;
-                              }
 
-                              final success = await UserManagementStatus.verifyLandlordViaAdmin(user['uid']);
-
-                              setState(() => isProcessing = false);
-
-                              if (success) {
-                                _showApproveTopSnackBar("User verified successfully");
-                                _showSuccessrSnackBar("User verified successfully");
-                                await loadUsers();
-                                Navigator.of(context).pop();
-                              } else {
-                                _showErrorSnackBar("Failed to verify user");
-                              }
-                            },
-                            child: Text(
-                              isVerified ? "Verified" : "Verify",
-                              style: const TextStyle(
-                                fontFamily: "Inter",
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
-                                color: Colors.white,
+                                if (success) {
+                                  _showApproveTopSnackBar("User verified successfully");
+                                  _showSuccessrSnackBar("User verified successfully");
+                                  await loadUsers();
+                                  Navigator.of(context).pop();
+                                } else {
+                                  _showErrorSnackBar("Failed to verify user");
+                                }
+                              },
+                              child: Text(
+                                isVerified ? "Verified" : "Verify",
+                                style: const TextStyle(
+                                  fontFamily: "Inter",
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 20),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: (user['account_status'] != 'Pending' || isProcessing)
-                                  ? Colors.grey
-                                  : const Color(0xFFDE5959),
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                              minimumSize: const Size(150, 50),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            onPressed: (user['account_status'] != 'Pending' || isProcessing)
-                                ? null
-                                : () {
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  final TextEditingController _messageController = TextEditingController();
-                                  return AlertDialog(
-                                    backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    title: Text(
-                                      "Reject Landlord",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20,
-                                        fontFamily: "Krub",
-                                        color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                            const SizedBox(width: 20),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: (user['account_status'] != 'Pending' || isProcessing)
+                                    ? Colors.grey
+                                    : const Color(0xFFDE5959),
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                minimumSize: const Size(150, 50),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              onPressed: (user['account_status'] != 'Pending' || isProcessing)
+                                  ? null
+                                  : () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    final TextEditingController _messageController = TextEditingController();
+                                    return AlertDialog(
+                                      backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(15),
                                       ),
-                                    ),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          "Please provide a reason for rejection:",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                            fontFamily: "Inter",
-                                            color: isDarkMode ? Colors.white : Colors.black,
-                                          ),
+                                      title: Text(
+                                        "Reject Landlord",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                          fontFamily: "Krub",
+                                          color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
                                         ),
-                                        const SizedBox(height: 10),
-                                        TextField(
-                                          controller: _messageController,
-                                          maxLines: 3,
-                                          decoration: InputDecoration(
-                                            border: const OutlineInputBorder(),
-                                            hintText: "Type your message here...",
-                                            hintStyle: TextStyle(
-                                              fontFamily: "Inter",
+                                      ),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            "Please provide a reason for rejection:",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
                                               fontSize: 14,
-                                              color: isDarkMode ? Colors.grey[400] : Colors.grey,
-                                              fontStyle: FontStyle.italic,
+                                              fontFamily: "Inter",
+                                              color: isDarkMode ? Colors.white : Colors.black,
                                             ),
                                           ),
-                                          style: TextStyle(
-                                            color: isDarkMode ? Colors.white : Colors.black,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text(
-                                          "Cancel",
-                                          style: TextStyle(
-                                            fontFamily: "Inter",
-                                            fontSize: 16,
-                                            color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
-                                          ),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: isDarkMode
-                                              ? Colors.blueGrey
-                                              : const Color(0xFF4F768E),
-                                        ),
-                                        onPressed: () async {
-                                          final message = _messageController.text.trim();
-                                          if (message.isEmpty) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text("Message cannot be empty"),
-                                                backgroundColor: Colors.red,
+                                          const SizedBox(height: 10),
+                                          TextField(
+                                            controller: _messageController,
+                                            maxLines: 3,
+                                            decoration: InputDecoration(
+                                              border: const OutlineInputBorder(),
+                                              hintText: "Type your message here...",
+                                              hintStyle: TextStyle(
+                                                fontFamily: "Inter",
+                                                fontSize: 14,
+                                                color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                                                fontStyle: FontStyle.italic,
                                               ),
-                                            );
-                                            return;
-                                          }
-                                          Navigator.pop(context); // Close dialog
-                                          if (!mounted) return;
-                                          setState(() => isProcessing = true);
-                                          try {
-                                            final userId = user['uid'];
-                                            if (userId == null || userId.isEmpty) {
+                                            ),
+                                            style: TextStyle(
+                                              color: isDarkMode ? Colors.white : Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: Text(
+                                            "Cancel",
+                                            style: TextStyle(
+                                              fontFamily: "Inter",
+                                              fontSize: 16,
+                                              color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                                            ),
+                                          ),
+                                        ),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: isDarkMode
+                                                ? Colors.blueGrey
+                                                : const Color(0xFF4F768E),
+                                          ),
+                                          onPressed: () async {
+                                            final message = _messageController.text.trim();
+                                            if (message.isEmpty) {
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 const SnackBar(
-                                                  content: Text("User UID is missing or invalid."),
+                                                  content: Text("Message cannot be empty"),
                                                   backgroundColor: Colors.red,
                                                 ),
                                               );
                                               return;
                                             }
+                                            Navigator.pop(context); // Close dialog
+                                            if (!mounted) return;
+                                            setState(() => isProcessing = true);
+                                            try {
+                                              final userId = user['uid'];
+                                              if (userId == null || userId.isEmpty) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text("User UID is missing or invalid."),
+                                                    backgroundColor: Colors.red,
+                                                  ),
+                                                );
+                                                return;
+                                              }
 
-                                            final result = await UserManagementRejection.rejectLandlordRequest(
-                                              uid: userId,
-                                              rejectionReason: message, // Use dynamic message
-                                            );
+                                              final result = await UserManagementRejection.rejectLandlordRequest(
+                                                uid: userId,
+                                                rejectionReason: message, // Use dynamic message
+                                              );
 
-                                            if (result.success) {
-                                              _showRejectTopSnackBar(result.message);
-                                              await loadUsers();
-                                              if (mounted) Navigator.of(context).pop(); // Close any bottom sheet
-                                            } else {
-                                              _showErrorSnackBar(result.message);
+                                              if (result.success) {
+                                                _showRejectTopSnackBar(result.message);
+                                                await loadUsers();
+                                                if (mounted) Navigator.of(context).pop(); // Close any bottom sheet
+                                              } else {
+                                                _showErrorSnackBar(result.message);
+                                              }
+                                            } catch (e) {
+                                              _showErrorSnackBar("Operation failed: ${e.toString()}");
+                                            } finally {
+                                              if (mounted) setState(() => isProcessing = false);
                                             }
-                                          } catch (e) {
-                                            _showErrorSnackBar("Operation failed: ${e.toString()}");
-                                          } finally {
-                                            if (mounted) setState(() => isProcessing = false);
-                                          }
-                                        },
-                                        child: const Text(
-                                          "Submit",
-                                          style: TextStyle(
-                                            fontFamily: "Inter",
-                                            fontSize: 16,
-                                            color: Colors.white,
+                                          },
+                                          child: const Text(
+                                            "Submit",
+                                            style: TextStyle(
+                                              fontFamily: "Inter",
+                                              fontSize: 16,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
 
-                            child: Text(
-                              isRejected ? "Rejected" : "Reject",
-                              style: const TextStyle(
-                                fontFamily: "Inter",
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
-                                color: Colors.white,
+                              child: Text(
+                                isRejected ? "Rejected" : "Reject",
+                                style: const TextStyle(
+                                  fontFamily: "Inter",
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ],
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1269,6 +1264,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       },
     );
   }
+
   //Approve Snackbar style
   void _showApproveTopSnackBar(String message) {
     final overlay = Overlay.of(context);
@@ -1374,32 +1370,38 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   Widget _infoRow(String label, String? value, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 150,
-            child: Text(
-              "$label:",
-              style: TextStyle(
-                fontFamily: "Inter",
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value ?? '',
-              style: TextStyle(
-                fontFamily: "Inter",
-                fontSize: 16,
-                color: isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-          ),
-        ],
-      ),
+     child: Row(
+       children: [
+         Flexible(
+           child: SizedBox(
+             width: 150,
+             child: Text(
+               "$label:",
+               style: TextStyle(
+                 fontFamily: "Inter",
+                 fontSize: 16,
+                 fontWeight: FontWeight.bold,
+
+                 color: isDarkMode ? Colors.white : Colors.black,
+               ),
+             ),
+           ),
+         ),
+         Expanded(
+           child: SingleChildScrollView(
+             scrollDirection: Axis.horizontal, // Allows horizontal scrolling for long text
+             child: Text(
+               value ?? '',
+               style: TextStyle(
+                 fontFamily: "Inter",
+                 fontSize: 16,
+                 color: isDarkMode ? Colors.white : Colors.black,
+               ),
+             ),
+           ),
+         ),
+       ],
+     ),
     );
   }
 
@@ -1448,6 +1450,12 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     required VoidCallback? onPressed,
     required bool isDarkMode,
   }) {
+
+    // Check if the screen width is greater than 400
+    if (MediaQuery.of(context).size.width <= 600) {
+      return const SizedBox.shrink(); // Return an empty widget if width is 400 or less
+    }
+
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(

@@ -141,7 +141,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             padding: const EdgeInsets.only(top: 50.0),
                             child: _buildSidebarTile("Account", Icons.verified_user),
                           ),
-                          _buildSidebarTile("User Permission", Icons.settings),
+                          _buildSidebarTile("Notifications", Icons.notifications_active),
                         ],
                       ),
                     ),
@@ -166,7 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             child: _selectedPage == 'Account'
                                 ? _buildAccountPage()
-                                : _buildUserPermissionPage(),
+                                : _buildNotificationPage(),
                           ),
                         );
                       },
@@ -220,17 +220,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
-              if (screenWidth <= 600 && isHovered)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
@@ -238,6 +227,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+
+  //Profile page
   Widget _buildAccountPage() {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
@@ -376,25 +367,135 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildUserPermissionPage() {
+
+  //Notification page
+  Widget _buildNotificationPage() {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
+
+    // Sample notification data
+    final notifications = [
+      {
+        'title': 'New Message',
+        'message': 'You received a new message from John Doe.',
+        'timestamp': '2h ago',
+        'isRead': true,
+      },
+      {
+        'title': 'Payment Received',
+        'message': 'Your payment of \$500 has been processed.',
+        'timestamp': '5h ago',
+        'isRead': false,
+      },
+      {
+        'title': 'System Update',
+        'message': 'RentXpert system will undergo maintenance tonight.',
+        'timestamp': '1d ago',
+        'isRead': false,
+      },
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("User Permission",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black,
-            )),
+        Text(
+          "Notifications",
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : const Color(0xFF4B6C81),
+            fontFamily: "Krub",
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const Divider(thickness: 1),
         const SizedBox(height: 16),
-        Text(
-          "This is the User Permission page.",
-          style: TextStyle(
-            color: isDarkMode ? Colors.white : Colors.black,
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: notifications.map((notification) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: isDarkMode
+                          ? Colors.grey[800]
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isDarkMode ? Colors.grey[600]! : Colors.grey[300]!,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDarkMode
+                              ? Colors.black54
+                              : Colors.black12,
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          margin: const EdgeInsets.only(top: 5, right: 10),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: notification['isRead'] as bool
+                                ? Colors.grey
+                                : const Color(0xFF4A758F),
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                notification['title'] as String,
+                                style: TextStyle(
+                                  fontFamily: "Krub",
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                notification['message'] as String,
+                                style: TextStyle(
+                                  fontFamily: "Krub",
+                                  fontSize: 14,
+                                  color: isDarkMode
+                                      ? Colors.grey[300]
+                                      : Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                notification['timestamp'] as String,
+                                style: TextStyle(
+                                  fontFamily: "Krub",
+                                  fontSize: 12,
+                                  color: isDarkMode
+                                      ? Colors.grey[400]
+                                      : Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ),
       ],
