@@ -916,8 +916,8 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                     child: IconButton(
                       icon: Image.asset(
                         'assets/images/back_image.png',
-                        width: 20,
-                        height: 20,
+                        width: 30,
+                        height: 30,
                         color: isDarkMode ? Colors.white : null,
                       ),
                       onPressed: () => Navigator.of(context).pop(),
@@ -949,28 +949,13 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
               borderRadius: BorderRadius.circular(15),
             ),
             contentPadding: const EdgeInsets.all(20),
-            content: SingleChildScrollView( // Makes the content scrollable
-              child: SizedBox(
-                width: 800,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Positioned(
-                      top: 5.0,
-                      right: 5.0,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 5.0, right: 20.0),
-                        child: IconButton(
-                          icon: Image.asset(
-                            'assets/images/back_image.png',
-                            width: 30,
-                            height: 30,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ),
-                    ),
-                    Column(
+            content: Stack(
+              children: [
+                SingleChildScrollView(
+                  child: SizedBox(
+                    width: 800,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Row(
                           children: [
@@ -1032,16 +1017,16 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                 child: Center(
                                   child: user['valid_id'] != null
                                       ? Image.network(
-                                    user['valid_id'],
-                                    fit: BoxFit.cover,
-                                    width: 200,
-                                    height: 200,
-                                  )
+                                          user['valid_id'],
+                                          fit: BoxFit.cover,
+                                          width: 200,
+                                          height: 200,
+                                        )
                                       : const Icon(
-                                    Icons.image_not_supported,
-                                    size: 100,
-                                    color: Colors.grey,
-                                  ),
+                                          Icons.image_not_supported,
+                                          size: 100,
+                                          color: Colors.grey,
+                                        ),
                                 ),
                               ),
                             ),
@@ -1063,33 +1048,33 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                               onPressed: (user['account_status'] != 'Pending' || isProcessing)
                                   ? null
                                   : () async {
-                                setState(() => isProcessing = true);
-                                final userId = int.parse(user['ID'].toString()).toString();
+                                      setState(() => isProcessing = true);
+                                      final userId = int.parse(user['ID'].toString()).toString();
 
-                                if (userId == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("User ID is missing."),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                  setState(() => isProcessing = false);
-                                  return;
-                                }
+                                      if (userId == null) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text("User ID is missing."),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                        setState(() => isProcessing = false);
+                                        return;
+                                      }
 
-                                final success = await UserManagementStatus.verifyLandlordViaAdmin(user['uid']);
+                                      final success = await UserManagementStatus.verifyLandlordViaAdmin(user['uid']);
 
-                                setState(() => isProcessing = false);
+                                      setState(() => isProcessing = false);
 
-                                if (success) {
-                                  _showApproveTopSnackBar("User verified successfully");
-                                  _showSuccessrSnackBar("User verified successfully");
-                                  await loadUsers();
-                                  Navigator.of(context).pop();
-                                } else {
-                                  _showErrorSnackBar("Failed to verify user");
-                                }
-                              },
+                                      if (success) {
+                                        _showApproveTopSnackBar("User verified successfully");
+                                        _showSuccessrSnackBar("User verified successfully");
+                                        await loadUsers();
+                                        Navigator.of(context).pop();
+                                      } else {
+                                        _showErrorSnackBar("Failed to verify user");
+                                      }
+                                    },
                               child: Text(
                                 isVerified ? "Verified" : "Verify",
                                 style: const TextStyle(
@@ -1113,132 +1098,132 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                               onPressed: (user['account_status'] != 'Pending' || isProcessing)
                                   ? null
                                   : () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    final TextEditingController _messageController = TextEditingController();
-                                    return AlertDialog(
-                                      backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(15),
-                                      ),
-                                      title: Text(
-                                        "Reject Landlord",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20,
-                                          fontFamily: "Krub",
-                                          color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
-                                        ),
-                                      ),
-                                      content: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            "Please provide a reason for rejection:",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                              fontFamily: "Inter",
-                                              color: isDarkMode ? Colors.white : Colors.black,
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          final TextEditingController _messageController = TextEditingController();
+                                          return AlertDialog(
+                                            backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(15),
                                             ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                          TextField(
-                                            controller: _messageController,
-                                            maxLines: 3,
-                                            decoration: InputDecoration(
-                                              border: const OutlineInputBorder(),
-                                              hintText: "Type your message here...",
-                                              hintStyle: TextStyle(
-                                                fontFamily: "Inter",
-                                                fontSize: 14,
-                                                color: isDarkMode ? Colors.grey[400] : Colors.grey,
-                                                fontStyle: FontStyle.italic,
+                                            title: Text(
+                                              "Reject Landlord",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20,
+                                                fontFamily: "Krub",
+                                                color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
                                               ),
                                             ),
-                                            style: TextStyle(
-                                              color: isDarkMode ? Colors.white : Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: Text(
-                                            "Cancel",
-                                            style: TextStyle(
-                                              fontFamily: "Inter",
-                                              fontSize: 16,
-                                              color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
-                                            ),
-                                          ),
-                                        ),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: isDarkMode
-                                                ? Colors.blueGrey
-                                                : const Color(0xFF4F768E),
-                                          ),
-                                          onPressed: () async {
-                                            final message = _messageController.text.trim();
-                                            if (message.isEmpty) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text("Message cannot be empty"),
-                                                  backgroundColor: Colors.red,
-                                                ),
-                                              );
-                                              return;
-                                            }
-                                            Navigator.pop(context); // Close dialog
-                                            if (!mounted) return;
-                                            setState(() => isProcessing = true);
-                                            try {
-                                              final userId = user['uid'];
-                                              if (userId == null || userId.isEmpty) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text("User UID is missing or invalid."),
-                                                    backgroundColor: Colors.red,
+                                            content: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  "Please provide a reason for rejection:",
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    fontFamily: "Inter",
+                                                    color: isDarkMode ? Colors.white : Colors.black,
                                                   ),
-                                                );
-                                                return;
-                                              }
-
-                                              final result = await UserManagementRejection.rejectLandlordRequest(
-                                                uid: userId,
-                                                rejectionReason: message, // Use dynamic message
-                                              );
-
-                                              if (result.success) {
-                                                _showRejectTopSnackBar(result.message);
-                                                await loadUsers();
-                                                if (mounted) Navigator.of(context).pop(); // Close any bottom sheet
-                                              } else {
-                                                _showErrorSnackBar(result.message);
-                                              }
-                                            } catch (e) {
-                                              _showErrorSnackBar("Operation failed: ${e.toString()}");
-                                            } finally {
-                                              if (mounted) setState(() => isProcessing = false);
-                                            }
-                                          },
-                                          child: const Text(
-                                            "Submit",
-                                            style: TextStyle(
-                                              fontFamily: "Inter",
-                                              fontSize: 16,
-                                              color: Colors.white,
+                                                ),
+                                                const SizedBox(height: 10),
+                                                TextField(
+                                                  controller: _messageController,
+                                                  maxLines: 3,
+                                                  decoration: InputDecoration(
+                                                    border: const OutlineInputBorder(),
+                                                    hintText: "Type your message here...",
+                                                    hintStyle: TextStyle(
+                                                      fontFamily: "Inter",
+                                                      fontSize: 14,
+                                                      color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                                                      fontStyle: FontStyle.italic,
+                                                    ),
+                                                  ),
+                                                  style: TextStyle(
+                                                    color: isDarkMode ? Colors.white : Colors.black,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context),
+                                                child: Text(
+                                                  "Cancel",
+                                                  style: TextStyle(
+                                                    fontFamily: "Inter",
+                                                    fontSize: 16,
+                                                    color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                                                  ),
+                                                ),
+                                              ),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: isDarkMode
+                                                      ? Colors.blueGrey
+                                                      : const Color(0xFF4F768E),
+                                                ),
+                                                onPressed: () async {
+                                                  final message = _messageController.text.trim();
+                                                  if (message.isEmpty) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text("Message cannot be empty"),
+                                                        backgroundColor: Colors.red,
+                                                      ),
+                                                    );
+                                                    return;
+                                                  }
+                                                  Navigator.pop(context); // Close dialog
+                                                  if (!mounted) return;
+                                                  setState(() => isProcessing = true);
+                                                  try {
+                                                    final userId = user['uid'];
+                                                    if (userId == null || userId.isEmpty) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text("User UID is missing or invalid."),
+                                                          backgroundColor: Colors.red,
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
+
+                                                    final result = await UserManagementRejection.rejectLandlordRequest(
+                                                      uid: userId,
+                                                      rejectionReason: message, // Use dynamic message
+                                                    );
+
+                                                    if (result.success) {
+                                                      _showRejectTopSnackBar(result.message);
+                                                      await loadUsers();
+                                                      if (mounted) Navigator.of(context).pop(); // Close any bottom sheet
+                                                    } else {
+                                                      _showErrorSnackBar(result.message);
+                                                    }
+                                                  } catch (e) {
+                                                    _showErrorSnackBar("Operation failed: ${e.toString()}");
+                                                  } finally {
+                                                    if (mounted) setState(() => isProcessing = false);
+                                                  }
+                                                },
+                                                child: const Text(
+                                                  "Submit",
+                                                  style: TextStyle(
+                                                    fontFamily: "Inter",
+                                                    fontSize: 16,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
 
                               child: Text(
                                 isRejected ? "Rejected" : "Reject",
@@ -1255,9 +1240,22 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                         const SizedBox(height: 10),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: IconButton(
+                    icon: Image.asset(
+                      'assets/images/back_image.png',
+                      width: 30,
+                      height: 30,
+                      color: isDarkMode ? Colors.white : null,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ],
             ),
           ),
         );

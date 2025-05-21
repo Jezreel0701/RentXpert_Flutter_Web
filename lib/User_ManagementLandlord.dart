@@ -973,137 +973,135 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
 
   //More option dialog
-  void _showUserDetailsDialog(Map<String, dynamic> user) {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    final isDarkMode = themeProvider.isDarkMode;
+void _showUserDetailsDialog(Map<String, dynamic> user) {
+  final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+  final isDarkMode = themeProvider.isDarkMode;
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        bool isVerified = false;
-        bool isRejected = false;
-        bool isProcessing = false;
+  showDialog(
+    context: context,
+    builder: (context) {
+      bool isVerified = false;
+      bool isRejected = false;
+      bool isProcessing = false;
 
-        return StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            contentPadding: const EdgeInsets.all(20),
-            content: SingleChildScrollView( // Makes the dialog content scrollable
-              child: SizedBox(
-                width: 800,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Positioned(
-                      top: 5.0,
-                      right: 5.0,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 5.0, right: 20.0),
-                        child: IconButton(
-                          icon: Image.asset(
-                            'assets/images/back_image.png',
-                            width: 30,
-                            height: 30,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ),
-                    ),
-                    Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "User Details",
-                                      style: TextStyle(
-                                        color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
-                                        fontFamily: "Krub",
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 35,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+      return StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          contentPadding: const EdgeInsets.all(20),
+          content: Stack(
+            children: [
+              SingleChildScrollView(
+                child: SizedBox(
+                  width: 800,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "User Details",
+                                    style: TextStyle(
+                                      color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                                      fontFamily: "Krub",
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 35,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    const SizedBox(height: 20),
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 30.0, left: 30.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Align(
-                                            alignment: Alignment.center,
-                                            child: _infoRow("Name", user['fullname'], isDarkMode),
-                                          ),
-                                          Align(
-                                            alignment: Alignment.center,
-                                            child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
-                                          ),
-                                          Align(
-                                            alignment: Alignment.center,
-                                            child: _infoRow("Address", user['address'], isDarkMode),
-                                          ),
-                                          Align(
-                                            alignment: Alignment.center,
-                                            child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Center(
-                                  child: user['valid_id'] != null
-                                      ? Image.network(
-                                          user['valid_id'],
-                                          fit: BoxFit.cover,
-                                          width: 200,
-                                          height: 200,
-                                        )
-                                      : const Icon(
-                                          Icons.image_not_supported,
-                                          size: 100,
-                                          color: Colors.grey,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 30.0, left: 30.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: _infoRow("Name", user['fullname'], isDarkMode),
                                         ),
-                                ),
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: _infoRow("Address", user['address'], isDarkMode),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(width: 20),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
-                  ],
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Center(
+                                child: user['valid_id'] != null
+                                    ? Image.network(
+                                        user['valid_id'],
+                                        fit: BoxFit.cover,
+                                        width: 200,
+                                        height: 200,
+                                      )
+                                    : const Icon(
+                                        Icons.image_not_supported,
+                                        size: 100,
+                                        color: Colors.grey,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(width: 20),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
                 ),
               ),
-            ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  icon: Image.asset(
+                    'assets/images/back_image.png',
+                    width: 30,
+                    height: 30,
+                    color: isDarkMode ? Colors.white : null,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
 
 // Updated _infoRow with dark mode support
