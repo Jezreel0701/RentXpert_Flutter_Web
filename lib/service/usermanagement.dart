@@ -7,6 +7,7 @@ class UserManagementUpdate {  // PascalCase for class name
   static const bool debug = true;  // Add debug constant matching original pattern
 
 
+
   static Future<Map<String, dynamic>?> updateUserDetails({
     required Map<String, dynamic> payload,
   }) async {
@@ -495,8 +496,7 @@ class LandlordProfileFetch {
     final url = Uri.parse('$baseUrl/landlord/profileid/$uid');
 
     if (debug) {
-      print('\n🟡 Fetching landlord profile for UID: $uid');
-      print('• Endpoint: $url');
+      print('\n🟡 Fetching landlord profile from: $url');
     }
 
     try {
@@ -509,29 +509,18 @@ class LandlordProfileFetch {
       );
 
       if (debug) {
-        print('🔵 Response Status: ${response.statusCode}');
+        print('🔵 Response Status Code: ${response.statusCode}');
         print('🔵 Response Body: ${response.body}');
       }
 
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        if (debug) {
-          print('🟢 Successfully fetched landlord profile for UID: $uid');
-          print('• Server message: ${responseData['message']}');
-          print('• Profile ID: ${responseData['profile']['id']}');
-        }
         return ProfileFetchResult(
           success: true,
           message: responseData['message'] ?? 'Profile retrieved',
           profile: LandlordProfile.fromJson(responseData['profile']),
         );
-      }
-
-      if (debug) {
-        print('🔵 Server returned error response');
-        print('• Status code: ${response.statusCode}');
-        print('• Error message: ${responseData['message']}');
       }
 
       return ProfileFetchResult(
@@ -541,9 +530,7 @@ class LandlordProfileFetch {
       );
     } catch (e) {
       if (debug) {
-        print('🔴 Critical error during profile fetch:');
-        print('• Error type: ${e.runtimeType}');
-        print('• Error message: ${e.toString()}');
+        print('🔴 Exception fetching landlord profile: $e');
       }
       return ProfileFetchResult(
         success: false,
@@ -554,6 +541,7 @@ class LandlordProfileFetch {
   }
 }
 
+// Remaining classes remain unchanged
 class ProfileFetchResult {
   final bool success;
   final String message;
