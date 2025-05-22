@@ -1037,22 +1037,59 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                               flex: 1,
                               child: Padding(
                                 padding: const EdgeInsets.all(20),
-                                child: Center(
-                                  child: user['valid_id'] != null
-                                      ? Image.network(
-                                          user['valid_id'],
-                                          fit: BoxFit.cover,
-                                          width: 200,
-                                          height: 200,
-                                        )
-                                      : const Icon(
+                                child: FutureBuilder<ProfileFetchResult?>(
+                                  future: LandlordProfileFetch.fetchLatestProfile(user['uid']),
+                                  builder: (context, snapshot) {
+                                    // Handle loading state
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+
+                                    // Handle error state
+                                    if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.success) {
+                                      return const Center(
+                                        child: Icon(
+                                          Icons.error_outline,
+                                          size: 100,
+                                          color: Colors.red,
+                                        ),
+                                      );
+                                    }
+
+                                    // Get the profile data
+                                    final profile = snapshot.data!.profile!;
+                                    final verificationIdUrl = profile.verificationId;
+                                    final permitIdUrl = profile.businessPermit;
+
+                                    return Center(
+                                      child: permitIdUrl.isNotEmpty
+                                          ? Image.network(
+                                        permitIdUrl,
+                                        fit: BoxFit.cover,
+                                        width: 200,
+                                        height: 200,
+                                        loadingBuilder: (context, child, loadingProgress) {
+                                          if (loadingProgress == null) return child;
+                                          return const CircularProgressIndicator();
+                                        },
+                                        errorBuilder: (context, error, stackTrace) => const Icon(
                                           Icons.image_not_supported,
                                           size: 100,
                                           color: Colors.grey,
                                         ),
+                                      )
+                                          : const Icon(
+                                        Icons.image_not_supported,
+                                        size: 100,
+                                        color: Colors.grey,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
-                            ),
+                            )
                           ],
                         ),
                         const SizedBox(height: 10),
