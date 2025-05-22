@@ -486,3 +486,111 @@ class ApartmentManagementUpdate {
     }
   }
 }
+
+
+class LandlordProfileFetch {
+  static const bool debug = true;
+
+  static Future<ProfileFetchResult?> fetchLatestProfile(String uid) async {
+    final url = Uri.parse('$baseUrl/landlord/profileid/$uid');
+
+    if (debug) {
+      print('\n🟡 Fetching landlord profile for UID: $uid');
+      print('• Endpoint: $url');
+    }
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      );
+
+      if (debug) {
+        print('🔵 Response Status: ${response.statusCode}');
+        print('🔵 Response Body: ${response.body}');
+      }
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        if (debug) {
+          print('🟢 Successfully fetched landlord profile for UID: $uid');
+          print('• Server message: ${responseData['message']}');
+          print('• Profile ID: ${responseData['profile']['id']}');
+        }
+        return ProfileFetchResult(
+          success: true,
+          message: responseData['message'] ?? 'Profile retrieved',
+          profile: LandlordProfile.fromJson(responseData['profile']),
+        );
+      }
+
+      if (debug) {
+        print('🔵 Server returned error response');
+        print('• Status code: ${response.statusCode}');
+        print('• Error message: ${responseData['message']}');
+      }
+
+      return ProfileFetchResult(
+        success: false,
+        message: responseData['message'] ?? 'Failed to fetch profile',
+        profile: null,
+      );
+    } catch (e) {
+      if (debug) {
+        print('🔴 Critical error during profile fetch:');
+        print('• Error type: ${e.runtimeType}');
+        print('• Error message: ${e.toString()}');
+      }
+      return ProfileFetchResult(
+        success: false,
+        message: 'Network error: ${e.runtimeType}',
+        profile: null,
+      );
+    }
+  }
+}
+
+class ProfileFetchResult {
+  final bool success;
+  final String message;
+  final LandlordProfile? profile;
+
+  ProfileFetchResult({
+    required this.success,
+    required this.message,
+    required this.profile,
+  });
+
+  @override
+  String toString() => 'ProfileFetchResult: $message (Success: $success)';
+}
+
+class LandlordProfile {
+  final int id;
+  final String businessPermit;
+  final String verificationId;
+
+  LandlordProfile({
+    required this.id,
+    required this.businessPermit,
+    required this.verificationId,
+  });
+
+  factory LandlordProfile.fromJson(Map<String, dynamic> json) {
+    return LandlordProfile(
+      id: json['id'] as int,
+      businessPermit: json['business_permit'] as String,
+      verificationId: json['verification_id'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'business_permit': businessPermit,
+    'verification_id': verificationId,
+  };
+}

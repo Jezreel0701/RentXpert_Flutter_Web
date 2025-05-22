@@ -1008,26 +1008,27 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                 ),
                               ),
                             ),
-                            Expanded(
-                              flex: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Center(
-                                  child: user['valid_id'] != null
-                                      ? Image.network(
-                                    user['valid_id'],
-                                    fit: BoxFit.cover,
-                                    width: 200,
-                                    height: 200,
-                                  )
-                                      : const Icon(
-                                    Icons.image_not_supported,
-                                    size: 100,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            // Expanded(
+                            //   flex: 1,
+                            //   child: Padding(
+                            //     padding: const EdgeInsets.all(20),
+                            //     child: Center(
+                            //
+                            //       child: user['valid_id'] != null
+                            //           ? Image.network(
+                            //         user['valid_id'],
+                            //         fit: BoxFit.cover,
+                            //         width: 200,
+                            //         height: 200,
+                            //       )
+                            //           : const Icon(
+                            //         Icons.image_not_supported,
+                            //         size: 100,
+                            //         color: Colors.grey,
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),
