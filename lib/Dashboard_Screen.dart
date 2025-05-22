@@ -145,148 +145,151 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    // Bar Chart Container (unchanged)
-                    Container(
-                      width: screenWidth * 0.22,
-                      height: screenHeight * 0.45,
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Align(
-                            alignment: Alignment.center,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.square, color: Color(0xFF8979FF), size: 14),
-                                SizedBox(width: 8),
-                                Text("2025",
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontFamily: "Inter",
-                                        fontWeight: FontWeight.w500,
-                                        color: chartTextColor)),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 12),
 
-                          // Bar chart container
-                          SizedBox(
-                            width: screenWidth * 0.3,
-                            height: screenHeight * 0.35,
-                            child: RotatedBox(
-                              quarterTurns: 1,
-                              child: BarChart(
-                                BarChartData(
-                                  maxY: 100,
-                                  barGroups: [
-                                    BarChartGroupData(
-                                      x: 0,
-                                      barRods: [
-                                        BarChartRodData(
-                                          toY: tenantCount?.toDouble() ?? 0,
-                                          width: 60,
-                                          color: Color(0xFF475782),
-                                          borderRadius: BorderRadius.circular(4),
-                                          backDrawRodData: BackgroundBarChartRodData(
-                                            show: true,
-                                            toY: 100,
-                                            color: isDarkMode
-                                                ? Colors.grey[700]!.withOpacity(0.5)
-                                                : Color(0xFFD6DBED).withOpacity(0.5),
-                                          ),
+                    // Bar Chart Container
+                  Container(
+                  width: screenWidth * 0.22,
+                  height: screenHeight * 0.45,
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.square, color: Color(0xFF8979FF), size: 14),
+                              SizedBox(width: 8),
+                              Text("2025",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontFamily: "Inter",
+                                      fontWeight: FontWeight.w500,
+                                      color: chartTextColor)),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 12),
+
+                        // Bar chart container
+                        SizedBox(
+                          width: screenWidth * 0.3,
+                          height: screenHeight * 0.35,
+                          child: RotatedBox(
+                            quarterTurns: 1,
+                            child: BarChart(
+                              BarChartData(
+                                maxY: 100,
+                                barGroups: [
+                                  BarChartGroupData(
+                                    x: 0,
+                                    barRods: [
+                                      BarChartRodData(
+                                        toY: tenantCount?.toDouble() ?? 0,
+                                        width: 60,
+                                        color: Color(0xFF475782),
+                                        borderRadius: BorderRadius.circular(4),
+                                        backDrawRodData: BackgroundBarChartRodData(
+                                          show: true,
+                                          toY: 100,
+                                          color: isDarkMode
+                                              ? Colors.grey[700]!.withOpacity(0.5)
+                                              : Color(0xFFD6DBED).withOpacity(0.5),
                                         ),
-                                      ],
-                                    ),
-                                    BarChartGroupData(
-                                      x: 1,
-                                      barRods: [
-                                        BarChartRodData(
-                                          toY: landlordCount?.toDouble() ?? 0,
-                                          width: 60,
-                                          color: Color(0xFF8BACC0),
-                                          borderRadius: BorderRadius.circular(4),
-                                          backDrawRodData: BackgroundBarChartRodData(
-                                            show: true,
-                                            toY: 100,
-                                            color: isDarkMode
-                                                ? Colors.grey[700]!.withOpacity(0.5)
-                                                : Color(0xFFD6DBED).withOpacity(0.5),
-                                          ),
+                                      ),
+                                    ],
+                                  ),
+                                  BarChartGroupData(
+                                    x: 1,
+                                    barRods: [
+                                      BarChartRodData(
+                                        toY: landlordCount?.toDouble() ?? 0,
+                                        width: 60,
+                                        color: Color(0xFF8BACC0),
+                                        borderRadius: BorderRadius.circular(4),
+                                        backDrawRodData: BackgroundBarChartRodData(
+                                          show: true,
+                                          toY: 100,
+                                          color: isDarkMode
+                                              ? Colors.grey[700]!.withOpacity(0.5)
+                                              : Color(0xFFD6DBED).withOpacity(0.5),
                                         ),
-                                      ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                                titlesData: FlTitlesData(
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      getTitlesWidget: (value, meta) {
+                                        return Transform.rotate(
+                                          angle: -1.5708,
+                                          child: Text(
+                                            value.toInt().toString(),
+                                            style: TextStyle(
+                                              color: chartTextColor,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
-                                  ],
-                                  titlesData: FlTitlesData(
-                                    leftTitles: AxisTitles(
-                                      sideTitles: SideTitles(
-                                        showTitles: true,
-                                        getTitlesWidget: (value, meta) {
-                                          return Transform.rotate(
-                                            angle: -1.5708,
+                                  ),
+                                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 55,
+                                      getTitlesWidget: (value, meta) {
+                                        final label = value.toInt() == 0 ? "Tenants" : "Landlords";
+                                        return Transform.rotate(
+                                          angle: -1.5708,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(top: 20.0),
                                             child: Text(
-                                              value.toInt().toString(),
+                                              label,
                                               style: TextStyle(
                                                 color: chartTextColor,
+                                                fontFamily: "Inter",
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                    bottomTitles: AxisTitles(
-                                      sideTitles: SideTitles(
-                                        showTitles: true,
-                                        reservedSize: 55,
-                                        getTitlesWidget: (value, meta) {
-                                          final label = value.toInt() == 0 ? "Tenants" : "Landlords";
-                                          return Transform.rotate(
-                                            angle: -1.5708,
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(top: 20.0),
-                                              child: Text(
-                                                label,
-                                                style: TextStyle(
-                                                  color: chartTextColor,
-                                                  fontFamily: "Inter",
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
-                                  gridData: FlGridData(show: true),
-                                  barTouchData: BarTouchData(enabled: false),
-                                  borderData: FlBorderData(
-                                    show: true,
-                                    border: Border(bottom: BorderSide(color: chartTextColor)),
-                                  ),
+                                ),
+                                gridData: FlGridData(show: true),
+                                barTouchData: BarTouchData(enabled: false),
+                                borderData: FlBorderData(
+                                  show: true,
+                                  border: Border(bottom: BorderSide(color: chartTextColor)),
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
+                ),
 
                     SizedBox(width: 40),
 
-                    // Pie Chart Container (revised)
+                    // Pie Chart Container
                     Container(
                       width: screenWidth * 0.45,
                       height: screenHeight * 0.45,

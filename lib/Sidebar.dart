@@ -42,25 +42,30 @@ class _SidebarState extends State<Sidebar> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 30),
-          child: Column(
-            children: [
-              Image.asset("assets/images/white_logo.png", height: 120),
-              const Divider(color: Colors.white, thickness: 1),
-            ],
-          ),
-        ),
-        Expanded(
-          child: SingleChildScrollView(
+    return Container(
+      // color: Colors.transparent, // Set the background to transparent
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 30),
             child: Column(
-              children: _buildSidebarItems(),
+              children: [
+                GestureDetector(
+                  onTap: () => widget.onNavigation('/dashboard'),
+                  child: Image.asset("assets/images/white_logo.png", height: 120),
+                )
+              ],
             ),
           ),
-        ),
-      ],
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: _buildSidebarItems(),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -174,9 +179,11 @@ class _SidebarState extends State<Sidebar> {
                 ],
               ),
             ),
-          const SizedBox(
-            width: 220,
-            child: Divider(color: Colors.white, thickness: 1),
+          Center(
+            child: const SizedBox(
+              width: 220,
+              child: Divider(color: Colors.white, thickness: 1),
+            ),
           ),
         ],
       ),
@@ -280,10 +287,12 @@ class _SidebarState extends State<Sidebar> {
   }
 
   void _showLogoutDialog() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -294,12 +303,13 @@ class _SidebarState extends State<Sidebar> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Are you sure you want to log out?',
                 style: TextStyle(
                   fontSize: 20,
                   fontFamily: "Krub",
                   fontWeight: FontWeight.w600,
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -312,12 +322,12 @@ class _SidebarState extends State<Sidebar> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         elevation: 4,
-                        backgroundColor: const Color(0xFF4A758F),
+                        backgroundColor: isDarkMode ? Colors.grey[700] : const Color(0xFF4A758F),
                       ),
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text(
+                      child: Text(
                         'Cancel',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: isDarkMode ? Colors.black : Colors.white),
                       ),
                     ),
                   ),
@@ -327,16 +337,16 @@ class _SidebarState extends State<Sidebar> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         elevation: 4,
-                        backgroundColor: const Color(0xFFDE5959),
+                        backgroundColor: isDarkMode ? Colors.red[400] : const Color(0xFFDE5959),
                       ),
                       onPressed: () async {
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.remove('authToken');
                         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
                       },
-                      child: const Text(
+                      child: Text(
                         'Log Out',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: isDarkMode ? Colors.black : Colors.white),
                       ),
                     ),
                   ),

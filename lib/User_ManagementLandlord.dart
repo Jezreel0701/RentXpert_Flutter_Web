@@ -498,7 +498,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
                 child: SingleChildScrollView(
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
+                      padding: const EdgeInsets.only(top: 50.0),
                       child: Wrap(
                         spacing: 16.0,
                         runSpacing: 16.0,
@@ -640,35 +640,66 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.grey[900] : const Color(0xFFF5F5F5),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "User Management: Landlord",
-              style: TextStyle(
-                fontSize: 45,
-                fontFamily: "Inter",
-                color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
-                fontWeight: FontWeight.w600,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Determine if the screen is small (width or height <= 600)
+          final isSmallScreen = constraints.maxWidth <= 600 || constraints.maxHeight <= 600;
+
+          // Conditionally wrap content in SingleChildScrollView for small screens
+          return isSmallScreen
+              ? SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
               ),
+              child: _buildContent(context, isDarkMode, isSmallScreen, constraints),
             ),
-            const SizedBox(height: 20),
-            _buildSearchBar(isDarkMode),
-            const SizedBox(height: 20),
-            Expanded(
+          )
+              : _buildContent(context, isDarkMode, isSmallScreen, constraints);
+        },
+      ),
+    );
+  }
+
+// Extracted content builder to avoid duplication
+  Widget _buildContent(BuildContext context, bool isDarkMode, bool isSmallScreen, BoxConstraints constraints) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "User Management: Landlord",
+            style: TextStyle(
+              fontSize: isSmallScreen ? 32 : 45, // Scale down font for small screens
+              fontFamily: "Inter",
+              color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+              fontWeight: FontWeight.w600,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildSearchBar(isDarkMode),
+          const SizedBox(height: 20),
+          Flexible(
+            fit: isSmallScreen ? FlexFit.loose : FlexFit.tight, // Loose for small screens, tight for large
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: isSmallScreen ? constraints.maxHeight * 0.7 : constraints.maxHeight * 0.9,
+              ),
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 child: _buildUserTable(isDarkMode, key: ValueKey(_currentPage)),
               ),
             ),
-            const SizedBox(height: 20),
-            _buildPaginationBar(isDarkMode),
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+          // Show pagination only if height allows and not a small screen
+          if (!isSmallScreen) _buildPaginationBar(isDarkMode),
+        ],
       ),
     );
   }
@@ -964,154 +995,135 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
 
   //More option dialog
-  void _showUserDetailsDialog(Map<String, dynamic> user) {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    final isDarkMode = themeProvider.isDarkMode;
-    showDialog(
-      context: context,
-      builder: (context) {
-        bool isVerified = false;
-        bool isRejected = false;
-        bool isProcessing = false;
+void _showUserDetailsDialog(Map<String, dynamic> user) {
+  final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+  final isDarkMode = themeProvider.isDarkMode;
 
+  showDialog(
+    context: context,
+    builder: (context) {
+      bool isVerified = false;
+      bool isRejected = false;
+      bool isProcessing = false;
 
-        return StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            contentPadding: const EdgeInsets.all(20),
-            content: SizedBox(
-              width: 800,
-              height: 500,
-              child: Stack(
-                children: [
-
-
-                  Positioned(    // Back button
-                    top: 5.0,
-                    right: 5.0,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 5.0, right: 20.0),
-                      child: IconButton(
-                        icon: Image.asset(
-                          'assets/images/back_image.png',
-                          width: 30,
-                          height: 30,
-                        ),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                  ),
-
-
-                  Column(
+      return StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          contentPadding: const EdgeInsets.all(20),
+          content: Stack(
+            children: [
+              SingleChildScrollView(
+                child: SizedBox(
+                  width: 800,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-
-                            Expanded(    // Left section: User Details
-                              flex: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "User Details",
-                                      style: TextStyle(
-                                        color: isDarkMode ? Colors.white : Color(0xFF4F768E),
-                                        fontFamily: "Krub",
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 35,
-                                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "User Details",
+                                    style: TextStyle(
+                                      color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                                      fontFamily: "Krub",
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 35,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    const SizedBox(height: 20),
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 30.0, left: 30.0),
-                                      child: SingleChildScrollView(
-                                        child: ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            minHeight: 0,
-                                            maxHeight: 350,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Name", user['fullname'], isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Address", user['address'], isDarkMode),
-                                              ),
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-
-                            Expanded(     // Right section: Valid ID
-                              flex: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Center(
-                                  child: user['valid_id'] != null
-                                      ? Image.network(
-                                    user['valid_id'],
-                                    fit: BoxFit.cover,
-                                    width: 200,
-                                    height: 200,
-                                  )
-                                      : const Icon(
-                                    Icons.image_not_supported,
-                                    size: 100,
-                                    color: Colors.grey,
                                   ),
-                                ),
+                                  const SizedBox(height: 20),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 30.0, left: 30.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: _infoRow("Name", user['fullname'], isDarkMode),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: _infoRow("Phone Number", user['phone_number'], isDarkMode),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: _infoRow("Address", user['address'], isDarkMode),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.center,
+                                          child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Center(
+                                child: user['valid_id'] != null
+                                    ? Image.network(
+                                        user['valid_id'],
+                                        fit: BoxFit.cover,
+                                        width: 200,
+                                        height: 200,
+                                      )
+                                    : const Icon(
+                                        Icons.image_not_supported,
+                                        size: 100,
+                                        color: Colors.grey,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 10),
-
-                      Row(   // Buttons
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-
                           const SizedBox(width: 20),
-
                         ],
                       ),
                       const SizedBox(height: 10),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  icon: Image.asset(
+                    'assets/images/back_image.png',
+                    width: 30,
+                    height: 30,
+                    color: isDarkMode ? Colors.white : null,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
 
 // Updated _infoRow with dark mode support
@@ -1120,25 +1132,31 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          SizedBox(
-            width: 150,
-            child: Text(
-              "$label:",
-              style: TextStyle(
-                fontFamily: "Inter",
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : Colors.black,
+          Flexible(
+            child: SizedBox(
+              width: 150,
+              child: Text(
+                "$label:",
+                style: TextStyle(
+                  fontFamily: "Inter",
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
             ),
           ),
           Expanded(
-            child: Text(
-              value ?? '',
-              style: TextStyle(
-                fontFamily: "Inter",
-                fontSize: 16,
-                color: isDarkMode ? Colors.white : Colors.black,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal, // Allows horizontal scrolling for long text
+              child: Text(
+                value ?? '',
+                style: TextStyle(
+                  fontFamily: "Inter",
+                  fontSize: 16,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
             ),
           ),
@@ -1190,6 +1208,12 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
     required VoidCallback? onPressed,
     required bool isDarkMode,
   }) {
+
+    // Check if the screen width is greater than 400
+    if (MediaQuery.of(context).size.width <= 600) {
+      return const SizedBox.shrink(); // Return an empty widget if width is 400 or less
+    }
+
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
@@ -1250,6 +1274,7 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
 
   Widget _pageNumberButton(int page) {
     final isSelected = page == _currentPage;
+
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
