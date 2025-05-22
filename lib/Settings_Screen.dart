@@ -229,6 +229,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 
   //Profile page
+  // Inside _buildAccountPage
   Widget _buildAccountPage() {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
@@ -239,12 +240,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Account",
-                  style: TextStyle(
-                      color: isDarkMode ? Colors.white : Color(0xFF4B6C81),
-                      fontFamily: "Krub",
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold)),
+              Text(
+                "Account",
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : Color(0xFF4B6C81),
+                  fontFamily: "Krub",
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const Divider(thickness: 1),
               const SizedBox(height: 8),
               Center(
@@ -285,51 +289,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               const SizedBox(height: 20),
-              Column(
-                children: [
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
-                    children: [
-                      _responsiveInput("Email", controller: _emailController),
-                      _responsiveInput("Password", controller: _passwordController, obscureText: true),
-                    ],
-                  ),
-                ],
-              ),
+              // Email and Password fields stacked vertically
+             Row(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: [
+                 Expanded(
+                   child: _responsiveInput(
+                     "Email",
+                     controller: _emailController,
+                   ),
+                 ),
+                 const SizedBox(width: 16), // Add spacing between the fields
+                 Expanded(
+                   child: _responsiveInput(
+                     "Password",
+                     controller: _passwordController,
+                     obscureText: true,
+                     showVisibilityToggle: true,
+                   ),
+                 ),
+               ],
+             ),
               const SizedBox(height: 20),
               const Divider(thickness: 1),
               const SizedBox(height: 8),
-              const SizedBox(height: 13),
               Padding(
                 padding: const EdgeInsets.only(left: 24.0),
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: [
-                    SizedBox(
-                      width: 170,
-                      height: 43,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _saveAccount,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF4A758F),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        child: _isLoading
-                            ? CircularProgressIndicator(color: Colors.white)
-                            : Text(
-                            "Save",
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontFamily: "Krub",
-                                fontWeight: FontWeight.w300,
-                                color: Colors.white)),
+                child: SizedBox(
+                  width: 170,
+                  height: 43,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _saveAccount,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF4A758F),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                  ],
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                      "Save",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: "Krub",
+                        fontWeight: FontWeight.w300,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -339,29 +348,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _responsiveInput(String label, {required TextEditingController controller, bool obscureText = false}) {
+// Modified _responsiveInput
+  Widget _responsiveInput(
+      String label, {
+        required TextEditingController controller,
+        bool obscureText = false,
+        bool showVisibilityToggle = false,
+      }) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
+    bool _obscureText = obscureText; // Local state for password visibility
 
     return Padding(
       padding: const EdgeInsets.only(left: 25.0),
       child: SizedBox(
         width: MediaQuery.of(context).size.width * 1 / 4,
-        child: TextField(
-          controller: controller,
-          obscureText: obscureText,
-          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF4A758F), width: 2)),
-            enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.grey, width: 1),
-                borderRadius: BorderRadius.all(Radius.circular(15))),
-            labelText: label,
-            labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : Color(0xFF848484)),
-            fillColor: isDarkMode ? Colors.grey[700] : Colors.white,
-            filled: true,
-          ),
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return TextField(
+              controller: controller,
+              obscureText: _obscureText,
+              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+              decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey, width: 1),
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                ),
+                labelText: label,
+                labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : Color(0xFF848484)),
+                fillColor: isDarkMode ? Colors.grey[700] : Colors.white,
+                filled: true,
+                suffixIcon: showVisibilityToggle
+                    ? IconButton(
+                  icon: Icon(
+                    _obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                )
+                    : null,
+              ),
+            );
+          },
         ),
       ),
     );
