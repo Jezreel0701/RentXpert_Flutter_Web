@@ -15,7 +15,7 @@ class _PropertiesManagementScreenState
     extends State<PropertiesManagementScreen> {
   List<Map<String, dynamic>> apartmentData = [];
   bool isLoading = false;
-  int _rowsPerPage = 10;
+  int _rowsPerPage = 8;
   int _currentPage = 1;
   int _totalApartments = 0;
   String? _appliedFilter;
@@ -23,11 +23,10 @@ class _PropertiesManagementScreenState
   Map<String, dynamic> editedUser = {};
   final TextEditingController _searchController = TextEditingController();
 
-  //User dialog edit controllers
+  // Controllers for editing
   final TextEditingController _landlordController = TextEditingController();
   final TextEditingController _rentPriceController = TextEditingController();
   final TextEditingController _landmarksController = TextEditingController();
-
 
   Map<String, dynamic> _editedApartment = {};
 
@@ -50,12 +49,12 @@ class _PropertiesManagementScreenState
         page: _currentPage,
         limit: _rowsPerPage,
         propertyName:
-            _appliedFilter == 'Property Name' ? _searchController.text : null,
+        _appliedFilter == 'Property Name' ? _searchController.text : null,
         landlordName:
-            _appliedFilter == 'Landlord' ? _searchController.text : null,
+        _appliedFilter == 'Landlord' ? _searchController.text : null,
         status: _appliedFilter == 'Status' ? _searchController.text : null,
         propertyType:
-            _appliedFilter == 'Property Type' ? _searchController.text : null,
+        _appliedFilter == 'Property Type' ? _searchController.text : null,
         uid: _appliedFilter == 'UID' ? _searchController.text : null,
       );
 
@@ -63,28 +62,28 @@ class _PropertiesManagementScreenState
         setState(() {
           apartmentData = result.apartments
               .map((apartment) => {
-                    'ID': apartment.id.toString(),
-                    'Uid': apartment.uid,
-                    'PropertyName': apartment.propertyName,
-                    'PropertyType': apartment.propertyType,
-                    'Status': apartment.status,
-                    'landlord_name': apartment.landlordName,
-                    'Rent_Price': apartment.rentPrice.toStringAsFixed(2),
-                    'Landmarks': apartment.landmarks,
-                    'Allowed_Gender': apartment.allowedGender,
-                    'Availability': apartment.availability,
-                  })
+            'ID': apartment.id.toString(),
+            'Uid': apartment.uid,
+            'PropertyName': apartment.propertyName,
+            'PropertyType': apartment.propertyType,
+            'Status': apartment.status,
+            'landlord_name': apartment.landlordName,
+            'Rent_Price': apartment.rentPrice.toStringAsFixed(2),
+            'Landmarks': apartment.landmarks,
+            'Allowed_Gender': apartment.allowedGender,
+            'Availability': apartment.availability,
+          })
               .toList();
           _totalApartments = result.total;
           isLoading = false;
         });
       } else {
         setState(() => isLoading = false);
-        //_showErrorSnackBar("Failed to fetch apartments");
+        // Handle error if needed
       }
     } catch (e) {
       setState(() => isLoading = false);
-     // _showErrorSnackBar("Failed to fetch apartments: ${e.toString()}");
+      // Handle error if needed
     }
   }
 
@@ -94,15 +93,6 @@ class _PropertiesManagementScreenState
   }
 
   int get _totalPages => (_totalApartments / _rowsPerPage).ceil();
-
-  List<Map<String, dynamic>> get _paginatedData {
-    final startIndex = (_currentPage - 1) * _rowsPerPage;
-    final endIndex = startIndex + _rowsPerPage;
-    return apartmentData.sublist(
-      startIndex.clamp(0, apartmentData.length),
-      endIndex.clamp(0, apartmentData.length),
-    );
-  }
 
   void _showDeleteConfirmationDialog(String apartmentId) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
@@ -228,7 +218,7 @@ class _PropertiesManagementScreenState
     );
   }
 
-  void _showSuccessrSnackBar(String message) {
+  void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -295,7 +285,6 @@ class _PropertiesManagementScreenState
     Future.delayed(Duration(seconds: 3), () => overlayEntry.remove());
   }
 
-  //Filter function
   void _showFilterDialog() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
@@ -443,10 +432,8 @@ class _PropertiesManagementScreenState
       backgroundColor: isDarkMode ? Colors.grey[900] : const Color(0xFFF5F5F5),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Determine if the screen is small (width or height <= 600)
           final isSmallScreen = constraints.maxWidth <= 600 || constraints.maxHeight <= 600;
 
-          // Conditionally wrap content in SingleChildScrollView for small screens
           return isSmallScreen
               ? SingleChildScrollView(
             child: ConstrainedBox(
@@ -462,7 +449,6 @@ class _PropertiesManagementScreenState
     );
   }
 
-// Extracted content builder to avoid duplication
   Widget _buildContent(BuildContext context, bool isDarkMode, bool isSmallScreen, BoxConstraints constraints) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -475,7 +461,7 @@ class _PropertiesManagementScreenState
           Text(
             "Properties Management: Apartments",
             style: TextStyle(
-              fontSize: isSmallScreen ? 32 : 45, // Scale down font for small screens
+              fontSize: isSmallScreen ? 32 : 45,
               fontFamily: "Inter",
               color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
               fontWeight: FontWeight.w600,
@@ -486,7 +472,7 @@ class _PropertiesManagementScreenState
           _buildSearchBar(),
           const SizedBox(height: 20),
           Flexible(
-            fit: isSmallScreen ? FlexFit.loose : FlexFit.tight, // Loose for small screens, tight for large
+            fit: isSmallScreen ? FlexFit.loose : FlexFit.tight,
             child: Container(
               constraints: BoxConstraints(
                 maxHeight: isSmallScreen ? constraints.maxHeight * 0.7 : constraints.maxHeight * 0.9,
@@ -498,7 +484,6 @@ class _PropertiesManagementScreenState
             ),
           ),
           const SizedBox(height: 20),
-          // Show pagination only if not a small screen
           if (!isSmallScreen) _buildPaginationBar(isDarkMode),
         ],
       ),
@@ -605,7 +590,6 @@ class _PropertiesManagementScreenState
   );
 
   Widget _buildUserTable({Key? key}) {
-    final paginatedApartments = _paginatedData;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
     final columnTitles = [
@@ -651,8 +635,7 @@ class _PropertiesManagementScreenState
               child: ConstrainedBox(
                 constraints: BoxConstraints(minWidth: constraints.maxWidth),
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 10.0, right: 10.0, top: 20.0),
+                  padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0),
                   child: DataTable(
                     columnSpacing: 24,
                     headingRowHeight: 56,
@@ -673,16 +656,14 @@ class _PropertiesManagementScreenState
                                   fontFamily: "Krub",
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
-                                  color: isDarkMode
-                                      ? Colors.white
-                                      : Colors.black,
+                                  color: isDarkMode ? Colors.white : Colors.black,
                                 ),
                               ),
                             ),
                           ),
                         ),
                     ],
-                    rows: paginatedApartments.map((apartment) {
+                    rows: apartmentData.map((apartment) {
                       final isEditing = editingUserId == apartment['ID'];
 
                       return DataRow(cells: [
@@ -746,7 +727,6 @@ class _PropertiesManagementScreenState
                                         setState(() => isLoading = true);
 
                                         try {
-                                          // Parse numeric fields
                                           final rentPrice = double.tryParse(
                                               apartmentData[index]['Rent_Price'] ?? '0');
 
@@ -766,7 +746,7 @@ class _PropertiesManagementScreenState
                                           );
 
                                           if (success) {
-                                            _showSuccessrSnackBar("Apartment updated successfully");
+                                            _showSuccessSnackBar("Apartment updated successfully");
                                             await _fetchApartments();
                                           } else {
                                             _showErrorSnackBar("Update failed. Check server logs.");
@@ -878,7 +858,7 @@ class _PropertiesManagementScreenState
                 fontFamily: "Inter",
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : Colors.black, // Set text color
+                color: isDarkMode ? Colors.white : Colors.black,
               ),
             ),
           ),
@@ -888,7 +868,7 @@ class _PropertiesManagementScreenState
               style: TextStyle(
                 fontFamily: "Inter",
                 fontSize: 16,
-                color: isDarkMode ? Colors.white : Colors.black, // Set text color
+                color: isDarkMode ? Colors.white : Colors.black,
                 decoration: isEditing ? TextDecoration.underline : TextDecoration.none,
                 decorationColor: Colors.blue,
               ),
@@ -921,21 +901,27 @@ class _PropertiesManagementScreenState
                 label: 'Previous',
                 onPressed: _currentPage > 1
                     ? () {
-                        setState(() => _currentPage--);
-                        _fetchApartments();
-                      }
+                  setState(() {
+                    _currentPage--;
+                  });
+                  _fetchApartments();
+                }
                     : null,
+                isDarkMode: isDarkMode,
               ),
-              ..._buildPageNumbers(),
+              ..._buildPageNumbers(isDarkMode),
               _buildPaginateButton(
                 icon: Icons.arrow_forward,
                 label: 'Next',
                 onPressed: _currentPage < _totalPages
                     ? () {
-                        setState(() => _currentPage++);
-                        _fetchApartments();
-                      }
+                  setState(() {
+                    _currentPage++;
+                  });
+                  _fetchApartments();
+                }
                     : null,
+                isDarkMode: isDarkMode,
               ),
             ],
           ),
@@ -948,7 +934,12 @@ class _PropertiesManagementScreenState
     required IconData icon,
     required String label,
     required VoidCallback? onPressed,
+    required bool isDarkMode,
   }) {
+    if (MediaQuery.of(context).size.width <= 600) {
+      return const SizedBox.shrink();
+    }
+
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
@@ -958,22 +949,25 @@ class _PropertiesManagementScreenState
           side: BorderSide(
             color: onPressed != null
                 ? const Color(0xFF4F768E)
-                : Colors.grey.shade300,
+                : isDarkMode ? Colors.grey[600]! : Colors.grey.shade300,
             width: 2,
           ),
         ),
-        backgroundColor:
-            onPressed != null ? const Color(0xFF4F768E) : Colors.grey.shade300,
-        foregroundColor: onPressed != null ? Colors.white : Colors.black,
+        backgroundColor: onPressed != null
+            ? const Color(0xFF4F768E)
+            : isDarkMode ? Colors.grey[700] : Colors.grey.shade300,
+        foregroundColor: onPressed != null
+            ? Colors.white
+            : isDarkMode ? Colors.white : Colors.black,
       ),
       child: Row(
         children: [
-          Icon(icon, color: onPressed != null ? Colors.white : Colors.black),
+          Icon(icon, color: onPressed != null ? Colors.white : isDarkMode ? Colors.white : Colors.black),
           const SizedBox(width: 5),
           Text(
             label,
             style: TextStyle(
-              color: onPressed != null ? Colors.white : Colors.black,
+              color: onPressed != null ? Colors.white : isDarkMode ? Colors.white : Colors.black,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -982,15 +976,15 @@ class _PropertiesManagementScreenState
     );
   }
 
-  List<Widget> _buildPageNumbers() {
+  List<Widget> _buildPageNumbers(bool isDarkMode) {
     List<Widget> pageWidgets = [];
     for (int i = 1; i <= _totalPages; i++) {
       if (i == 1 || i == _totalPages || (i - _currentPage).abs() <= 1) {
         pageWidgets.add(_pageNumberButton(i));
-      } else if (pageWidgets.isEmpty ||
-          (pageWidgets.last is! Text &&
-                  (pageWidgets.last as TextButton).child is! Text ||
-              ((pageWidgets.last as TextButton).child as Text).data != "...")) {
+      } else {
+        if (pageWidgets.isNotEmpty && pageWidgets.last is Padding) {
+          continue;
+        }
         pageWidgets.add(
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 4.0),
@@ -1008,7 +1002,10 @@ class _PropertiesManagementScreenState
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: TextButton(
-        onPressed: () => setState(() => _currentPage = page),
+        onPressed: () {
+          setState(() => _currentPage = page);
+          _fetchApartments();
+        },
         style: TextButton.styleFrom(
           backgroundColor: isSelected ? const Color(0xFF4F768E) : Colors.white,
           foregroundColor: isSelected ? Colors.white : Colors.black,
@@ -1016,13 +1013,10 @@ class _PropertiesManagementScreenState
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
             side: BorderSide(
-              color:
-                  isSelected ? const Color(0xFF4F768E) : Colors.grey.shade300,
+              color: isSelected ? const Color(0xFF4F768E) : Colors.grey.shade300,
               width: 1.5,
             ),
           ),
-          elevation: isSelected ? 2 : 0,
-          shadowColor: isSelected ? Colors.black26 : null,
         ),
         child: Text(
           page.toString(),
@@ -1035,7 +1029,6 @@ class _PropertiesManagementScreenState
     );
   }
 
-  //More options dialog
   void _showUserDetailsDialog(Map<String, dynamic> apartment) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
@@ -1046,6 +1039,7 @@ class _PropertiesManagementScreenState
     final TextEditingController _rentPriceController = TextEditingController();
     final TextEditingController _landmarksController = TextEditingController();
 
+
     showDialog(
       context: context,
       builder: (context) {
@@ -1053,6 +1047,7 @@ class _PropertiesManagementScreenState
         bool isRejected = apartment['Status'] == 'Rejected';
         bool isProcessing = false;
         bool isEditing = false;
+
 
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
@@ -1089,10 +1084,12 @@ class _PropertiesManagementScreenState
                                     onPressed: () async {
                                       final rentPriceText = _rentPriceController.text;
 
+
                                       if (rentPriceText.isEmpty) {
                                         _showErrorSnackBar("Rent price cannot be empty");
                                         return;
                                       }
+
 
                                       final rentPrice = double.tryParse(rentPriceText);
                                       if (rentPrice == null) {
@@ -1100,7 +1097,9 @@ class _PropertiesManagementScreenState
                                         return;
                                       }
 
+
                                       setState(() => isProcessing = true);
+
 
                                       try {
                                         final success = await ApartmentManagementUpdate.updateApartment(
@@ -1112,6 +1111,7 @@ class _PropertiesManagementScreenState
                                           allowedGender: selectedGender ?? apartment['Allowed_Gender'],
                                           availability: selectedAvailability ?? apartment['Availability'],
                                         );
+
 
                                         if (success) {
                                           _showSuccessrSnackBar("Apartment updated successfully");
@@ -1252,6 +1252,7 @@ class _PropertiesManagementScreenState
                   );
                   setState(() => isProcessing = false);
 
+
                   if (success) {
                     _showApproveTopSnackBar("Apartment approved successfully");
                     _showSuccessrSnackBar("Apartment approved successfully");
@@ -1296,6 +1297,8 @@ class _PropertiesManagementScreenState
                     context: context,
                     builder: (context) {
                       final TextEditingController _messageController = TextEditingController();
+
+
 
 
                       return AlertDialog(
@@ -1365,21 +1368,28 @@ class _PropertiesManagementScreenState
                             onPressed: () async {
                               final message = _messageController.text.trim();
                               if (message.isNotEmpty) {
-                                Navigator.pop(context);
+                                Navigator.pop(context); // Close message dialog
                                 setState(() => isProcessing = true);
-                                final success = await ApartmentManagementReject.rejectApartment(
-                                    apartment['ID'],
-                                    message
-                                );
 
-                                setState(() => isProcessing = false);
+                                try {
+                                  final success = await ApartmentManagementReject.rejectApartment(
+                                      apartment['ID'],
+                                      message
+                                  );
 
-
-                                if (success) {
-                                  _showRejectTopSnackBar("Apartment rejected successfully");
-                                  _fetchApartments();
-                                } else {
-                                  _showErrorSnackBar("Failed to reject apartment");
+                                  // Close details dialog BEFORE state updates
+                                  Navigator.of(context).pop();
+                                  if (success) {
+                                    Navigator.of(context).pop(); // ✅ Close first
+                                    _showRejectTopSnackBar("Apartment rejected successfully");
+                                    await _fetchApartments();
+                                  }else {
+                                    _showErrorSnackBar("Failed to reject apartment");
+                                  }
+                                } catch (e) {
+                                  _showErrorSnackBar("Error: ${e.toString()}");
+                                } finally {
+                                  setState(() => isProcessing = false);
                                 }
                               } else {
                                 _showErrorSnackBar("Message cannot be empty");
@@ -1418,10 +1428,6 @@ class _PropertiesManagementScreenState
                   ),
                 ),
               ),
-
-
-
-
             ],
           ),
         );
@@ -1429,7 +1435,18 @@ class _PropertiesManagementScreenState
     );
   }
 
-  // Add this new helper method for dropdown rows
+
+  void _showSuccessrSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+
+
   Widget _dropdownRow(
       String label,
       String? value,
