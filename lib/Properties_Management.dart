@@ -441,66 +441,44 @@ class _PropertiesManagementScreenState
 
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.grey[900] : const Color(0xFFF5F5F5),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // Determine if the screen is small (width or height <= 600)
-          final isSmallScreen = constraints.maxWidth <= 600 || constraints.maxHeight <= 600;
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : LayoutBuilder(
+          builder: (context, constraints) {
+            // Check if the available height is too small
+            final isSmallHeight = constraints.maxHeight <= 400;
 
-          // Conditionally wrap content in SingleChildScrollView for small screens
-          return isSmallScreen
-              ? SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
-              child: _buildContent(context, isDarkMode, isSmallScreen, constraints),
-            ),
-          )
-              : _buildContent(context, isDarkMode, isSmallScreen, constraints);
-        },
-      ),
-    );
-  }
-
-// Extracted content builder to avoid duplication
-  Widget _buildContent(BuildContext context, bool isDarkMode, bool isSmallScreen, BoxConstraints constraints) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "Properties Management: Apartments",
-            style: TextStyle(
-              fontSize: isSmallScreen ? 32 : 45, // Scale down font for small screens
-              fontFamily: "Inter",
-              color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
-              fontWeight: FontWeight.w600,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildSearchBar(),
-          const SizedBox(height: 20),
-          Flexible(
-            fit: isSmallScreen ? FlexFit.loose : FlexFit.tight, // Loose for small screens, tight for large
-            child: Container(
-              constraints: BoxConstraints(
-                maxHeight: isSmallScreen ? constraints.maxHeight * 0.7 : constraints.maxHeight * 0.9,
-              ),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _buildUserTable(key: ValueKey(_currentPage)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Show pagination only if not a small screen
-          if (!isSmallScreen) _buildPaginationBar(isDarkMode),
-        ],
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Properties Management: Apartments",
+                  style: TextStyle(
+                    fontSize: 45,
+                    fontFamily: "Inter",
+                    color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
+                    fontWeight: FontWeight.w600,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildSearchBar(),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildUserTable(key: ValueKey(_currentPage)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Conditionally hide the pagination bar if the height is too small
+                if (!isSmallHeight) _buildPaginationBar(isDarkMode),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -1356,35 +1334,57 @@ class _PropertiesManagementScreenState
                               ),
                             ),
                           ),
+
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isDarkMode
                                   ? Colors.blueGrey
                                   : const Color(0xFF4F768E),
                             ),
+
                             onPressed: () async {
                               final message = _messageController.text.trim();
-                              if (message.isNotEmpty) {
-                                Navigator.pop(context);
-                                setState(() => isProcessing = true);
+                              if (message.isEmpty) {
+                                _showErrorSnackBar("Message cannot be empty");
+                                return;
+                              }
+
+                              Navigator.pop(context); // Close rejection dialog
+                              if (!mounted) return;
+
+                              setState(() => isProcessing = true);
+                              try {
+                                final apartmentId = apartment['ID'];
+                                if (apartmentId == null || apartmentId.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Apartment ID is missing or invalid."),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 final success = await ApartmentManagementReject.rejectApartment(
-                                    apartment['ID'],
-                                    message
+                                  apartmentId,
+                                  message,
                                 );
-
-                                setState(() => isProcessing = false);
-
 
                                 if (success) {
                                   _showRejectTopSnackBar("Apartment rejected successfully");
-                                  _fetchApartments();
+                                  _showSuccessrSnackBar("Apartment rejected successfully");
+                                  await _fetchApartments();
+                                  if (mounted) Navigator.of(context).pop();
                                 } else {
                                   _showErrorSnackBar("Failed to reject apartment");
                                 }
-                              } else {
-                                _showErrorSnackBar("Message cannot be empty");
+                              } catch (e) {
+                                _showErrorSnackBar("Error rejecting apartment: ${e.toString()}");
+                              } finally {
+                                if (mounted) setState(() => isProcessing = false);
                               }
                             },
+
                             child: const Text(
                               "Submit",
                               style: TextStyle(
@@ -1394,6 +1394,7 @@ class _PropertiesManagementScreenState
                               ),
                             ),
                           ),
+
                         ],
                       );
                     },
