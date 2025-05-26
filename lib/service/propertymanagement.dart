@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:rentxpert_flutter_web/config/config.dart'; // Your baseUrl config
+import 'package:rentxpert_flutter_web/config/config.dart';
+import 'package:rentxpert_flutter_web/service/usermanagement.dart'; // Your baseUrl config
 
 
 
@@ -247,7 +248,7 @@ class ApartmentManagementStatus {
 class ApartmentManagementReject {
   static const bool debug = true;
 
-  static Future<bool> rejectApartment(String id, String rejectionReason) async {
+  static Future<RejectionResult> rejectApartment(String id, String rejectionReason) async {
     final url = Uri.parse('$baseUrl/rejecting/landlordApartment/$id');
 
     if (debug) {
@@ -270,18 +271,41 @@ class ApartmentManagementReject {
         print('🔵 Response Body: ${response.body}');
       }
 
-      // Handle response format similar to other endpoints
       final responseData = jsonDecode(response.body);
-      final successCode = responseData['RetCode'] ?? responseData['retCode'];
 
-      if (response.statusCode == 200 && successCode.toString() == '200') {
-        if (debug) print('🟢 Apartment rejected successfully');
-        return true;
+      if (response.statusCode == 200) {
+        // Successful response handling
+        final message = responseData['message'] ?? 'Apartment status updated';
+        final status = responseData['status']?.toString().toLowerCase();
+        final apartmentId = responseData['apartment_id']?.toString();
+
+        return RejectionResult(
+          success: true,
+          message: message,
+          data: {
+            'apartment_id': apartmentId,
+            'status': status,
+            if (status == 'approved') 'expires_at': responseData['expires_at']
+          },
+        );
       }
-      return false;
+
+      // Error response handling
+      return RejectionResult(
+        success: false,
+        message: responseData['error'] ?? 'Failed to update apartment status',
+        data: {
+          'status_code': response.statusCode,
+          'raw_response': response.body
+        },
+      );
     } catch (e) {
       if (debug) print('🔴 Exception rejecting apartment: $e');
-      return false;
+      return RejectionResult(
+        success: false,
+        message: 'Connection error: ${e.toString()}',
+        data: {'exception': e},
+      );
     }
   }
 }

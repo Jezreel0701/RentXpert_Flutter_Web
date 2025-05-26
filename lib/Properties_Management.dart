@@ -1232,55 +1232,55 @@ class _PropertiesManagementScreenState
               ),
             ),
             actionsAlignment: MainAxisAlignment.center,
-            actions: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isApproved
-                      ? Colors.green
-                      : (isRejected ? Colors.grey : const Color(0xFF79BD85)),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  minimumSize: const Size(150, 50),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            actions: [ ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isApproved
+                    ? Colors.green
+                    : (isRejected ? Colors.grey : const Color(0xFF79BD85)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                minimumSize: const Size(150, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: (isApproved || isRejected || isProcessing)
+                  ? null
+                  : () async {
+                setState(() => isProcessing = true);
+                final success = await ApartmentManagementStatus.updateApartmentStatus(
+                  apartment['ID'],
+                  'Approved',
+                );
+                setState(() => isProcessing = false);
+
+
+                if (success) {
+                  _showApproveTopSnackBar("Apartment approved successfully");
+                  _showSuccessrSnackBar("Apartment approved successfully");
+                  _fetchApartments();
+                  Navigator.of(context).pop();
+                } else {
+                  _showErrorSnackBar("Failed to approve apartment");
+                }
+              },
+              child: isProcessing && !isApproved && !isRejected
+                  ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
                 ),
-                onPressed: (isApproved || isRejected || isProcessing)
-                    ? null
-                    : () async {
-                  setState(() => isProcessing = true);
-                  final success = await ApartmentManagementStatus.updateApartmentStatus(
-                    apartment['ID'],
-                    'Approved',
-                  );
-                  setState(() => isProcessing = false);
-
-
-                  if (success) {
-                    _showApproveTopSnackBar("Apartment approved successfully");
-                    _showSuccessrSnackBar("Apartment approved successfully");
-                    _fetchApartments();
-                    Navigator.of(context).pop();
-                  } else {
-                    _showErrorSnackBar("Failed to approve apartment");
-                  }
-                },
-                child: isProcessing && !isApproved && !isRejected
-                    ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
-                    : Text(
-                  isApproved ? "Approved" : "Approve",
-                  style: const TextStyle(
-                    fontFamily: "Inter",
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
+              )
+                  : Text(
+                isApproved ? "Approved" : "Approve",
+                style: const TextStyle(
+                  fontFamily: "Inter",
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  color: Colors.white,
                 ),
               ),
+            ),
+              // Reject Button Section
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isRejected
@@ -1297,9 +1297,6 @@ class _PropertiesManagementScreenState
                     context: context,
                     builder: (context) {
                       final TextEditingController _messageController = TextEditingController();
-
-
-
 
                       return AlertDialog(
                         backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
@@ -1332,7 +1329,7 @@ class _PropertiesManagementScreenState
                               controller: _messageController,
                               maxLines: 3,
                               decoration: InputDecoration(
-                                border: OutlineInputBorder(),
+                                border: const OutlineInputBorder(),
                                 hintText: "Type your message here...",
                                 hintStyle: TextStyle(
                                   fontFamily: "Inter",
@@ -1367,34 +1364,45 @@ class _PropertiesManagementScreenState
                             ),
                             onPressed: () async {
                               final message = _messageController.text.trim();
-                              if (message.isNotEmpty) {
-                                Navigator.pop(context); // Close message dialog
-                                setState(() => isProcessing = true);
-
-                                try {
-                                  final success = await ApartmentManagementReject.rejectApartment(
-                                      apartment['ID'],
-                                      message
-                                  );
-
-                                  // Close details dialog BEFORE state updates
-                                  Navigator.of(context).pop();
-                                  if (success) {
-                                    Navigator.of(context).pop(); // ✅ Close first
-                                    _showErrorSnackBar("Failed to reject apartment");
-                                    await _fetchApartments();
-                                  }else {
-                                    await _fetchApartments();
-                                    _showErrorSnackBar("Apartment rejected successfully");
-                                    _showRejectTopSnackBar("Apartment rejected successfully");
-                                  }
-                                } catch (e) {
-                                  _showErrorSnackBar("Error: ${e.toString()}");
-                                } finally {
-                                  setState(() => isProcessing = false);
-                                }
-                              } else {
+                              if (message.isEmpty) {
                                 _showErrorSnackBar("Message cannot be empty");
+                                return;
+                              }
+
+                              Navigator.pop(context); // Close message dialog
+                              if (!mounted) return;
+
+                              setState(() => isProcessing = true);
+
+                              try {
+                                final result = await ApartmentManagementReject.rejectApartment(
+                                  apartment['ID'],
+                                  message,
+                                );
+
+                                if (result.success) {
+                                  // Close the apartment details dialog
+                                  if (mounted) Navigator.of(context).pop();
+
+                                  // Refresh data before showing messages
+                                  await _fetchApartments();
+
+                                  // Show server-provided messages
+                                  if (result.message.isNotEmpty) {
+                                    _showRejectTopSnackBar(result.message);
+                                    //_showSuccessSnackBar(result.message);
+                                  } else {
+                                    _showSuccessSnackBar("Apartment rejected successfully");
+                                  }
+                                } else {
+                                  _showErrorSnackBar(result.message.isNotEmpty
+                                      ? result.message
+                                      : "Failed to reject apartment");
+                                }
+                              } catch (e) {
+                                _showErrorSnackBar("Network error: Please check your connection");
+                              } finally {
+                                if (mounted) setState(() => isProcessing = false);
                               }
                             },
                             child: const Text(
