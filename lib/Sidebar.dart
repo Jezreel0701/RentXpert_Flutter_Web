@@ -43,7 +43,7 @@ class _SidebarState extends State<Sidebar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // color: Colors.transparent, // Set the background to transparent
+       color: Color(0xFF4A758F), // Set the background to transparent
       child: Column(
         children: [
           Container(

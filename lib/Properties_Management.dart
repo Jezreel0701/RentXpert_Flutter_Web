@@ -1381,10 +1381,12 @@ class _PropertiesManagementScreenState
                                   Navigator.of(context).pop();
                                   if (success) {
                                     Navigator.of(context).pop(); // ✅ Close first
-                                    _showRejectTopSnackBar("Apartment rejected successfully");
+                                    _showErrorSnackBar("Failed to reject apartment");
                                     await _fetchApartments();
                                   }else {
-                                    _showErrorSnackBar("Failed to reject apartment");
+                                    await _fetchApartments();
+                                    _showErrorSnackBar("Apartment rejected successfully");
+                                    _showRejectTopSnackBar("Apartment rejected successfully");
                                   }
                                 } catch (e) {
                                   _showErrorSnackBar("Error: ${e.toString()}");

@@ -1033,6 +1033,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                 ),
                               ),
                             ),
+
                             Expanded(
                               flex: 1,
                               child: Padding(
@@ -1063,33 +1064,44 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                     final verificationIdUrl = profile.verificationId;
                                     final permitIdUrl = profile.businessPermit;
 
-                                    return Center(
-                                      child: permitIdUrl.isNotEmpty
-                                          ? Image.network(
-                                        permitIdUrl,
-                                        fit: BoxFit.cover,
-                                        width: 200,
-                                        height: 200,
-                                        loadingBuilder: (context, child, loadingProgress) {
-                                          if (loadingProgress == null) return child;
-                                          return const CircularProgressIndicator();
-                                        },
-                                        errorBuilder: (context, error, stackTrace) => const Icon(
-                                          Icons.image_not_supported,
-                                          size: 100,
-                                          color: Colors.grey,
+                                    return Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        // Business Permit Section
+                                        Text(
+                                          "Business Permit",
+                                          style: TextStyle(
+                                            color: isDarkMode ? Colors.white : Color(0xFF4F768E),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: "Krub",
+                                          ),
                                         ),
-                                      )
-                                          : const Icon(
-                                        Icons.image_not_supported,
-                                        size: 100,
-                                        color: Colors.grey,
-                                      ),
+                                        const SizedBox(height: 10),
+                                        _buildExpandableImage(permitIdUrl, isDarkMode),
+
+                                        const SizedBox(height: 20),
+
+                                        // Verification ID Section
+                                        Text(
+                                          "Verification ID",
+                                          style: TextStyle(
+                                            color: isDarkMode ? Colors.white : Color(0xFF4F768E),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: "Krub",
+
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        _buildExpandableImage(verificationIdUrl, isDarkMode),
+                                      ],
                                     );
                                   },
                                 ),
                               ),
                             )
+
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -1259,6 +1271,8 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
 
                                                     if (result.success) {
                                                       _showRejectTopSnackBar(result.message);
+                                                      _showErrorSnackBar(result.message);
+
                                                       await loadUsers();
                                                       if (mounted) Navigator.of(context).pop(); // Close any bottom sheet
                                                     } else {
@@ -1320,6 +1334,82 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
           ),
         );
       },
+    );
+  }
+
+
+  Widget _buildExpandableImage(String imageUrl, bool isDarkMode) {
+    return GestureDetector(
+      onTap: () => _showFullScreenImage(context, imageUrl),
+      child: Container(
+        width: 200,
+        height: 200,
+        decoration: BoxDecoration(
+          border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: imageUrl.isNotEmpty
+            ? ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const Center(child: CircularProgressIndicator());
+            },
+            errorBuilder: (context, error, stackTrace) => const Icon(
+              Icons.image_not_supported,
+              size: 50,
+              color: Colors.grey,
+            ),
+          ),
+        )
+            : const Center(
+          child: Icon(
+            Icons.image_not_supported,
+            size: 50,
+            color: Colors.grey,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    if (imageUrl.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(20),
+        child: InteractiveViewer(
+          panEnabled: true,
+          minScale: 0.5,
+          maxScale: 4,
+          child: Image.network(
+            imageUrl,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) => const Center(
+              child: Icon(
+                Icons.image_not_supported,
+                size: 100,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -1604,5 +1694,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       ),
     );
   }
+
+
 }
 
