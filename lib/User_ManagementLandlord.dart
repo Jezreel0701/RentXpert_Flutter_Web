@@ -24,7 +24,6 @@ class _UserManagementScreenState extends State<UserManagementLandlord> {
     'Email': 'email',
     'Address': 'address',
     'Phone Number': 'phone_number',
-    'Valid ID': 'valid_id',
     'Account Status': 'account_status',
     'User Type': 'user_type',
   };
@@ -1059,10 +1058,6 @@ void _showUserDetailsDialog(Map<String, dynamic> user) {
                                           alignment: Alignment.center,
                                           child: _infoRow("Address", user['address'], isDarkMode),
                                         ),
-                                        Align(
-                                          alignment: Alignment.center,
-                                          child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
-                                        ),
                                       ],
                                     ),
                                   ),
@@ -1070,26 +1065,75 @@ void _showUserDetailsDialog(Map<String, dynamic> user) {
                               ),
                             ),
                           ),
+
                           Expanded(
                             flex: 1,
                             child: Padding(
                               padding: const EdgeInsets.all(20),
-                              child: Center(
-                                child: user['valid_id'] != null
-                                    ? Image.network(
-                                        user['valid_id'],
-                                        fit: BoxFit.cover,
-                                        width: 200,
-                                        height: 200,
-                                      )
-                                    : const Icon(
-                                        Icons.image_not_supported,
+                              child: FutureBuilder<ProfileFetchResult?>(
+                                future: LandlordProfileFetch.fetchLatestProfile(user['uid']),
+                                builder: (context, snapshot) {
+                                  // Handle loading state
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+
+                                  // Handle error state
+                                  if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.success) {
+                                    return const Center(
+                                      child: Icon(
+                                        Icons.error_outline,
                                         size: 100,
-                                        color: Colors.grey,
+                                        color: Colors.red,
                                       ),
+                                    );
+                                  }
+
+                                  // Get the profile data
+                                  final profile = snapshot.data!.profile!;
+                                  final verificationIdUrl = profile.verificationId;
+                                  final permitIdUrl = profile.businessPermit;
+
+                                  return Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Business Permit Section
+                                      Text(
+                                        "Business Permit",
+                                        style: TextStyle(
+                                          color: isDarkMode ? Colors.white : Color(0xFF4F768E),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: "Krub",
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      _buildExpandableImage(permitIdUrl, isDarkMode),
+
+                                      const SizedBox(height: 20),
+
+                                      // Verification ID Section
+                                      Text(
+                                        "Verification ID",
+                                        style: TextStyle(
+                                          color: isDarkMode ? Colors.white : Color(0xFF4F768E),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: "Krub",
+
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      _buildExpandableImage(verificationIdUrl, isDarkMode),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
-                          ),
+                          )
+
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -1124,6 +1168,81 @@ void _showUserDetailsDialog(Map<String, dynamic> user) {
     },
   );
 }
+
+  Widget _buildExpandableImage(String imageUrl, bool isDarkMode) {
+    return GestureDetector(
+      onTap: () => _showFullScreenImage(context, imageUrl),
+      child: Container(
+        width: 200,
+        height: 200,
+        decoration: BoxDecoration(
+          border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: imageUrl.isNotEmpty
+            ? ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const Center(child: CircularProgressIndicator());
+            },
+            errorBuilder: (context, error, stackTrace) => const Icon(
+              Icons.image_not_supported,
+              size: 50,
+              color: Colors.grey,
+            ),
+          ),
+        )
+            : const Center(
+          child: Icon(
+            Icons.image_not_supported,
+            size: 50,
+            color: Colors.grey,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    if (imageUrl.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(20),
+        child: InteractiveViewer(
+          panEnabled: true,
+          minScale: 0.5,
+          maxScale: 4,
+          child: Image.network(
+            imageUrl,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) => const Center(
+              child: Icon(
+                Icons.image_not_supported,
+                size: 100,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
 
 // Updated _infoRow with dark mode support

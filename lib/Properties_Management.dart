@@ -218,6 +218,15 @@ class _PropertiesManagementScreenState
     );
   }
 
+  void _showSuccessRejectSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -229,15 +238,19 @@ class _PropertiesManagementScreenState
 
   void _showApproveTopSnackBar(String message) {
     final overlay = Overlay.of(context);
+    const double snackbarWidth = 300; // Define the snackbar width
+    const double snackbarHeight = 80; // Define the snackbar height
+    const double screenWidth = 1149; // Fixed screen width for centering
+
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50,
-        left: MediaQuery.of(context).size.width / 2 - 150,
+        top: 50, // Adjust the vertical position as needed
+        left: ((screenWidth - snackbarWidth) / 2) - 50, // Center horizontally for 1149px screen
         child: Material(
           color: Colors.transparent,
           child: Container(
-            width: 300,
-            height: 80,
+            width: snackbarWidth,
+            height: snackbarHeight,
             decoration: BoxDecoration(
               color: Colors.green,
               borderRadius: BorderRadius.circular(10),
@@ -245,28 +258,34 @@ class _PropertiesManagementScreenState
             child: Center(
               child: Text(
                 message,
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
         ),
       ),
     );
+
     overlay.insert(overlayEntry);
-    Future.delayed(Duration(seconds: 3), () => overlayEntry.remove());
+    Future.delayed(const Duration(seconds: 3), () => overlayEntry.remove());
   }
 
   void _showRejectTopSnackBar(String message) {
     final overlay = Overlay.of(context);
+    const double snackbarWidth = 300; // Define the snackbar width
+    const double snackbarHeight = 80; // Define the snackbar height
+    const double screenWidth = 1149; // Fixed screen width for centering
+
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50,
-        left: MediaQuery.of(context).size.width / 2 - 150,
+        top: 50, // Adjust the vertical position as needed
+        left: ((screenWidth - snackbarWidth) / 2) - 50, // Center horizontally for 1149px screen
         child: Material(
           color: Colors.transparent,
           child: Container(
-            width: 300,
-            height: 80,
+            width: snackbarWidth,
+            height: snackbarHeight,
             decoration: BoxDecoration(
               color: Colors.red,
               borderRadius: BorderRadius.circular(10),
@@ -274,15 +293,17 @@ class _PropertiesManagementScreenState
             child: Center(
               child: Text(
                 message,
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
         ),
       ),
     );
+
     overlay.insert(overlayEntry);
-    Future.delayed(Duration(seconds: 3), () => overlayEntry.remove());
+    Future.delayed(const Duration(seconds: 3), () => overlayEntry.remove());
   }
 
   void _showFilterDialog() {
@@ -599,242 +620,229 @@ class _PropertiesManagementScreenState
       'Status',
       'Customize',
     ];
-
     const double columnWidth = 120;
+    const double customizeColumnWidth = 260;
 
     return LayoutBuilder(
       key: key,
       builder: (context, constraints) {
-        return SingleChildScrollView(
-          child: Container(
-            width: constraints.maxWidth,
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height * 0.9,
-            ),
-            decoration: BoxDecoration(
-              color: isDarkMode ? Colors.grey[800] : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
-            ),
-            child: apartmentData.isEmpty
-                ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Text(
-                  "No data available",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                    fontFamily: "Inter",
-                  ),
+        return Container(
+          width: constraints.maxWidth,
+          decoration: BoxDecoration(
+            color: isDarkMode ? Colors.grey[800] : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+          ),
+          child: apartmentData.isEmpty
+              ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                "No data available",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                  fontFamily: "Inter",
                 ),
               ),
-            )
-                : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0),
-                  child: DataTable(
-                    columnSpacing: 24,
-                    headingRowHeight: 56,
-                    dataRowHeight: 60,
-                    border: TableBorder.all(
-                      color: Colors.grey.shade300,
-                      width: 1,
-                    ),
-                    columns: [
-                      for (var title in columnTitles)
-                        DataColumn(
-                          label: SizedBox(
-                            width: title == 'Customize' ? 260 : columnWidth,
-                            child: Center(
-                              child: Text(
-                                title,
-                                style: TextStyle(
-                                  fontFamily: "Krub",
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                  color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          )
+              : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 20.0),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.9 - 20,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: DataTable(
+                      columnSpacing: 24,
+                      headingRowHeight: 56,
+                      dataRowHeight: 60,
+                      border: TableBorder.all(
+                        color: isDarkMode ? Colors.grey[600]! : Colors.grey.shade300,
+                        width: 1,
+                      ),
+                      columns: columnTitles.map((title) => DataColumn(
+                        label: SizedBox(
+                          width: title == 'Customize' ? customizeColumnWidth : columnWidth,
+                          child: Center(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontFamily: "Krub",
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )).toList(),
+                      rows: apartmentData.map((apartment) {
+                        final isEditing = editingUserId == apartment['ID'];
+                        return DataRow(
+                          color: MaterialStateProperty.resolveWith<Color?>(
+                                (Set<MaterialState> states) {
+                              if (isDarkMode) {
+                                return states.contains(MaterialState.hovered)
+                                    ? Colors.grey[700]
+                                    : Colors.grey[800];
+                              }
+                              return null;
+                            },
+                          ),
+                          cells: [
+                            DataCell(SizedBox(
+                              width: columnWidth,
+                              child: Center(
+                                child: Text(
+                                  apartment['Uid'] ?? '',
+                                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                                ),
+                              ),
+                            )),
+                            DataCell(SizedBox(
+                              width: columnWidth,
+                              child: isEditing
+                                  ? TextFormField(
+                                initialValue: editedUser['PropertyName'] ?? apartment['PropertyName'] ?? '',
+                                onChanged: (value) => editedUser['PropertyName'] = value,
+                                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                              )
+                                  : Center(
+                                child: Text(
+                                  apartment['PropertyName'] ?? '',
+                                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                                ),
+                              ),
+                            )),
+                            DataCell(SizedBox(
+                              width: columnWidth,
+                              child: isEditing
+                                  ? TextFormField(
+                                initialValue: editedUser['PropertyType'] ?? apartment['PropertyType'] ?? '',
+                                onChanged: (value) => editedUser['PropertyType'] = value,
+                                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                              )
+                                  : Center(
+                                child: Text(
+                                  apartment['PropertyType'] ?? '',
+                                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                                ),
+                              ),
+                            )),
+                            DataCell(SizedBox(
+                              width: columnWidth,
+                              child: Center(
+                                child: Text(
+                                  apartment['Status'] ?? '',
+                                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                                ),
+                              ),
+                            )),
+                            DataCell(
+                              SizedBox(
+                                width: customizeColumnWidth,
+                                child: Center(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (isEditing) ...[
+                                        TextButton.icon(
+                                          onPressed: () async {
+                                            final index = apartmentData.indexWhere(
+                                                    (u) => u['ID'] == apartment['ID']);
+                                            if (index != -1) {
+                                              setState(() => isLoading = true);
+                                              try {
+                                                final rentPrice = double.tryParse(
+                                                    apartmentData[index]['Rent_Price'] ?? '0');
+                                                if (rentPrice == null) {
+                                                  _showErrorSnackBar("Invalid rent price format");
+                                                  return;
+                                                }
+                                                final success = await ApartmentManagementUpdate.updateApartment(
+                                                  id: apartment['ID'],
+                                                  propertyName: editedUser['PropertyName'] ?? apartment['PropertyName'],
+                                                  propertyType: editedUser['PropertyType'] ?? apartment['PropertyType'],
+                                                  rentPrice: rentPrice,
+                                                  landmarks: apartment['Landmarks'],
+                                                  allowedGender: apartment['Allowed_Gender'],
+                                                  availability: apartment['Availability'],
+                                                );
+                                                if (success) {
+                                                  _showSuccessSnackBar("Apartment updated successfully");
+                                                  await _fetchApartments();
+                                                } else {
+                                                  _showErrorSnackBar("Update failed. Check server logs.");
+                                                }
+                                              } catch (e) {
+                                                _showErrorSnackBar("Update error: ${e.toString()}");
+                                              } finally {
+                                                setState(() {
+                                                  isLoading = false;
+                                                  editingUserId = null;
+                                                  editedUser = {};
+                                                });
+                                              }
+                                            }
+                                          },
+                                          icon: const Icon(Icons.save, size: 15, color: Colors.white),
+                                          label: const Text('Save', style: TextStyle(color: Colors.white)),
+                                          style: _buttonStyle(Colors.green),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          icon: const Icon(Icons.cancel, color: Colors.red),
+                                          onPressed: () {
+                                            setState(() {
+                                              editingUserId = null;
+                                              editedUser = {};
+                                            });
+                                          },
+                                        ),
+                                      ] else ...[
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            setState(() {
+                                              editingUserId = apartment['ID'];
+                                              editedUser = Map<String, dynamic>.from(apartment);
+                                            });
+                                          },
+                                          icon: const Icon(Icons.edit, size: 15, color: Colors.white),
+                                          label: const Text('Edit', style: TextStyle(color: Colors.white)),
+                                          style: _buttonStyle(const Color(0xFF4F768E)),
+                                        ),
+                                        const SizedBox(width: 13),
+                                        IconButton(
+                                          icon: Image.asset(
+                                            'assets/images/white_delete.png',
+                                            width: 30,
+                                            height: 30,
+                                          ),
+                                          onPressed: () => _showDeleteConfirmationDialog(apartment['ID']),
+                                        ),
+                                        IconButton(
+                                          icon: Image.asset(
+                                            'assets/images/more_options.png',
+                                            width: 55,
+                                            height: 55,
+                                          ),
+                                          onPressed: () => _showUserDetailsDialog(apartment),
+                                        ),
+                                      ]
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                    ],
-                    rows: apartmentData.map((apartment) {
-                      final isEditing = editingUserId == apartment['ID'];
-
-                      return DataRow(cells: [
-                        DataCell(SizedBox(
-                          width: columnWidth,
-                          child: Center(
-                              child: Text(apartment['Uid'] ?? '',
-                                  textAlign: TextAlign.center)),
-                        )),
-                        isEditing
-                            ? DataCell(SizedBox(
-                          width: columnWidth,
-                          child: TextFormField(
-                            initialValue: editedUser['PropertyName'] ??
-                                apartment['PropertyName'] ?? '',
-                            onChanged: (value) =>
-                            editedUser['PropertyName'] = value,
-                          ),
-                        ))
-                            : DataCell(SizedBox(
-                          width: columnWidth,
-                          child: Center(
-                              child: Text(apartment['PropertyName'] ?? '',
-                                  textAlign: TextAlign.center)),
-                        )),
-                        isEditing
-                            ? DataCell(SizedBox(
-                          width: columnWidth,
-                          child: TextFormField(
-                            initialValue: editedUser['PropertyType'] ??
-                                apartment['PropertyType'] ?? '',
-                            onChanged: (value) =>
-                            editedUser['PropertyType'] = value,
-                          ),
-                        ))
-                            : DataCell(SizedBox(
-                          width: columnWidth,
-                          child: Center(
-                              child: Text(apartment['PropertyType'] ?? '',
-                                  textAlign: TextAlign.center)),
-                        )),
-                        DataCell(SizedBox(
-                          width: columnWidth,
-                          child: Center(
-                              child: Text(apartment['Status'] ?? '',
-                                  textAlign: TextAlign.center)),
-                        )),
-                        DataCell(
-                          SizedBox(
-                            width: 260,
-                            child: Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  isEditing
-                                      ? TextButton.icon(
-                                    onPressed: () async {
-                                      final index = apartmentData.indexWhere(
-                                              (u) => u['ID'] == apartment['ID']);
-                                      if (index != -1) {
-                                        setState(() => isLoading = true);
-
-                                        try {
-                                          final rentPrice = double.tryParse(
-                                              apartmentData[index]['Rent_Price'] ?? '0');
-
-                                          if (rentPrice == null) {
-                                            _showErrorSnackBar("Invalid rent price format");
-                                            return;
-                                          }
-
-                                          final success = await ApartmentManagementUpdate.updateApartment(
-                                            id: apartment['ID'],
-                                            propertyName: editedUser['PropertyName'] ?? apartment['PropertyName'],
-                                            propertyType: editedUser['PropertyType'] ?? apartment['PropertyType'],
-                                            rentPrice: rentPrice,
-                                            landmarks: apartment['Landmarks'],
-                                            allowedGender: apartment['Allowed_Gender'],
-                                            availability: apartment['Availability'],
-                                          );
-
-                                          if (success) {
-                                            _showSuccessSnackBar("Apartment updated successfully");
-                                            await _fetchApartments();
-                                          } else {
-                                            _showErrorSnackBar("Update failed. Check server logs.");
-                                          }
-                                        } catch (e) {
-                                          _showErrorSnackBar("Update error: ${e.toString()}");
-                                        } finally {
-                                          setState(() {
-                                            isLoading = false;
-                                            editingUserId = null;
-                                            editedUser = {};
-                                          });
-                                        }
-                                      }
-                                    },
-                                    icon: const Icon(Icons.save, size: 15),
-                                    label: const Text('Save'),
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 8),
-                                      backgroundColor: Colors.green,
-                                      foregroundColor: Colors.white,
-                                    ),
-                                  )
-                                      : TextButton.icon(
-                                    onPressed: () {
-                                      setState(() {
-                                        editingUserId = apartment['ID'];
-                                        editedUser =
-                                        Map<String, dynamic>.from(
-                                            apartment);
-                                      });
-                                    },
-                                    icon: const Icon(Icons.edit, size: 15),
-                                    label: const Text('Edit'),
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 8),
-                                      backgroundColor:
-                                      const Color(0xFF4F768E),
-                                      foregroundColor: Colors.white,
-                                    ),
-                                  ),
-                                  if (isEditing)
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.cancel,
-                                            color: Colors.red),
-                                        onPressed: () {
-                                          setState(() {
-                                            editingUserId = null;
-                                            editedUser = {};
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  if (!isEditing)
-                                    Padding(
-                                      padding:
-                                      const EdgeInsets.only(left: 13.0),
-                                      child: IconButton(
-                                        icon: Image.asset(
-                                            'assets/images/white_delete.png',
-                                            width: 30,
-                                            height: 30),
-                                        onPressed: () {
-                                          _showDeleteConfirmationDialog(
-                                              apartment['ID']);
-                                        },
-                                      ),
-                                    ),
-                                  if (!isEditing)
-                                    IconButton(
-                                      icon: Image.asset(
-                                          'assets/images/more_options.png',
-                                          width: 55,
-                                          height: 55),
-                                      onPressed: () =>
-                                          _showUserDetailsDialog(apartment),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]);
-                    }).toList(),
+                          ],
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
@@ -842,6 +850,14 @@ class _PropertiesManagementScreenState
           ),
         );
       },
+    );
+  }
+
+  ButtonStyle _buttonStyle(Color color) {
+    return TextButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      backgroundColor: color,
+      foregroundColor: Colors.white,
     );
   }
 
@@ -1390,9 +1406,7 @@ class _PropertiesManagementScreenState
                                   // Show server-provided messages
                                   if (result.message.isNotEmpty) {
                                     _showRejectTopSnackBar(result.message);
-                                    //_showSuccessSnackBar(result.message);
-                                  } else {
-                                    _showSuccessSnackBar("Apartment rejected successfully");
+                                    _showSuccessRejectSnackBar("Apartment rejected successfully");
                                   }
                                 } else {
                                   _showErrorSnackBar(result.message.isNotEmpty

@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
 
 class Sidebar extends StatefulWidget {
   final String currentRoute;
-  final Function(String) onNavigation;
   final BuildContext parentContext;
-  final VoidCallback? onLogout;// log out call back for main_screen
+  final VoidCallback? onLogout;
 
   const Sidebar({
     Key? key,
     required this.currentRoute,
-    required this.onNavigation,
     required this.parentContext,
-    this.onLogout, // Initialize the callback
+    this.onLogout,
   }) : super(key: key);
 
   @override
@@ -21,15 +20,12 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
-  // Hover states
   bool isHoveredDashboard = false;
   bool isHoveredUsers = false;
   bool isHoveredProperties = false;
   bool isHoveredAnalytics = false;
   bool isHoveredSettings = false;
   bool isHoveredLogout = false;
-
-  // Dropdown state
   bool isUserDropdownExpanded = false;
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
@@ -43,7 +39,7 @@ class _SidebarState extends State<Sidebar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-       color: Color(0xFF4A758F), // Set the background to transparent
+      color: const Color(0xFF4A758F),
       child: Column(
         children: [
           Container(
@@ -51,7 +47,7 @@ class _SidebarState extends State<Sidebar> {
             child: Column(
               children: [
                 GestureDetector(
-                  onTap: () => widget.onNavigation('/dashboard'),
+                  onTap: () => context.go('/dashboard'),
                   child: Image.asset("assets/images/white_logo.png", height: 120),
                 )
               ],
@@ -76,7 +72,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Dashboard",
         isHovered: isHoveredDashboard,
         onHoverChange: (val) => setState(() => isHoveredDashboard = val),
-        onTap: () => widget.onNavigation('/dashboard'),
+        onTap: () => context.go('/dashboard'),
         isSelected: widget.currentRoute == '/dashboard',
       ),
       _buildUsersDropdown(),
@@ -85,7 +81,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Properties",
         isHovered: isHoveredProperties,
         onHoverChange: (val) => setState(() => isHoveredProperties = val),
-        onTap: () => widget.onNavigation('/properties-management'),
+        onTap: () => context.go('/properties-management'),
         isSelected: widget.currentRoute == '/properties-management',
       ),
       _buildSidebarTile(
@@ -93,7 +89,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Analytics",
         isHovered: isHoveredAnalytics,
         onHoverChange: (val) => setState(() => isHoveredAnalytics = val),
-        onTap: () => widget.onNavigation('/analytics'),
+        onTap: () => context.go('/analytics'),
         isSelected: widget.currentRoute == '/analytics',
       ),
       _buildSidebarTile(
@@ -101,7 +97,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Settings",
         isHovered: isHoveredSettings,
         onHoverChange: (val) => setState(() => isHoveredSettings = val),
-        onTap: () => widget.onNavigation('/settings'),
+        onTap: () => context.go('/settings'),
         isSelected: widget.currentRoute == '/settings',
       ),
       _buildSidebarTile(
@@ -109,7 +105,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Logout",
         isHovered: isHoveredLogout,
         onHoverChange: (val) => setState(() => isHoveredLogout = val),
-        onTap: _showLogoutDialog, // Call the logout dialog directly
+        onTap: _showLogoutDialog,
         isSelected: false,
       ),
     ];
@@ -117,16 +113,12 @@ class _SidebarState extends State<Sidebar> {
 
   Widget _buildUsersDropdown() {
     return MouseRegion(
-      onEnter: (_) {
-        if (!isDropdownLocked) {
-          setState(() => isUserDropdownExpanded = true);
-        }
-      },
-      onExit: (_) {
+      onEnter: (_) => setState(() => isUserDropdownExpanded = true),
+      onExit: (_) => setState(() {
         if (!isDropdownLocked && !shouldKeepDropdownOpen) {
-          setState(() => isUserDropdownExpanded = false);
+          isUserDropdownExpanded = false;
         }
-      },
+      }),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -205,7 +197,7 @@ class _SidebarState extends State<Sidebar> {
       }),
       child: GestureDetector(
         onTap: () {
-          widget.onNavigation(route);
+          context.go(route);
           setState(() {
             isUserDropdownExpanded = true;
             isDropdownLocked = true;
@@ -287,10 +279,10 @@ class _SidebarState extends State<Sidebar> {
   }
 
   void _showLogoutDialog() {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = Theme.of(widget.parentContext).brightness == Brightness.dark;
 
     showDialog(
-      context: context,
+      context: widget.parentContext,
       builder: (context) => Dialog(
         backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
         shape: RoundedRectangleBorder(
@@ -342,7 +334,10 @@ class _SidebarState extends State<Sidebar> {
                       onPressed: () async {
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.remove('authToken');
-                        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                        if (mounted) {
+                          Navigator.of(context).pop();
+                          GoRouter.of(context).go('/login');
+                        }
                       },
                       child: Text(
                         'Log Out',

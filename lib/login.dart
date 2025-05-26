@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:rentxpert_flutter_web/service/api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Main_Screen.dart';
 
 class Login extends StatefulWidget {
+  const Login({Key? key}) : super(key: key);
+
   @override
   _LoginState createState() => _LoginState();
 }
@@ -56,14 +58,10 @@ class _LoginState extends State<Login> {
         await prefs.setString('authToken', token);
         print('Token saved: $token');
 
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MainScreen(),
-            settings: const RouteSettings(name: '/dashboard'),
-          ),
-              (route) => false,
-        );
+        // Use go_router for navigation
+        if (mounted) {
+          context.go('/dashboard');
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -80,7 +78,9 @@ class _LoginState extends State<Login> {
         ),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -114,7 +114,9 @@ class _LoginState extends State<Login> {
         ),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -142,7 +144,10 @@ class _LoginState extends State<Login> {
                 ],
               ),
               child: Padding(
-                padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.25, left: 32.0, right: 32.9),
+                padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).size.height * 0.25,
+                    left: 32.0,
+                    right: 32.9),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -318,7 +323,6 @@ class _LoginState extends State<Login> {
           alignment: Alignment.centerRight,
           child: TextButton(
             onPressed: () {
-              print('Forgot Password clicked'); // Debug print
               setState(() {
                 _selectedIndex = 1;
                 _emailController.clear();
@@ -401,7 +405,7 @@ class _LoginState extends State<Login> {
               borderSide: BorderSide(color: Colors.grey, width: 1),
               borderRadius: BorderRadius.all(Radius.circular(15)),
             ),
-            focusedBorder: OutlineInputBorder(
+            focusedBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
             ),
           ),
@@ -438,7 +442,6 @@ class _LoginState extends State<Login> {
           alignment: Alignment.centerRight,
           child: TextButton(
             onPressed: () {
-              print('Back to Login clicked'); // Debug print
               setState(() {
                 _selectedIndex = 0;
                 _forgotEmailController.clear();

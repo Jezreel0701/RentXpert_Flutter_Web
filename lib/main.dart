@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:go_router/go_router.dart';
 import 'dart:html' as html;
 
 import 'theme_provider.dart';
@@ -13,7 +14,7 @@ import 'User_ManagementLandlord.dart';
 import 'Properties_Management.dart';
 import 'Analytics_Managenent.dart';
 import 'Settings_Screen.dart';
-import 'Routes.dart';
+import 'Sidebar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +25,6 @@ void main() async {
 
   runApp(
     ChangeNotifierProvider(
-      // Use the public initialize method instead of direct field access
       create: (context) => ThemeProvider()..initializeTheme(isDarkMode),
       child: AdminWeb(isLoggedIn: isLoggedIn),
     ),
@@ -33,13 +33,10 @@ void main() async {
 
 class AdminWeb extends StatelessWidget {
   final bool isLoggedIn;
+  final _rootNavigatorKey = GlobalKey<NavigatorState>();
+  final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-  const AdminWeb({super.key, required this.isLoggedIn});
-
-  Future<bool> _checkLogin() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('authToken') != null;
-  }
+    AdminWeb({super.key, required this.isLoggedIn});
 
   bool _isValidRoute(String route) {
     const validRoutes = {
@@ -63,19 +60,102 @@ class AdminWeb extends StatelessWidget {
     return isLoggedIn ? '/dashboard' : '/login';
   }
 
+  GoRouter _buildRouter(bool isLoggedIn) {
+    return GoRouter(
+      navigatorKey: _rootNavigatorKey,
+      initialLocation: _getInitialRoute(isLoggedIn),
+      routes: [
+        GoRoute(
+          path: '/login',
+          pageBuilder: (context, state) => MaterialPage(
+            key: state.pageKey,
+            child: Login(),
+          ),
+        ),
+        ShellRoute(
+          navigatorKey: _shellNavigatorKey,
+          builder: (context, state, child) {
+            return FutureBuilder<bool>(
+              future: _checkLogin(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                }
+                if (!snapshot.data!) return Login();
+                return ScaffoldWithSidebar(child: child);
+              },
+            );
+          },
+          routes: [
+            GoRoute(
+              path: '/dashboard',
+              pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: DashboardScreen(),
+              ),
+            ),
+            GoRoute(
+              path: '/users-tenant',
+              pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: UserManagementTenant(),
+              ),
+            ),
+            GoRoute(
+              path: '/users-landlord',
+              pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: UserManagementLandlord(),
+              ),
+            ),
+            GoRoute(
+              path: '/properties-management',
+              pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: PropertiesManagementScreen(),
+              ),
+            ),
+            GoRoute(
+              path: '/analytics',
+              pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: AnalyticsScreen(),
+              ),
+            ),
+            GoRoute(
+              path: '/settings',
+              pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: SettingsScreen(),
+              ),
+            ),
+          ],
+        ),
+      ],
+      redirect: (context, state) async {
+        final isLoggedIn = await _checkLogin();
+        final goingToLogin = state.matchedLocation == '/login';
+
+        if (!isLoggedIn && !goingToLogin) return '/login';
+        if (isLoggedIn && goingToLogin) return '/dashboard';
+        return null;
+      },
+      errorBuilder: (context, state) => Scaffold(
+        body: Center(child: Text('Route not found: ${state.matchedLocation}')),
+      ),
+    );
+  }
+
+  Future<bool> _checkLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('authToken') != null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
-    final initialRoute = _getInitialRoute(isLoggedIn);
-
-    if (kIsWeb && html.window.location.hash.isEmpty) {
-      html.window.location.replace(
-          '${html.window.location.origin}/#$initialRoute'
-      );
-    }
-
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Admin RentXpert',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -83,54 +163,58 @@ class AdminWeb extends StatelessWidget {
       ),
       darkTheme: ThemeData.dark(),
       themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      initialRoute: initialRoute,
-      routes: {
-        '/': (context) => MainScreen(),
-      },
-      onGenerateRoute: (settings) => _generateRoute(settings),
+      routerConfig: _buildRouter(isLoggedIn),
     );
   }
+}
 
-  Route<dynamic> _generateRoute(RouteSettings settings) {
-    final sidebarRoutes = {
-      '/dashboard': DashboardScreen(),
-      '/users-tenant': UserManagementTenant(),
-      '/users-landlord': UserManagementLandlord(),
-      '/properties-management': PropertiesManagementScreen(),
-      '/analytics': AnalyticsScreen(),
-      '/settings': SettingsScreen(),
-    };
+class ScaffoldWithSidebar extends StatelessWidget {
+  final Widget child;
 
-    return MaterialPageRoute(
-      builder: (context) => FutureBuilder<bool>(
-        future: _checkLogin(),
-        builder: (context, snapshot) {
-          final loggedIn = snapshot.data ?? false;
-          final isSidebarPage = sidebarRoutes.containsKey(settings.name);
+  const ScaffoldWithSidebar({super.key, required this.child});
 
-          if (!loggedIn) return Login();
+  @override
+  Widget build(BuildContext context) {
+    final currentRoute = GoRouterState.of(context).matchedLocation;
 
-          return _buildAuthenticatedUI(
-            isSidebarPage: isSidebarPage,
-            settings: settings,
-            sidebarRoutes: sidebarRoutes,
-          );
-        },
+    return Scaffold(
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            bool isMobile = constraints.maxWidth < 1000;
+
+            if (isMobile) {
+              return MainScreen();
+            } else {
+              return Row(
+                children: [
+                  Container(
+                    width: 220,
+                    color: const Color(0xFF4A758F),
+                    child: Sidebar(
+                      currentRoute: currentRoute,
+                      parentContext: context,
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      color: const Color(0xFFF5F5F5),
+                      child: child,
+                    ),
+                  ),
+                ],
+              );
+            }
+          },
+        ),
       ),
     );
   }
+}
 
-  Widget _buildAuthenticatedUI({
-    required bool isSidebarPage,
-    required RouteSettings settings,
-    required Map<String, Widget> sidebarRoutes,
-  }) {
-    if (isSidebarPage) {
-      return Routes(
-        initialRoute: settings.name ?? '/dashboard',
-        showSidebar: true,
-      );
-    }
-    return settings.name == '/' ? MainScreen() : Login();
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(ThemeProvider themeProvider) {
+    notifyListeners();
+    themeProvider.addListener(notifyListeners);
   }
 }

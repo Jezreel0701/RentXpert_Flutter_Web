@@ -25,7 +25,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
     'Email': 'email',
     'Address': 'address',
     'Phone Number': 'phone_number',
-    'Valid ID': 'valid_id',
     'Account Status': 'account_status',
     'User Type': 'user_type',
   };
@@ -922,10 +921,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                   alignment: Alignment.center,
                                   child: _infoRow("Address", user['address'], isDarkMode),
                                 ),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
-                                ),
                               ],
                             ),
                           ),
@@ -1022,10 +1017,6 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                             alignment: Alignment.center,
                                             child: _infoRow("Address", user['address'], isDarkMode),
                                           ),
-                                          Align(
-                                            alignment: Alignment.center,
-                                            child: _infoRow("Valid ID", user['valid_id'], isDarkMode),
-                                          ),
                                         ],
                                       ),
                                     ),
@@ -1073,7 +1064,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
                                           style: TextStyle(
                                             color: isDarkMode ? Colors.white : Color(0xFF4F768E),
                                             fontSize: 16,
-                                            fontWeight: FontWeight.w600,
+                                            fontWeight: FontWeight.bold,
                                             fontFamily: "Krub",
                                           ),
                                         ),
@@ -1416,21 +1407,19 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   //Approve Snackbar style
   void _showApproveTopSnackBar(String message) {
     final overlay = Overlay.of(context);
-    final screenSize = MediaQuery.of(context).size;
-    const double snackbarWidth = 300;
-    const double snackbarHeight = 80;
+    const double snackbarWidth = 300; // Define the snackbar width
+    const double snackbarHeight = 80; // Define the snackbar height
+    const double screenWidth = 1149; // Fixed screen width for centering
 
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50,  // Adjust the top value as per your needs
-        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
-        right: MediaQuery.of(context).size.width / 2 - 150,
+        top: 50, // Adjust the vertical position as needed
+        left: (screenWidth - snackbarWidth) / 2, // Center horizontally for 1149px screen
         child: Material(
           color: Colors.transparent,
           child: Container(
             width: snackbarWidth,
             height: snackbarHeight,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.green,
               borderRadius: BorderRadius.circular(10),
@@ -1438,7 +1427,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
             child: Center(
               child: Text(
                 message,
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -1447,13 +1436,8 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       ),
     );
 
-    // Insert the overlay
     overlay.insert(overlayEntry);
-
-    // Remove the overlay after 3 seconds
-    Future.delayed(Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
+    Future.delayed(const Duration(seconds: 3), () => overlayEntry.remove());
   }
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1475,21 +1459,19 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
   //Reject Snackbar style
   void _showRejectTopSnackBar(String message) {
     final overlay = Overlay.of(context);
-    final screenSize = MediaQuery.of(context).size;
-    const double snackbarWidth = 300;
-    const double snackbarHeight = 80;
+    const double snackbarWidth = 300; // Define the snackbar width
+    const double snackbarHeight = 80; // Define the snackbar height
+    const double screenWidth = 1149; // Fixed screen width for centering
 
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50,  // Adjust the top value as per your needs
-        left: MediaQuery.of(context).size.width / 2 - 150, // Center the snackbar
-        right: MediaQuery.of(context).size.width / 2 - 150,
+        top: 50, // Adjust the vertical position as needed
+        left: ((screenWidth - snackbarWidth) / 2) - 50, // Move 50px to the left
         child: Material(
           color: Colors.transparent,
           child: Container(
             width: snackbarWidth,
             height: snackbarHeight,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.red,
               borderRadius: BorderRadius.circular(10),
@@ -1497,7 +1479,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
             child: Center(
               child: Text(
                 message,
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -1506,14 +1488,10 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
       ),
     );
 
-    // Insert the overlay
     overlay.insert(overlayEntry);
-
-    // Remove the overlay after 3 seconds
-    Future.delayed(Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
+    Future.delayed(const Duration(seconds: 3), () => overlayEntry.remove());
   }
+
 // Updated _infoRow with dark mode support
   Widget _infoRow(String label, String? value, bool isDarkMode) {
     return Padding(
