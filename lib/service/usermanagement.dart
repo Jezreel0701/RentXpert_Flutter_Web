@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:rentxpert_flutter_web/config/config.dart'; // Your baseUrl config
+import 'package:rentxpert_flutter_web/config/config.dart';
+
+import 'Firebase/chat_notification_service.dart'; // Your baseUrl config
 
 
 class UserManagementUpdate {  // PascalCase for class name
@@ -292,6 +294,10 @@ class UserManagementStatus {
           print('- Profile ID: ${responseData['data']['profile_id']}');
           print('- Verified At: ${responseData['data']['verified_at']}');
         }
+
+        // Send push notification upon successful verification
+        await _sendLandlordVerificationNotification(uid);
+
         return true;
       } catch (e) {
         if (debug) print('🔴 Failed to parse successful response: $e');
@@ -300,6 +306,35 @@ class UserManagementStatus {
     } catch (e) {
       if (debug) print('🔴 Network Exception: ${e.runtimeType}');
       return false;
+    }
+  }
+
+  /// Helper function to send landlord verification notification
+  static Future<void> _sendLandlordVerificationNotification(String uid) async {
+    try {
+      if (debug) print('🟡 Attempting to send verification notification to user: $uid');
+
+      // Get the user's FCM token
+      final fcmToken = await ChatNotificationService.getFcmToken(uid);
+
+      if (fcmToken != null) {
+        if (debug) print('🟡 FCM token found, sending notification...');
+
+        // Send push notification
+        await ChatNotificationService.sendPushNotification(
+          fcmToken: fcmToken,
+          title: "Landlord Account Verified",
+          body: "Congratulations! Your landlord account has been approved by the admin.",
+          senderId: "7u0V9wkBo4WjyrftIepetNsH3Yg1", // or use admin ID if available
+        );
+
+        if (debug) print('🟢 Successfully sent verification notification');
+      } else {
+        if (debug) print('🟠 No FCM token found for user, skipping notification');
+      }
+    } catch (e) {
+      if (debug) print('🔴 Error sending verification notification: $e');
+      // Notification failure shouldn't fail the whole operation
     }
   }
 }

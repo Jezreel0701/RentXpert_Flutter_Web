@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:rentxpert_flutter_web/service/api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'auth/auth_provider.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -13,7 +15,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
-  int _selectedIndex = 0; // 0 for login, 1 for forgot password
+  int _selectedIndex = 0;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _forgotEmailController = TextEditingController();
@@ -21,104 +23,92 @@ class _LoginState extends State<Login> {
   final FocusNode _passwordFocusNode = FocusNode();
   final FocusNode _forgotEmailFocusNode = FocusNode();
 
+  final AuthService _authService = AuthService();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_selectedIndex == 0) {
-        FocusScope.of(context).requestFocus(_emailFocusNode);
-      } else {
-        FocusScope.of(context).requestFocus(_forgotEmailFocusNode);
-      }
+      FocusScope.of(context).requestFocus(
+        _selectedIndex == 0 ? _emailFocusNode : _forgotEmailFocusNode,
+      );
     });
+    _initializeFirebase();
+  }
+
+  Future<void> _initializeFirebase() async {
+    await AuthService.initialize();
   }
 
   Future<void> _handleLogin() async {
-    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email and password cannot be empty'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showSnackBar('Email and password cannot be empty');
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final response = await AdminAuthService.loginAdmin(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      final result = await _authService.signInWithEmailPassword(email, password);
 
-      if (response['success'] == true) {
-        final token = response['data']['token'];
+      if (result['success'] == true) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('authToken', token);
-        print('Token saved: $token');
-
-        // Use go_router for navigation
-        if (mounted) {
-          context.go('/dashboard');
-        }
+        await prefs.setString('authToken', result['token']!);
+        if (mounted) context.go('/dashboard');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message'] ?? 'Login failed'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showSnackBar(result['message'] ?? 'Login failed');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar('Error: ${e.toString()}');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showSnackBar(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
   }
 
   Future<void> _handleSendCode() async {
-    if (_forgotEmailController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your Gmail address'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    final email = _forgotEmailController.text.trim();
+
+    if (email.isEmpty) {
+      _showSnackBar('Please enter your email address');
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      // Placeholder for API call to send verification code
-      // Example: await AdminAuthService.sendResetCode(_forgotEmailController.text.trim());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Verification code sent to your email'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Send password reset email using Firebase Auth
+      await _authService.sendPasswordResetEmail(email);
+
+      _showSnackBar('Password reset email sent to $email', isError: false);
+
+      // Optionally switch back to login form after successful send
+      setState(() {
+        _selectedIndex = 0;
+        _forgotEmailController.clear();
+      });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar('Failed to send reset email: ${e.toString()}');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
