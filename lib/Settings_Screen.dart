@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:rentxpert_flutter_web/service/Firebase/Firebase_appNotification_model.dart';
+import 'package:rentxpert_flutter_web/service/Firebase/chat_notification_service.dart';
+import 'package:rentxpert_flutter_web/service/Firebase/firebase_service.dart';
 import 'package:rentxpert_flutter_web/service/api.dart';
 import 'package:provider/provider.dart';
+import 'package:rentxpert_flutter_web/service/profileservice.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'theme_provider.dart';
+import 'package:intl/intl.dart';
+  import 'package:cached_network_image/cached_network_image.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -14,13 +22,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
-
+  final ProfileService profileService = ProfileService();
   void _showSaveTopSnackBar(String message, {bool isError = false}) {
     final overlay = Overlay.of(context);
     final color = isError ? Colors.red : Colors.green;
     final screenSize = MediaQuery.of(context).size;
     const double snackbarWidth = 800;
     const double snackbarHeight = 80;
+
+
 
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -93,6 +103,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _showSaveTopSnackBar(e.toString(), isError: true);
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+  Future<bool> isImageAccessible(String url) async {
+    try {
+      final response = await http.head(Uri.parse(url));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -177,6 +195,158 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  //Notification page
+  Widget _buildNotificationPage() {
+    return StreamBuilder<List<AppNotificationFirebase>>(
+      stream: NotificationRepository.getUserNotifications(FirebaseService.auth.currentUser?.uid ?? ''),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error loading notifications.'));
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final notifications = snapshot.data ?? [];
+
+        if (notifications.isEmpty) {
+          return const Center(child: Text('No notifications yet.'));
+        }
+
+        return ListView.builder(
+          itemCount: notifications.length,
+          itemBuilder: (context, index) {
+            final notification = notifications[index];
+            return _buildNotificationItem(notification);
+          },
+        );
+      },
+    );
+  }
+  Widget _buildNotificationItem(AppNotificationFirebase notification) {
+    final senderId = notification.senderId ?? '';
+    final bool isUnread = notification.status != 'read';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isUnread ? Colors.blue[100] : Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: FutureBuilder<List<dynamic>>(
+        future: Future.wait([
+          profileService.getUserProfilePhotoByUid(senderId),
+
+        ]),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Errors: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final photoUrl = snapshot.data?[0];
+          print(photoUrl);
+
+          // Only make unread notifications tappable
+          return isUnread
+              ? GestureDetector(
+            onTap: () {
+              NotificationRepository.markAsRead(notification.id);
+            },
+            child: _buildNotificationContent(
+              notification,
+              photoUrl,
+              isUnread,
+            ),
+          )
+              : _buildNotificationContent(
+            notification,
+            photoUrl,
+            isUnread,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNotificationContent(
+      AppNotificationFirebase notification,
+      String? photoUrl,
+      bool isUnread,
+      ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 36,
+            backgroundColor: Colors.grey[200],
+            child: (photoUrl != null && photoUrl.isNotEmpty)
+                ? ClipOval(
+              child: CachedNetworkImage(
+                imageUrl: photoUrl,
+                placeholder: (context, url) => CircularProgressIndicator(),
+                errorWidget: (context, url, error) {
+                  print("Failed to load image: $error");
+                  return Icon(Icons.person);
+                },
+                httpHeaders: {
+                  "User-Agent": "RentXpert-App/1.0",
+                },
+                width: 72,
+                height: 72,
+                fit: BoxFit.cover,
+              ),
+            )
+                : Icon(Icons.person, size: 36),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+              Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  DateFormat('MMM dd, yyyy').format(notification.timestamp),
+                  style: const TextStyle(fontSize: 11),
+                )],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  notification.title ?? 'New message',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  notification.body ?? 'You have a new message',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  timeago.format(notification.timestamp),
+                  style: const TextStyle(fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -403,139 +573,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
 
-  //Notification page
-  Widget _buildNotificationPage() {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
 
-    // Sample notification data
-    final notifications = [
-      {
-        'title': 'New Message',
-        'message': 'You received a new message from John Doe.',
-        'timestamp': '2h ago',
-        'isRead': true,
-      },
-      {
-        'title': 'Payment Received',
-        'message': 'Your payment of \$500 has been processed.',
-        'timestamp': '5h ago',
-        'isRead': false,
-      },
-      {
-        'title': 'System Update',
-        'message': 'RentXpert system will undergo maintenance tonight.',
-        'timestamp': '1d ago',
-        'isRead': false,
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Notifications",
-          style: TextStyle(
-            color: isDarkMode ? Colors.white : const Color(0xFF4B6C81),
-            fontFamily: "Krub",
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const Divider(thickness: 1),
-        const SizedBox(height: 16),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: notifications.map((notification) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: isDarkMode
-                          ? Colors.grey[800]
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isDarkMode ? Colors.grey[600]! : Colors.grey[300]!,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDarkMode
-                              ? Colors.black54
-                              : Colors.black12,
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          margin: const EdgeInsets.only(top: 5, right: 10),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: notification['isRead'] as bool
-                                ? Colors.grey
-                                : const Color(0xFF4A758F),
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                notification['title'] as String,
-                                style: TextStyle(
-                                  fontFamily: "Krub",
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDarkMode
-                                      ? Colors.white
-                                      : Colors.black87,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                notification['message'] as String,
-                                style: TextStyle(
-                                  fontFamily: "Krub",
-                                  fontSize: 14,
-                                  color: isDarkMode
-                                      ? Colors.grey[300]
-                                      : Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                notification['timestamp'] as String,
-                                style: TextStyle(
-                                  fontFamily: "Krub",
-                                  fontSize: 12,
-                                  color: isDarkMode
-                                      ? Colors.grey[400]
-                                      : Colors.grey[500],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   @override
   void dispose() {
