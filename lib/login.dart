@@ -73,7 +73,8 @@ class _LoginState extends State<Login> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
+          content: Text('Error: Check your IP/internet connection'),
+          // content: Text('Error: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );

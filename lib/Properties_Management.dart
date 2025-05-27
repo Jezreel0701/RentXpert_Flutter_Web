@@ -414,9 +414,17 @@ class _PropertiesManagementScreenState
                     });
                     _fetchApartments();
                   },
-                  style: _filterButtonStyle(
-                    isDarkMode ? Colors.green[700]! : const Color(0xFF9AD47F),
-                    Colors.white,
+                  // style: _filterButtonStyle(
+                  //     isDarkMode ? Colors.green[700]! : const Color(0xFF9AD47F),
+                  //   Colors.white,
+                  // ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 17),
+                    backgroundColor: Colors.green[700],
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                   ),
                   child: const Text('Apply filters', style: _filterTextStyle),
                 ),
@@ -710,7 +718,7 @@ class _PropertiesManagementScreenState
                                   ? TextFormField(
                                 initialValue: editedUser['PropertyName'] ?? apartment['PropertyName'] ?? '',
                                 onChanged: (value) => editedUser['PropertyName'] = value,
-                                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14),
                               )
                                   : Center(
                                 child: Text(
@@ -720,20 +728,58 @@ class _PropertiesManagementScreenState
                               ),
                             )),
                             DataCell(SizedBox(
-                              width: columnWidth,
+                              width: 150, // Constrain the width of the dropdown
                               child: isEditing
-                                  ? TextFormField(
-                                initialValue: editedUser['PropertyType'] ?? apartment['PropertyType'] ?? '',
-                                onChanged: (value) => editedUser['PropertyType'] = value,
-                                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                                  ? DropdownButtonFormField<String>(
+                                      value: editedUser['PropertyType'] ?? apartment['PropertyType'] ?? '',
+                                      items: const [
+                                        DropdownMenuItem(
+                                          value: 'BoardingHouse',
+                                          child: Center(child: Text('Boarding House')), // Center the text
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'Condo',
+                                          child: Center(child: Text('Condo')), // Center the text
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'Apartment',
+                                          child: Center(child: Text('Apartment')), // Center the text
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'Transient',
+                                          child: Center(child: Text('Transient')), // Center the text
+                                        ),
+                                      ],
+                                      onChanged: (value) {
+                                        if (value != null) {
+                                          setState(() {
+                                            editedUser['PropertyType'] = value;
+                                          });
+                                        }
+                                      },
+                                      decoration: InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                                      ),
+                                      style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                                      dropdownColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                      isExpanded: true, // Ensures the dropdown takes full width
+                                      alignment: Alignment.center, // Centers the icon
+                                      icon: Icon(
+                                        Icons.arrow_drop_down,
+                                        color: isDarkMode ? Colors.white : Colors.black,
+                                      ),
+                                      iconSize: 24,
+
                               )
                                   : Center(
-                                child: Text(
-                                  apartment['PropertyType'] ?? '',
-                                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-                                ),
-                              ),
+                                      child: Text(
+                                        apartment['PropertyType'] ?? '',
+                                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                                      ),
+                                    ),
                             )),
+
                             DataCell(SizedBox(
                               width: columnWidth,
                               child: Center(

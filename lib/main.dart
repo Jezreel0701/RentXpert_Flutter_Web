@@ -15,6 +15,7 @@ import 'Properties_Management.dart';
 import 'Analytics_Managenent.dart';
 import 'Settings_Screen.dart';
 import 'Sidebar.dart';
+import 'PageNotfound.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -140,9 +141,7 @@ class AdminWeb extends StatelessWidget {
         if (isLoggedIn && goingToLogin) return '/dashboard';
         return null;
       },
-      errorBuilder: (context, state) => Scaffold(
-        body: Center(child: Text('Route not found: ${state.matchedLocation}')),
-      ),
+      errorBuilder: (context, state) => PageNotFoundScreen(),
     );
   }
 
@@ -153,17 +152,19 @@ class AdminWeb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return MaterialApp.router(
-      title: 'Admin RentXpert',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Krub-Regular',
-      ),
-      darkTheme: ThemeData.dark(),
-      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      routerConfig: _buildRouter(isLoggedIn),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp.router(
+          title: 'Admin RentXpert',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            fontFamily: 'Krub-Regular',
+          ),
+          darkTheme: ThemeData.dark(),
+          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          routerConfig: _buildRouter(isLoggedIn),
+        );
+      },
     );
   }
 }
