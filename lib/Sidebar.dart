@@ -52,9 +52,9 @@ class _SidebarState extends State<Sidebar> {
         return false;
       }
 
-      // Optional: Add backend token verification
-      // bool isValid = await _authService.verifyToken(token);
-      // return isValid && user != null;
+// Optional: Add backend token verification
+// bool isValid = await _authService.verifyToken(token);
+// return isValid && user != null;
       return true;
     } catch (e) {
       print('Token verification error: $e');
@@ -71,6 +71,17 @@ class _SidebarState extends State<Sidebar> {
       GoRouter.of(widget.parentContext).go('/login');
       return;
     }
+
+// Update dropdown state based on the route
+    setState(() {
+      if (route != '/users-tenant' && route != '/users-landlord') {
+        isUserDropdownExpanded = false; // Close dropdown for non-users routes
+        isDropdownLocked = false; // Unlock dropdown
+      } else {
+        isUserDropdownExpanded = true; // Keep dropdown open for users routes
+        isDropdownLocked = true; // Lock dropdown open
+      }
+    });
 
     if (route == '/dashboard' && widget.onWebRefresh != null) {
       widget.onWebRefresh!(); // Trigger dashboard refresh
@@ -90,7 +101,8 @@ class _SidebarState extends State<Sidebar> {
               children: [
                 GestureDetector(
                   onTap: () => _navigateWithTokenCheck('/dashboard'),
-                  child: Image.asset("assets/images/white_logo.png", height: 120),
+                  child:
+                      Image.asset("assets/images/white_logo.png", height: 120),
                 )
               ],
             ),
@@ -155,10 +167,13 @@ class _SidebarState extends State<Sidebar> {
 
   Widget _buildUsersDropdown() {
     return MouseRegion(
-      onEnter: (_) => setState(() => isUserDropdownExpanded = true),
+      onEnter: (_) => setState(() {
+        isUserDropdownExpanded = true; // Open dropdown on hover
+      }),
       onExit: (_) => setState(() {
         if (!isDropdownLocked && !shouldKeepDropdownOpen) {
-          isUserDropdownExpanded = false;
+          isUserDropdownExpanded =
+              false; // Close dropdown on exit unless locked or active
         }
       }),
       child: Column(
@@ -177,7 +192,9 @@ class _SidebarState extends State<Sidebar> {
                       height: 20,
                       child: Image.asset(
                         "assets/images/user.png",
-                        color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
+                        color: isHoveredUsers
+                            ? const Color(0xFFF9E9B6)
+                            : Colors.white,
                       ),
                     ),
                   ),
@@ -186,7 +203,9 @@ class _SidebarState extends State<Sidebar> {
                     child: Text(
                       "Users Management",
                       style: TextStyle(
-                        color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
+                        color: isHoveredUsers
+                            ? const Color(0xFFF9E9B6)
+                            : Colors.white,
                         fontWeight: FontWeight.w300,
                         fontSize: 13,
                       ),
@@ -197,11 +216,18 @@ class _SidebarState extends State<Sidebar> {
                         ? Icons.keyboard_arrow_down
                         : Icons.arrow_forward_ios,
                     size: 12,
-                    color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
+                    color:
+                        isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
                   ),
                 ],
               ),
             ),
+            onTap: () {
+              setState(() {
+                isUserDropdownExpanded = true; // Open dropdown on click
+                isDropdownLocked = true; // Lock dropdown open
+              });
+            },
           ),
           if (isUserDropdownExpanded || shouldKeepDropdownOpen)
             Padding(
@@ -213,8 +239,8 @@ class _SidebarState extends State<Sidebar> {
                 ],
               ),
             ),
-          Center(
-            child: const SizedBox(
+          const Center(
+            child: SizedBox(
               width: 220,
               child: Divider(color: Colors.white, thickness: 1),
             ),
@@ -226,7 +252,8 @@ class _SidebarState extends State<Sidebar> {
 
   Widget _buildDropdownItem(String title, String route) {
     bool isActive = widget.currentRoute == route;
-    bool isHovered = route == '/users-tenant' ? isHoveredTenant : isHoveredLandlord;
+    bool isHovered =
+        route == '/users-tenant' ? isHoveredTenant : isHoveredLandlord;
 
     return MouseRegion(
       onEnter: (_) => setState(() {
@@ -239,14 +266,14 @@ class _SidebarState extends State<Sidebar> {
       }),
       child: GestureDetector(
         onTap: () {
-          _navigateWithTokenCheck(route);
           setState(() {
-            isUserDropdownExpanded = true;
-            isDropdownLocked = true;
+            isUserDropdownExpanded = true; // Keep dropdown open
+            isDropdownLocked = true; // Lock dropdown
           });
+          _navigateWithTokenCheck(route); // Navigate to the route
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           alignment: Alignment.centerLeft,
           child: Text(
             title,
@@ -255,6 +282,7 @@ class _SidebarState extends State<Sidebar> {
                   ? const Color(0xFFF9E9B6)
                   : Colors.white70,
               fontSize: 12,
+              fontWeight: isActive ? FontWeight.w500 : FontWeight.w400,
             ),
           ),
         ),
@@ -287,7 +315,9 @@ class _SidebarState extends State<Sidebar> {
                       height: 20,
                       child: Image.asset(
                         iconPath,
-                        color: isHovered || isSelected ? const Color(0xFFF9E9B6) : Colors.white,
+                        color: isHovered || isSelected
+                            ? const Color(0xFFF9E9B6)
+                            : Colors.white,
                       ),
                     ),
                   ),
@@ -296,7 +326,9 @@ class _SidebarState extends State<Sidebar> {
                     child: Text(
                       title,
                       style: TextStyle(
-                        color: isHovered || isSelected ? const Color(0xFFF9E9B6) : Colors.white,
+                        color: isHovered || isSelected
+                            ? const Color(0xFFF9E9B6)
+                            : Colors.white,
                         fontWeight: FontWeight.w300,
                         fontSize: 13,
                       ),
@@ -305,7 +337,9 @@ class _SidebarState extends State<Sidebar> {
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 12,
-                    color: isHovered || isSelected ? const Color(0xFFF9E9B6) : Colors.white,
+                    color: isHovered || isSelected
+                        ? const Color(0xFFF9E9B6)
+                        : Colors.white,
                   ),
                 ],
               ),
@@ -321,7 +355,8 @@ class _SidebarState extends State<Sidebar> {
   }
 
   void _showLogoutDialog() {
-    final isDarkMode = Theme.of(widget.parentContext).brightness == Brightness.dark;
+    final isDarkMode =
+        Theme.of(widget.parentContext).brightness == Brightness.dark;
 
     showDialog(
       context: widget.parentContext,
@@ -356,12 +391,15 @@ class _SidebarState extends State<Sidebar> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         elevation: 4,
-                        backgroundColor: isDarkMode ? Colors.grey[700] : const Color(0xFF4A758F),
+                        backgroundColor: isDarkMode
+                            ? Colors.grey[700]
+                            : const Color(0xFF4A758F),
                       ),
                       onPressed: () => Navigator.of(context).pop(),
                       child: Text(
                         'Cancel',
-                        style: TextStyle(color: isDarkMode ? Colors.black : Colors.white),
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.black : Colors.white),
                       ),
                     ),
                   ),
@@ -371,7 +409,9 @@ class _SidebarState extends State<Sidebar> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         elevation: 4,
-                        backgroundColor: isDarkMode ? Colors.red[400] : const Color(0xFFDE5959),
+                        backgroundColor: isDarkMode
+                            ? Colors.red[400]
+                            : const Color(0xFFDE5959),
                       ),
                       onPressed: () async {
                         await FirebaseAuth.instance.signOut();
@@ -384,7 +424,8 @@ class _SidebarState extends State<Sidebar> {
                       },
                       child: Text(
                         'Log Out',
-                        style: TextStyle(color: isDarkMode ? Colors.black : Colors.white),
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.black : Colors.white),
                       ),
                     ),
                   ),
