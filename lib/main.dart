@@ -87,16 +87,7 @@ class AdminWeb extends StatelessWidget {
         ShellRoute(
           navigatorKey: _shellNavigatorKey,
           builder: (context, state, child) {
-            return FutureBuilder<bool>(
-              future: _checkLogin(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
-                }
-                if (!snapshot.data!) return Login();
-                return ScaffoldWithSidebar(child: child);
-              },
-            );
+            return ScaffoldWithSidebar(child: child);
           },
           routes: [
             GoRoute(
@@ -145,7 +136,9 @@ class AdminWeb extends StatelessWidget {
         ),
       ],
       redirect: (context, state) async {
-        final isLoggedIn = await _checkLogin();
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('authToken');
+        final isLoggedIn = token != null;
         final goingToLogin = state.matchedLocation == '/login';
 
         if (!isLoggedIn && !goingToLogin) return '/login';
@@ -161,21 +154,60 @@ class AdminWeb extends StatelessWidget {
     return prefs.getString('authToken') != null;
   }
 
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return AnimatedBuilder(
+      animation: Provider.of<ThemeProvider>(context),
+      builder: (context, _) {
         return MaterialApp.router(
           title: 'Admin RentXpert',
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            fontFamily: 'Krub-Regular',
-          ),
-          darkTheme: ThemeData.dark(),
-          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          theme: _buildLightTheme(),
+          darkTheme: _buildDarkTheme(),
+          themeMode: Provider.of<ThemeProvider>(context).isDarkMode
+              ? ThemeMode.dark
+              : ThemeMode.light,
           routerConfig: _buildRouter(isLoggedIn),
+          builder: (context, child) {
+            return AnimatedTheme(
+              data: Theme.of(context),
+              duration: const Duration(milliseconds: 200),
+              child: child!,
+            );
+          },
         );
       },
+    );
+  }
+
+  ThemeData _buildLightTheme() {
+    return ThemeData(
+      fontFamily: 'Krub-Regular',
+      scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+      // [Add other light theme properties]
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    return ThemeData.dark().copyWith(
+      colorScheme: ColorScheme.dark(
+        primary: const Color(0xFF4A758F),
+        secondary: Colors.tealAccent[200]!,
+        surface: const Color(0xFF121212),
+        background: const Color(0xFF1E1E1E),
+      ),
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.grey[900]!,
+        elevation: 0,
+        titleTextStyle: const TextStyle(
+          fontFamily: 'Krub-Regular',
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      // [Other dark theme properties]
     );
   }
 }
@@ -188,6 +220,7 @@ class ScaffoldWithSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentRoute = GoRouterState.of(context).matchedLocation;
+    final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
 
     return Scaffold(
       body: SafeArea(
@@ -196,7 +229,7 @@ class ScaffoldWithSidebar extends StatelessWidget {
             bool isMobile = constraints.maxWidth < 1000;
 
             if (isMobile) {
-              return MainScreen();
+              return const MainScreen();
             } else {
               return Row(
                 children: [
@@ -210,7 +243,9 @@ class ScaffoldWithSidebar extends StatelessWidget {
                   ),
                   Expanded(
                     child: Container(
-                      color: const Color(0xFFF5F5F5),
+                      color: isDarkMode
+                          ? const Color(0xFF121212)
+                          : const Color(0xFFF5F5F5),
                       child: child,
                     ),
                   ),
@@ -221,12 +256,5 @@ class ScaffoldWithSidebar extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(ThemeProvider themeProvider) {
-    notifyListeners();
-    themeProvider.addListener(notifyListeners);
   }
 }

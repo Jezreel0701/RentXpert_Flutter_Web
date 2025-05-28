@@ -9,13 +9,27 @@ import 'Analytics_Managenent.dart';
 import 'Settings_Screen.dart';
 import 'Sidebar.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 
   @override
+  _MainScreenState createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  VoidCallback? _refreshWebCallback;
+
+  void _setRefreshCallback(VoidCallback callback) {
+    _refreshWebCallback = callback;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isLargeScreen = MediaQuery.of(context).size.width > 800;
+
     return Scaffold(
-      appBar: AppBar(
+      appBar: !isLargeScreen
+          ? AppBar(
         backgroundColor: const Color(0xFF4A758F),
         leading: Builder(
           builder: (context) => IconButton(
@@ -23,14 +37,33 @@ class MainScreen extends StatelessWidget {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-      ),
-      drawer: Drawer(
+      )
+          : null,
+      drawer: !isLargeScreen
+          ? Drawer(
         child: Sidebar(
           currentRoute: GoRouterState.of(context).matchedLocation,
           parentContext: context,
+          onWebRefresh: _refreshWebCallback,
         ),
+      )
+          : null,
+      body: Row(
+        children: [
+          if (isLargeScreen)
+            SizedBox(
+              width: 250, // Fixed width for the sidebar
+              child: Sidebar(
+                currentRoute: GoRouterState.of(context).matchedLocation,
+                parentContext: context,
+                onWebRefresh: _refreshWebCallback,
+              ),
+            ),
+          Expanded(
+            child: _getCurrentContent(context),
+          ),
+        ],
       ),
-      body: _getCurrentContent(context),
     );
   }
 
@@ -39,19 +72,19 @@ class MainScreen extends StatelessWidget {
 
     switch (route) {
       case '/dashboard':
-        return  DashboardScreen();
+        return DashboardScreen();
       case '/users-tenant':
-        return  UserManagementTenant();
+        return UserManagementTenant();
       case '/users-landlord':
-        return  UserManagementLandlord();
+        return UserManagementLandlord();
       case '/properties-management':
-        return  PropertiesManagementScreen();
+        return PropertiesManagementScreen();
       case '/analytics':
-        return  AnalyticsScreen();
+        return AnalyticsScreen();
       case '/settings':
-        return  SettingsScreen();
+        return SettingsScreen();
       default:
-        return  DashboardScreen();
+        return DashboardScreen();
     }
   }
 }

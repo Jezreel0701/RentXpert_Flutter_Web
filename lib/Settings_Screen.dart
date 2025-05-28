@@ -1,26 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:rentxpert_flutter_web/service/Firebase/Firebase_appNotification_model.dart';
+import 'package:rentxpert_flutter_web/service/Firebase/chat_notification_service.dart';
+import 'package:rentxpert_flutter_web/service/Firebase/firebase_service.dart';
 import 'package:rentxpert_flutter_web/service/api.dart';
 import 'package:provider/provider.dart';
+import 'package:rentxpert_flutter_web/service/profileservice.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'theme_provider.dart';
+import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({Key? key}) : super(key: key);
+
   @override
-  _SettingsScreenState createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _selectedPage = 'Account';
-  String _hoveredPage = '';
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  final ProfileService profileService = ProfileService();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   void _showSaveTopSnackBar(String message, {bool isError = false}) {
     final overlay = Overlay.of(context);
     final color = isError ? Colors.red : Colors.green;
-    final screenSize = MediaQuery.of(context).size;
-    const double snackbarWidth = 800;
-    const double snackbarHeight = 80;
 
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -116,58 +130,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 fontFamily: "Inter",
                 color: isDarkMode ? Colors.white : const Color(0xFF4F768E),
                 fontWeight: FontWeight.w600,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(height: 16),
             Expanded(
               child: Row(
                 children: [
-                  // Sidebar
-                  Container(
-                    height: 900,
-                    width: screenWidth * 0.18,
-                    margin: const EdgeInsets.only(right: 30),
-                    decoration: BoxDecoration(
-                      color: isDarkMode ? Colors.grey[800] : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 50.0),
-                            child: _buildSidebarTile("Account", Icons.verified_user),
-                          ),
-                          _buildSidebarTile("Notifications", Icons.notifications_active),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Main Content: Account
+                  _buildSidebar(isDarkMode, screenWidth),
+                  const SizedBox(width: 30),
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        double containerWidth = constraints.maxWidth > 900 ? 800 : constraints.maxWidth * 5;
-                        return Align(
-                          alignment: Alignment.topCenter,
-                          child: Container(
-                            width: containerWidth,
-                            constraints: BoxConstraints(
-                                minHeight: 350,
-                                maxHeight: MediaQuery.of(context).size.height * 5),
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: isDarkMode ? Colors.grey[800] : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
-                            ),
-                            child: _selectedPage == 'Account'
-                                ? _buildAccountPage()
-                                : _buildNotificationPage(),
+                        return Container(
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height,
                           ),
+                          decoration: BoxDecoration(
+                            color: isDarkMode ? Colors.grey[800] : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black26, blurRadius: 10)
+                            ],
+                          ),
+                          child: _selectedPage == 'Account'
+                              ? _buildAccountPage(themeProvider)
+                              : _buildNotificationPage(themeProvider),
                         );
                       },
                     ),
@@ -181,16 +168,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSidebarTile(String title, IconData icon) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    bool isSelected = _selectedPage == title;
-    bool isHovered = _hoveredPage == title;
-    double screenWidth = MediaQuery.of(context).size.width;
-    final isDarkMode = themeProvider.isDarkMode;
+  Widget _buildSidebar(bool isDarkMode, double screenWidth) {
+    return Container(
+      width: screenWidth * 0.18,
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.grey[800] : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+      ),
+      child: ListView(
+        padding: const EdgeInsets.only(top: 50),
+        children: [
+          _buildSidebarTile("Account", Icons.verified_user, isDarkMode, screenWidth),
+          _buildSidebarTile("Notifications", Icons.notifications_active, isDarkMode, screenWidth),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildSidebarTile(String title, IconData icon, bool isDarkMode, double screenWidth) {
+    final isSelected = _selectedPage == title;
     return MouseRegion(
-      onEnter: (_) => setState(() => _hoveredPage = title),
-      onExit: (_) => setState(() => _hoveredPage = ''),
       child: GestureDetector(
         onTap: () => setState(() => _selectedPage = title),
         child: Container(
@@ -198,26 +196,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
             color: isSelected
-                ? isDarkMode ? Colors.grey[700] : Color(0xFFD7E4ED)
-                : isHovered
-                ? isDarkMode ? Colors.grey[700] : Color(0xFFD7E4ED)
+                ? (isDarkMode ? Colors.grey[700] : const Color(0xFFD7E4ED))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Icon(icon, color: isDarkMode ? Colors.white : Colors.black87),
+              Icon(icon, color: isDarkMode ? const Color(0xFF4F768E) : Colors.black87),
               if (screenWidth > 600) const SizedBox(width: 10),
               if (screenWidth > 1100)
-                Flexible(
-                  child: Text(
-                    title,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : Colors.black,
-                    ),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
             ],
@@ -227,309 +220,128 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-
-  //Profile page
-  // Inside _buildAccountPage
-  Widget _buildAccountPage() {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+  Widget _buildAccountPage(ThemeProvider themeProvider) {
     final isDarkMode = themeProvider.isDarkMode;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Account",
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white : Color(0xFF4B6C81),
-                  fontFamily: "Krub",
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Divider(thickness: 1),
-              const SizedBox(height: 8),
-              Center(
-                child: Text(
-                  "My Profile",
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : Color(0xFF4B6C81),
-                    fontFamily: "Krub",
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(
-                      radius: 35,
-                      backgroundImage: AssetImage('assets/images/admin_icon.png'),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              SwitchListTile(
-                title: Text(
-                  'Dark Mode',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                value: isDarkMode,
-                onChanged: (bool value) {
-                  themeProvider.toggleTheme();
-                },
-              ),
-              const SizedBox(height: 20),
-              // Email and Password fields stacked vertically
-             Row(
-               crossAxisAlignment: CrossAxisAlignment.start,
-               children: [
-                 Expanded(
-                   child: _responsiveInput(
-                     "Email",
-                     controller: _emailController,
-                   ),
-                 ),
-                 const SizedBox(width: 16), // Add spacing between the fields
-                 Expanded(
-                   child: _responsiveInput(
-                     "Password",
-                     controller: _passwordController,
-                     obscureText: true,
-                     showVisibilityToggle: true,
-                   ),
-                 ),
-               ],
-             ),
-              const SizedBox(height: 20),
-              const Divider(thickness: 1),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.only(left: 24.0),
-                child: SizedBox(
-                  width: 170,
-                  height: 43,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveAccount,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF4A758F),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text(
-                      "Save",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontFamily: "Krub",
-                        fontWeight: FontWeight.w300,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Account",
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : const Color(0xFF4B6C81),
+              fontFamily: "Krub",
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          const Divider(
+            thickness: 1,
+            indent: 20, // Space on the left
+            endIndent: 20, // Space on the right
+          ),
+          const SizedBox(height: 8),
+          const Center(
+            child: Text(
+              "My Profile",
+              style: TextStyle(
+                fontFamily: "Krub",
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircleAvatar(
+                  radius: 35,
+                  backgroundImage: AssetImage('assets/images/admin_icon.png'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildThemeToggle(themeProvider),
+          const SizedBox(height: 20),
+          _buildAccountForm(isDarkMode),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeToggle(ThemeProvider themeProvider) {
+    return Selector<ThemeProvider, bool>(
+      selector: (_, provider) => provider.isDarkMode,
+      builder: (context, isDarkMode, child) {
+        return SwitchListTile(
+          title: const Text('Dark Mode'),
+          value: Provider.of<ThemeProvider>(context).isDarkMode,
+          onChanged: (value) async {
+            await Future.delayed(const Duration(milliseconds: 50));
+            Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+          },
         );
       },
     );
   }
 
-// Modified _responsiveInput
-  Widget _responsiveInput(
-      String label, {
-        required TextEditingController controller,
-        bool obscureText = false,
-        bool showVisibilityToggle = false,
-      }) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-    bool _obscureText = obscureText; // Local state for password visibility
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 25.0),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * 1 / 4,
-        child: StatefulBuilder(
-          builder: (context, setState) {
-            return TextField(
-              controller: controller,
-              obscureText: _obscureText,
-              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF4A758F), width: 2),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1),
-                  borderRadius: BorderRadius.all(Radius.circular(15)),
-                ),
-                labelText: label,
-                labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : Color(0xFF848484)),
-                fillColor: isDarkMode ? Colors.grey[700] : Colors.white,
-                filled: true,
-                suffixIcon: showVisibilityToggle
-                    ? IconButton(
-                  icon: Icon(
-                    _obscureText ? Icons.visibility_off : Icons.visibility,
-                    color: isDarkMode ? Colors.grey[400] : Colors.grey,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscureText = !_obscureText;
-                    });
-                  },
-                )
-                    : null,
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-
-  //Notification page
-  Widget _buildNotificationPage() {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-
-    // Sample notification data
-    final notifications = [
-      {
-        'title': 'New Message',
-        'message': 'You received a new message from John Doe.',
-        'timestamp': '2h ago',
-        'isRead': true,
-      },
-      {
-        'title': 'Payment Received',
-        'message': 'Your payment of \$500 has been processed.',
-        'timestamp': '5h ago',
-        'isRead': false,
-      },
-      {
-        'title': 'System Update',
-        'message': 'RentXpert system will undergo maintenance tonight.',
-        'timestamp': '1d ago',
-        'isRead': false,
-      },
-    ];
-
+  Widget _buildAccountForm(bool isDarkMode) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Notifications",
-          style: TextStyle(
-            color: isDarkMode ? Colors.white : const Color(0xFF4B6C81),
-            fontFamily: "Krub",
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildInputField(
+                "Email",
+                controller: _emailController,
+                isDarkMode: isDarkMode,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildInputField(
+                "Password",
+                controller: _passwordController,
+                isDarkMode: isDarkMode,
+                obscureText: true,
+                showVisibilityToggle: true,
+              ),
+            ),
+          ],
         ),
+        const SizedBox(height: 20),
         const Divider(thickness: 1),
-        const SizedBox(height: 16),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: notifications.map((notification) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: isDarkMode
-                          ? Colors.grey[800]
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isDarkMode ? Colors.grey[600]! : Colors.grey[300]!,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDarkMode
-                              ? Colors.black54
-                              : Colors.black12,
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          margin: const EdgeInsets.only(top: 5, right: 10),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: notification['isRead'] as bool
-                                ? Colors.grey
-                                : const Color(0xFF4A758F),
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                notification['title'] as String,
-                                style: TextStyle(
-                                  fontFamily: "Krub",
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDarkMode
-                                      ? Colors.white
-                                      : Colors.black87,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                notification['message'] as String,
-                                style: TextStyle(
-                                  fontFamily: "Krub",
-                                  fontSize: 14,
-                                  color: isDarkMode
-                                      ? Colors.grey[300]
-                                      : Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                notification['timestamp'] as String,
-                                style: TextStyle(
-                                  fontFamily: "Krub",
-                                  fontSize: 12,
-                                  color: isDarkMode
-                                      ? Colors.grey[400]
-                                      : Colors.grey[500],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 24.0),
+          child: SizedBox(
+            width: 170,
+            height: 43,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _saveAccount,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4A758F),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
+                "Save",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: "Krub",
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ),
@@ -537,10 +349,211 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  Widget _buildInputField(
+      String label, {
+        required TextEditingController controller,
+        required bool isDarkMode,
+        bool obscureText = false,
+        bool showVisibilityToggle = false,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 25.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.25,
+        child: TextField(
+          controller: controller,
+          obscureText: obscureText,
+          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+          decoration: InputDecoration(
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Color(0xFF4A758F), width: 2),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey, width: 1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            labelText: label,
+            labelStyle: TextStyle(
+                color: isDarkMode ? Colors.grey[400] : const Color(0xFF848484)),
+            fillColor: isDarkMode ? Colors.grey[700] : Colors.white,
+            filled: true,
+            suffixIcon: showVisibilityToggle
+                ? IconButton(
+              icon: Icon(
+                obscureText ? Icons.visibility_off : Icons.visibility,
+                color: isDarkMode ? Colors.grey[400] : Colors.grey,
+              ),
+              onPressed: () {
+                setState(() {
+                  obscureText = !obscureText;
+                });
+              },
+            )
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationPage(ThemeProvider themeProvider) {
+    final isDarkMode = themeProvider.isDarkMode;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            "Notifications",
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : const Color(0xFF4B6C81),
+              fontFamily: "Krub",
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const Divider(
+          thickness: 1,
+          indent: 20, // Space on the left
+          endIndent: 20, // Space on the right
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: StreamBuilder<List<AppNotificationFirebase>>(
+            stream: NotificationRepository.getUserNotifications(
+                FirebaseService.auth.currentUser?.uid ?? ''),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return const Center(
+                  child: Text(
+                    'Error loading notifications.',
+                    style: TextStyle(fontSize: 20, fontFamily: "Krub"),
+                  ),
+                );
+              }
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final notifications = snapshot.data ?? [];
+
+              if (notifications.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No notifications yet.',
+                    style: TextStyle(fontSize: 20, fontFamily: "Krub"),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                itemCount: notifications.length,
+                itemBuilder: (context, index) {
+                  return _buildNotificationItem(notifications[index], isDarkMode);
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  //Notification content
+  Widget _buildNotificationItem(AppNotificationFirebase notification, bool isDarkMode) {
+    final isUnread = notification.status != 'read';
+
+    return FutureBuilder<String?>(
+      future: profileService.getUserProfilePhotoByUid(notification.senderId ?? ''),
+      builder: (context, snapshot) {
+        return Container(
+          decoration: BoxDecoration(
+            color: isUnread
+                ? (isDarkMode ? Colors.blueGrey[700] : Colors.blue[100])
+                : (isDarkMode ? Colors.grey[800] : Colors.white),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+          child: InkWell(
+            onTap: isUnread
+                ? () => NotificationRepository.markAsRead(notification.id)
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: isDarkMode ? Colors.grey[700] : Colors.grey[200],
+                    child: snapshot.hasData && snapshot.data!.isNotEmpty
+                        ? ClipOval(
+                      child: CachedNetworkImage(
+                        imageUrl: snapshot.data!,
+                        placeholder: (context, url) =>
+                        const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                        const Icon(Icons.person),
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                        : Icon(
+                      Icons.person,
+                      size: 24,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          DateFormat('MMM dd, yyyy').format(notification.timestamp),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDarkMode ? Colors.grey[400] : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          notification.title ?? 'New message',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          notification.body ?? 'You have a new message',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDarkMode ? Colors.grey[400] : Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          timeago.format(notification.timestamp),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDarkMode ? Colors.grey[400] : Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

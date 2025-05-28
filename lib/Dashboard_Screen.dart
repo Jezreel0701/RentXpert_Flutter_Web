@@ -142,6 +142,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.all(25.0),
               child: Align(
                 alignment: Alignment.centerLeft,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -392,6 +394,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   ],
                 ),
+              ),
               ),
             ),
           ],

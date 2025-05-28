@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'auth/auth_provider.dart'; // Import AuthService
 
 class Sidebar extends StatefulWidget {
   final String currentRoute;
   final BuildContext parentContext;
   final VoidCallback? onLogout;
+  final VoidCallback? onWebRefresh; // Callback to refresh dashboard
 
   const Sidebar({
     Key? key,
     required this.currentRoute,
     required this.parentContext,
     this.onLogout,
+    this.onWebRefresh,
   }) : super(key: key);
 
   @override
@@ -29,10 +33,49 @@ class _SidebarState extends State<Sidebar> {
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
   bool isDropdownLocked = false;
+  final AuthService _authService = AuthService();
 
   bool get shouldKeepDropdownOpen {
     return widget.currentRoute == '/users-tenant' ||
         widget.currentRoute == '/users-landlord';
+  }
+
+  Future<bool> _verifyToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+      if (token == null) return false;
+
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        await prefs.remove('authToken');
+        return false;
+      }
+
+      // Optional: Add backend token verification
+      // bool isValid = await _authService.verifyToken(token);
+      // return isValid && user != null;
+      return true;
+    } catch (e) {
+      print('Token verification error: $e');
+      ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+        SnackBar(content: Text('Session verification failed: $e')),
+      );
+      return false;
+    }
+  }
+
+  Future<void> _navigateWithTokenCheck(String route) async {
+    bool isValid = await _verifyToken();
+    if (!isValid) {
+      GoRouter.of(widget.parentContext).go('/login');
+      return;
+    }
+
+    if (route == '/dashboard' && widget.onWebRefresh != null) {
+      widget.onWebRefresh!(); // Trigger dashboard refresh
+    }
+    GoRouter.of(widget.parentContext).go(route);
   }
 
   @override
@@ -46,7 +89,7 @@ class _SidebarState extends State<Sidebar> {
             child: Column(
               children: [
                 GestureDetector(
-                  onTap: () => context.go('/dashboard'),
+                  onTap: () => _navigateWithTokenCheck('/dashboard'),
                   child: Image.asset("assets/images/white_logo.png", height: 120),
                 )
               ],
@@ -71,7 +114,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Dashboard",
         isHovered: isHoveredDashboard,
         onHoverChange: (val) => setState(() => isHoveredDashboard = val),
-        onTap: () => context.go('/dashboard'),
+        onTap: () => _navigateWithTokenCheck('/dashboard'),
         isSelected: widget.currentRoute == '/dashboard',
       ),
       _buildUsersDropdown(),
@@ -80,7 +123,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Properties",
         isHovered: isHoveredProperties,
         onHoverChange: (val) => setState(() => isHoveredProperties = val),
-        onTap: () => context.go('/properties-management'),
+        onTap: () => _navigateWithTokenCheck('/properties-management'),
         isSelected: widget.currentRoute == '/properties-management',
       ),
       _buildSidebarTile(
@@ -88,7 +131,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Analytics",
         isHovered: isHoveredAnalytics,
         onHoverChange: (val) => setState(() => isHoveredAnalytics = val),
-        onTap: () => context.go('/analytics'),
+        onTap: () => _navigateWithTokenCheck('/analytics'),
         isSelected: widget.currentRoute == '/analytics',
       ),
       _buildSidebarTile(
@@ -96,7 +139,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Settings",
         isHovered: isHoveredSettings,
         onHoverChange: (val) => setState(() => isHoveredSettings = val),
-        onTap: () => context.go('/settings'),
+        onTap: () => _navigateWithTokenCheck('/settings'),
         isSelected: widget.currentRoute == '/settings',
       ),
       _buildSidebarTile(
@@ -196,7 +239,7 @@ class _SidebarState extends State<Sidebar> {
       }),
       child: GestureDetector(
         onTap: () {
-          context.go(route);
+          _navigateWithTokenCheck(route);
           setState(() {
             isUserDropdownExpanded = true;
             isDropdownLocked = true;
@@ -331,6 +374,7 @@ class _SidebarState extends State<Sidebar> {
                         backgroundColor: isDarkMode ? Colors.red[400] : const Color(0xFFDE5959),
                       ),
                       onPressed: () async {
+                        await FirebaseAuth.instance.signOut();
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.remove('authToken');
                         if (mounted) {
