@@ -33,6 +33,7 @@ class _SidebarState extends State<Sidebar> {
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
   bool isDropdownLocked = false;
+  bool isHoveredTransactions = false;
   final AuthService _authService = AuthService();
 
   bool get shouldKeepDropdownOpen {
@@ -126,7 +127,7 @@ class _SidebarState extends State<Sidebar> {
         title: "Dashboard",
         isHovered: isHoveredDashboard,
         onHoverChange: (val) => setState(() => isHoveredDashboard = val),
-        onTap: () => _navigateWithTokenCheck('/dashboard'),
+        onTap: () => context.go('/dashboard'),
         isSelected: widget.currentRoute == '/dashboard',
       ),
       _buildUsersDropdown(),
@@ -145,6 +146,15 @@ class _SidebarState extends State<Sidebar> {
         onHoverChange: (val) => setState(() => isHoveredAnalytics = val),
         onTap: () => _navigateWithTokenCheck('/analytics'),
         isSelected: widget.currentRoute == '/analytics',
+      ),
+      // Add this new transaction item
+      _buildSidebarTile(
+        iconPath: "",
+        title: "Transactions",
+        isHovered: isHoveredTransactions,
+        onHoverChange: (val) => setState(() => isHoveredTransactions = val),
+        onTap: () => context.go('/transactions'),
+        isSelected: widget.currentRoute == '/transactions',
       ),
       _buildSidebarTile(
         iconPath: "assets/images/settings.png",
@@ -167,13 +177,10 @@ class _SidebarState extends State<Sidebar> {
 
   Widget _buildUsersDropdown() {
     return MouseRegion(
-      onEnter: (_) => setState(() {
-        isUserDropdownExpanded = true; // Open dropdown on hover
-      }),
+      onEnter: (_) => setState(() => isUserDropdownExpanded = true),
       onExit: (_) => setState(() {
         if (!isDropdownLocked && !shouldKeepDropdownOpen) {
-          isUserDropdownExpanded =
-              false; // Close dropdown on exit unless locked or active
+          isUserDropdownExpanded = false;
         }
       }),
       child: Column(
@@ -216,8 +223,7 @@ class _SidebarState extends State<Sidebar> {
                         ? Icons.keyboard_arrow_down
                         : Icons.arrow_forward_ios,
                     size: 12,
-                    color:
-                        isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
+                    color: isHoveredUsers ? const Color(0xFFF9E9B6) : Colors.white,
                   ),
                 ],
               ),

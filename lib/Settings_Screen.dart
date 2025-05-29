@@ -12,7 +12,6 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class SettingsScreen extends StatefulWidget {
-
   const SettingsScreen({Key? key}) : super(key: key);
 
   @override
@@ -21,15 +20,18 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _selectedPage = 'Account';
-  final TextEditingController _changePasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   final ProfileService profileService = ProfileService();
+  ValueNotifier<bool> isHoveredAccount = ValueNotifier(false);
+  ValueNotifier<bool> isHoveredNotification = ValueNotifier(false);
+
 
   @override
   void dispose() {
-    _changePasswordController.dispose();
-    _confirmPasswordController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -66,17 +68,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Future.delayed(const Duration(seconds: 3), () => overlayEntry.remove());
   }
 
-  bool _validateInputs(String changePassword, String confirmPassword) {
-    final passwordValid = changePassword.length >= 8;
-    final passwordsMatch = changePassword == confirmPassword;
+  bool _validateInputs(String email, String password) {
+    final emailValid = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+    final passwordValid = password.length >= 8;
 
-    if (!passwordValid) {
-      _showSaveTopSnackBar("Password must be at least 8 characters", isError: true);
+    if (!emailValid) {
+      _showSaveTopSnackBar("Please enter a valid email", isError: true);
       return false;
     }
 
-    if (!passwordsMatch) {
-      _showSaveTopSnackBar("Passwords do not match", isError: true);
+    if (!passwordValid) {
+      _showSaveTopSnackBar("Password must be at least 8 characters", isError: true);
       return false;
     }
 
@@ -84,25 +86,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _saveAccount() async {
-    final newPassword = _changePasswordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
+    final newEmail = _emailController.text.trim();
+    final newPassword = _passwordController.text.trim();
 
-    if (!_validateInputs(newPassword, confirmPassword)) return;
+    if (!_validateInputs(newEmail, newPassword)) return;
 
     setState(() => _isLoading = true);
 
     try {
       final success = await AdminApiService.updateAdminCredentials(
+        newEmail: newEmail,
         newPassword: newPassword,
-        confirmPassword: confirmPassword,
       );
 
       if (success) {
-        _showSaveTopSnackBar("Password successfully changed!");
-        _changePasswordController.clear();
-        _confirmPasswordController.clear();
+        _showSaveTopSnackBar("Account successfully saved!");
+        _emailController.clear();
+        _passwordController.clear();
       } else {
-        _showSaveTopSnackBar("Failed to update password", isError: true);
+        _showSaveTopSnackBar("Failed to update credentials", isError: true);
       }
     } catch (e) {
       _showSaveTopSnackBar(e.toString(), isError: true);
@@ -188,34 +190,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildSidebarTile(String title, IconData icon, bool isDarkMode, double screenWidth) {
-    final isSelected = _selectedPage == title;
+    final isHovered = title == 'Account' ? isHoveredAccount : isHoveredNotification;
+
     return MouseRegion(
+      onEnter: (_) => isHovered.value = true,
+      onExit: (_) => isHovered.value = false,
       child: GestureDetector(
         onTap: () => setState(() => _selectedPage = title),
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? (isDarkMode ? Colors.grey[700] : const Color(0xFFD7E4ED))
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Icon(icon, color: isDarkMode ? const Color(0xFF4F768E) : Colors.black87),
-              if (screenWidth > 600) const SizedBox(width: 10),
-              if (screenWidth > 1100)
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-            ],
-          ),
+        child: ValueListenableBuilder<bool>(
+          valueListenable: isHovered,
+          builder: (context, isHovered, child) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: _selectedPage == title
+                    ? (isDarkMode ? Colors.grey[700] : const Color(0xFFD7E4ED))
+                    : isHovered
+                        ? (isDarkMode ? Colors.grey[800] : const Color(0xFFE8F0F8))
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(icon, color: isDarkMode ? const Color(0xFF4F768E) : Colors.black87),
+                  if (screenWidth > 600) const SizedBox(width: 10),
+                  if (screenWidth > 1100)
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -293,34 +305,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildAccountForm(bool isDarkMode) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
-        const Text(
-          "Change admin password",
-          style: TextStyle(
-            fontFamily: "Krub",
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+          Center(
+            child: Text(
+              "Change Password",
+              style: TextStyle(
+                fontSize: 14,
+                fontFamily: "Krub",
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
+
+        const SizedBox(height: 20), // Add spacing between the text and the email field
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: _buildInputField(
-                "Change Password",
-                controller: _changePasswordController,
+                "Email",
+                controller: _emailController,
                 isDarkMode: isDarkMode,
-                obscureText: true,
-                showVisibilityToggle: true,
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: _buildInputField(
-                "Confirm Password",
-                controller: _confirmPasswordController,
+                "Password",
+                controller: _passwordController,
                 isDarkMode: isDarkMode,
                 obscureText: true,
                 showVisibilityToggle: true,
@@ -409,93 +423,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-
-  //Notification page
   Widget _buildNotificationPage(ThemeProvider themeProvider) {
     final isDarkMode = themeProvider.isDarkMode;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 1, // Matches full height of _buildAccountPage
-            maxWidth: MediaQuery.of(context).size.width * 0.8, // Matches approximate content width
-          ),
-          decoration: BoxDecoration(
-            color: isDarkMode ? Colors.grey[800] : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(color: Colors.black26, blurRadius: 10),
-            ],
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    "Notifications",
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.white : const Color(0xFF4B6C81),
-                      fontFamily: "Krub",
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const Divider(
-                  thickness: 1,
-                  indent: 20,
-                  endIndent: 20,
-                ),
-                const SizedBox(height: 8),
-                StreamBuilder<List<AppNotificationFirebase>>(
-                  stream: NotificationRepository.getUserNotifications(
-                      FirebaseService.auth.currentUser?.uid ?? ''),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return const Center(
-                        child: Text(
-                          'Error loading notifications.',
-                          style: TextStyle(fontSize: 20, fontFamily: "Krub"),
-                        ),
-                      );
-                    }
-
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    final notifications = snapshot.data ?? [];
-
-                    if (notifications.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No notifications yet.',
-                          style: TextStyle(fontSize: 20, fontFamily: "Krub"),
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: notifications.length,
-                      itemBuilder: (context, index) {
-                        return _buildNotificationItem(notifications[index], isDarkMode);
-                      },
-                    );
-                  },
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            "Notifications",
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : const Color(0xFF4B6C81),
+              fontFamily: "Krub",
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        );
-      },
+        ),
+        const Divider(
+          thickness: 1,
+          indent: 20, // Space on the left
+          endIndent: 20, // Space on the right
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: StreamBuilder<List<AppNotificationFirebase>>(
+            stream: NotificationRepository.getUserNotifications(
+                FirebaseService.auth.currentUser?.uid ?? ''),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return const Center(
+                  child: Text(
+                    'Error loading notifications.',
+                    style: TextStyle(fontSize: 20, fontFamily: "Krub"),
+                  ),
+                );
+              }
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final notifications = snapshot.data ?? [];
+
+              if (notifications.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No notifications yet.',
+                    style: TextStyle(fontSize: 20, fontFamily: "Krub"),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                itemCount: notifications.length,
+                itemBuilder: (context, index) {
+                  return _buildNotificationItem(notifications[index], isDarkMode);
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
+  //Notification content
   Widget _buildNotificationItem(AppNotificationFirebase notification, bool isDarkMode) {
     final isUnread = notification.status != 'read';
 
@@ -514,77 +508,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: isUnread
                 ? () => NotificationRepository.markAsRead(notification.id)
                 : null,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: isDarkMode ? Colors.grey[700] : Colors.grey[200],
-                      child: snapshot.hasData && snapshot.data!.isNotEmpty
-                          ? ClipOval(
-                              child: CachedNetworkImage(
-                                imageUrl: snapshot.data!,
-                                placeholder: (context, url) =>
-                                    const CircularProgressIndicator(),
-                                errorWidget: (context, url, error) =>
-                                    const Icon(Icons.person),
-                                width: 48,
-                                height: 48,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Icon(
-                              Icons.person,
-                              size: 24,
-                              color: isDarkMode ? Colors.white : Colors.black,
-                            ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            DateFormat('MMM dd, yyyy').format(notification.timestamp),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDarkMode ? Colors.grey[400] : Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            notification.title ?? 'New message',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: isDarkMode ? Colors.white : Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            notification.body ?? 'You have a new message',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDarkMode ? Colors.grey[400] : Colors.black54,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            timeago.format(notification.timestamp),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDarkMode ? Colors.grey[400] : Colors.black,
-                            ),
-                          ),
-                        ],
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: isDarkMode ? Colors.grey[700] : Colors.grey[200],
+                    child: snapshot.hasData && snapshot.data!.isNotEmpty
+                        ? ClipOval(
+                      child: CachedNetworkImage(
+                        imageUrl: snapshot.data!,
+                        placeholder: (context, url) =>
+                        const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                        const Icon(Icons.person),
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
                       ),
+                    )
+                        : Icon(
+                      Icons.person,
+                      size: 24,
+                      color: isDarkMode ? Colors.white : Colors.black,
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          DateFormat('MMM dd, yyyy').format(notification.timestamp),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDarkMode ? Colors.grey[400] : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          notification.title ?? 'New message',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          notification.body ?? 'You have a new message',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDarkMode ? Colors.grey[400] : Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          timeago.format(notification.timestamp),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDarkMode ? Colors.grey[400] : Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
