@@ -315,7 +315,7 @@ class UserManagementStatus {
       if (debug) print('🟡 Attempting to send verification notification to user: $uid');
 
       // Get the user's FCM token
-      final fcmToken = await ChatNotificationService.getFcmToken(uid);
+      final fcmToken = await ChatNotificationService.getFcmToken("7u0V9wkBo4WjyrftIepetNsH3Yg1");
 
       if (fcmToken != null) {
         if (debug) print('🟡 FCM token found, sending notification...');

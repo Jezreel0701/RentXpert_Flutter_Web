@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentxpert_flutter_web/transacaction_history.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:go_router/go_router.dart';
@@ -139,6 +140,10 @@ class AdminWeb extends StatelessWidget {
                 key: state.pageKey,
                 child: SettingsScreen(),
               ),
+            ),
+            GoRoute(
+              path: '/transactions',
+              builder: (context, state) => const TransactionHistoryPage(),
             ),
           ],
         ),

@@ -30,6 +30,7 @@ class _SidebarState extends State<Sidebar> {
   bool isHoveredTenant = false;
   bool isHoveredLandlord = false;
   bool isDropdownLocked = false;
+  bool isHoveredTransactions = false;
 
   bool get shouldKeepDropdownOpen {
     return widget.currentRoute == '/users-tenant' ||
@@ -91,6 +92,15 @@ class _SidebarState extends State<Sidebar> {
         onHoverChange: (val) => setState(() => isHoveredAnalytics = val),
         onTap: () => context.go('/analytics'),
         isSelected: widget.currentRoute == '/analytics',
+      ),
+      // Add this new transaction item
+      _buildSidebarTile(
+        iconPath: "",
+        title: "Transactions",
+        isHovered: isHoveredTransactions,
+        onHoverChange: (val) => setState(() => isHoveredTransactions = val),
+        onTap: () => context.go('/transactions'),
+        isSelected: widget.currentRoute == '/transactions',
       ),
       _buildSidebarTile(
         iconPath: "assets/images/settings.png",
