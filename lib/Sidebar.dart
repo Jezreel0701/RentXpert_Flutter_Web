@@ -148,14 +148,14 @@ class _SidebarState extends State<Sidebar> {
         isSelected: widget.currentRoute == '/analytics',
       ),
       // Add this new transaction item
-      _buildSidebarTile(
-        iconPath: "",
-        title: "Transactions",
-        isHovered: isHoveredTransactions,
-        onHoverChange: (val) => setState(() => isHoveredTransactions = val),
-        onTap: () => context.go('/transactions'),
-        isSelected: widget.currentRoute == '/transactions',
-      ),
+      // _buildSidebarTile(
+      //   iconPath: "assets/images/transactions.png",
+      //   title: "Transactions",
+      //   isHovered: isHoveredTransactions,
+      //   onHoverChange: (val) => setState(() => isHoveredTransactions = val),
+      //   onTap: () => _navigateWithTokenCheck('/transactions'),
+      //   isSelected: widget.currentRoute == '/transactions',
+      // ),
       _buildSidebarTile(
         iconPath: "assets/images/settings.png",
         title: "Settings",

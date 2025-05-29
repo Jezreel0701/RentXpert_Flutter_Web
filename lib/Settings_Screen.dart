@@ -311,7 +311,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               "Change Password",
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 16,
                 fontFamily: "Krub",
                 fontWeight: FontWeight.bold,
                 color: isDarkMode ? Colors.white : Colors.black,

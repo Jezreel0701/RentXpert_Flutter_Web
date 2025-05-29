@@ -91,6 +91,7 @@ flutter:
     - assets/images/bank.png
     - assets/images/delete.png
     - assets/images/white_delete.png
+    - assets/images/transactions.png
     - assets/images/more_options.png
     - assets/images/filter_icon.png
     - assets/images/back_image.png
