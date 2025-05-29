@@ -796,7 +796,7 @@ class _UserManagementScreenState extends State<UserManagementTenant> {
               ? TextFormField(
             initialValue: editedUser[field] ?? user[field],
             onChanged: (value) => editedUser[field] = value,
-            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black,  fontSize: 14),
           )
               : Center(child: Text(user[field]?.toString() ?? '', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black))),
         )

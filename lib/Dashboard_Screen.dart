@@ -310,77 +310,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                           return Padding(
                             padding: const EdgeInsets.only(left: 16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  width: chartSize * 0.9,
-                                  height: chartSize * 0.9,
-                                  child: PieChart(
-                                    PieChartData(
-                                      sections: [
-                                        PieChartSectionData(
-                                          value: apartmentCount?.toDouble() ?? 0,
-                                          color: Color(0xFF69769F),
-                                          radius: chartSize * 0.38,
-                                          title: '${apartmentCount ?? 0}',
-                                          titleStyle: TextStyle(
-                                            fontFamily: "Inter",
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: chartSize * 0.9,
+                                    height: chartSize * 0.9,
+                                    child: PieChart(
+                                      PieChartData(
+                                        sections: [
+                                          PieChartSectionData(
+                                            value: apartmentCount?.toDouble() ?? 0,
+                                            color: Color(0xFF69769F),
+                                            radius: chartSize * 0.38,
+                                            title: '${apartmentCount ?? 0}',
+                                            titleStyle: TextStyle(
+                                              fontFamily: "Inter",
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
                                           ),
-                                        ),
-                                        PieChartSectionData(
-                                          value: pendingApartmentCount?.toDouble() ?? 0,
-                                          color: Color(0xFF393F4C),
-                                          radius: chartSize * 0.40,
-                                          title: '${pendingApartmentCount ?? 0}',
-                                          titleStyle: TextStyle(
-                                            fontFamily: "Inter",
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                          PieChartSectionData(
+                                            value: pendingApartmentCount?.toDouble() ?? 0,
+                                            color: Color(0xFF393F4C),
+                                            radius: chartSize * 0.40,
+                                            title: '${pendingApartmentCount ?? 0}',
+                                            titleStyle: TextStyle(
+                                              fontFamily: "Inter",
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                      sectionsSpace: 2,
-                                      centerSpaceRadius: chartSize * 0.1,
+                                        ],
+                                        sectionsSpace: 2,
+                                        centerSpaceRadius: chartSize * 0.1,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                if (!isSmallScreen) ...[
-                                  SizedBox(width: 32), // space between pie and legend
-                                  Container(
-                                    padding: EdgeInsets.only(left: 16),
-                                    width: screenWidth * 0.15,
-                                    height: screenHeight * 0.45,
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(Icons.circle, color: Color(0xFF69769F), size: 12),
-                                            SizedBox(width: 8),
-                                            Text("Approved Rents",
-                                                style: TextStyle(fontSize: 14, color: chartTextColor)),
-                                          ],
-                                        ),
-                                        SizedBox(height: 10),
-                                        Row(
-                                          children: [
-                                            Icon(Icons.circle, color: Color(0xFF393F4C), size: 12),
-                                            SizedBox(width: 8),
-                                            Text("Pending Rents",
-                                                style: TextStyle(fontSize: 14, color: chartTextColor)),
-                                          ],
-                                        ),
-                                      ],
+                                  if (!isSmallScreen) ...[
+                                    SizedBox(width: 32), // space between pie and legend
+                                    Container(
+                                      padding: EdgeInsets.only(left: 16),
+                                      width: screenWidth * 0.15,
+                                      height: screenHeight * 0.45,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(Icons.circle, color: Color(0xFF69769F), size: 12),
+                                              SizedBox(width: 8),
+                                              Text("Approved Rents",
+                                                  style: TextStyle(fontSize: 14, color: chartTextColor, overflow: TextOverflow.ellipsis)),
+                                            ],
+                                          ),
+                                          SizedBox(height: 10),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.circle, color: Color(0xFF393F4C), size: 12),
+                                              SizedBox(width: 8),
+                                              Text("Pending Rents",
+                                                  style: TextStyle(fontSize: 14, color: chartTextColor, overflow: TextOverflow.ellipsis)),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           );
                         },
